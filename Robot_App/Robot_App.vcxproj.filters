@@ -70,6 +70,15 @@
     <Filter Include="业务层\轮对质检">
       <UniqueIdentifier>{48202731-1757-469c-954e-acab9f7970dd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="通讯层\ModeBusRTU">
+      <UniqueIdentifier>{4ed8d9f8-b027-4ca3-b0e2-8f234e487fd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="业务层\语音报警">
+      <UniqueIdentifier>{9cb610d7-8e0c-4bcf-9c56-5acca501bd14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="业务层\远程IO">
+      <UniqueIdentifier>{762597e0-b81d-4619-b998-0b3cab27a9ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Fr_Light.cpp">
@@ -92,9 +101,6 @@
     </ClCompile>
     <ClCompile Include="Robot_Client.cpp">
       <Filter>通讯层\SocketClient</Filter>
-    </ClCompile>
-    <ClCompile Include="CGXi_Remote.cpp">
-      <Filter>业务层\长广溪机械臂控制</Filter>
     </ClCompile>
     <ClCompile Include="ModeBusTCP_Client.cpp">
       <Filter>通讯层\ModeBusTCP</Filter>
@@ -123,6 +129,18 @@
     <ClCompile Include="Work_Remote.cpp">
       <Filter>业务层\轮对质检</Filter>
     </ClCompile>
+    <ClCompile Include="ModeBusRTU_Master.cpp">
+      <Filter>通讯层\ModeBusRTU</Filter>
+    </ClCompile>
+    <ClCompile Include="CGXi_Remote.cpp">
+      <Filter>业务层\长广溪机械臂控制</Filter>
+    </ClCompile>
+    <ClCompile Include="Voice_Remote.cpp">
+      <Filter>业务层\语音报警</Filter>
+    </ClCompile>
+    <ClCompile Include="IO_Remote.cpp">
+      <Filter>业务层\远程IO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Fr_Light.h">
@@ -145,9 +163,6 @@
     </QtMoc>
     <QtMoc Include="ModeBusTCP_Client.h">
       <Filter>通讯层\ModeBusTCP</Filter>
-    </QtMoc>
-    <QtMoc Include="CGXi_Remote.h">
-      <Filter>业务层\长广溪机械臂控制</Filter>
     </QtMoc>
     <QtMoc Include="HTTP_Client.h">
       <Filter>通讯层\HttpClient</Filter>
@@ -172,6 +187,18 @@
     </QtMoc>
     <QtMoc Include="Work_Remote.h">
       <Filter>业务层\轮对质检</Filter>
+    </QtMoc>
+    <QtMoc Include="ModeBusRTU_Master.h">
+      <Filter>通讯层\ModeBusRTU</Filter>
+    </QtMoc>
+    <QtMoc Include="CGXi_Remote.h">
+      <Filter>业务层\长广溪机械臂控制</Filter>
+    </QtMoc>
+    <QtMoc Include="Voice_Remote.h">
+      <Filter>业务层\语音报警</Filter>
+    </QtMoc>
+    <QtMoc Include="IO_Remote.h">
+      <Filter>业务层\远程IO</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

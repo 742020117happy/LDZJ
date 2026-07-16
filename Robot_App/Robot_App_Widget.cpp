@@ -28,6 +28,13 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	QObject::connect(ui->Show_Pre_Scan_120_Widget, &QPushButton::clicked, this, [=]() {
 		ui->stackedWidget->setCurrentWidget(ui->Pre_Scan_120_Widget);
 	});
+	QObject::connect(ui->Show_Work_Widget, &QPushButton::clicked, this, [=]() {
+		ui->stackedWidget->setCurrentWidget(ui->Work_Widget);
+	});
+	QObject::connect(ui->Show_Voice_Widget, &QPushButton::clicked, this, [=]() {
+		ui->stackedWidget->setCurrentWidget(ui->Voice_Widget);
+	});
+
 	ui->Work_Alarm->document()->setMaximumBlockCount(3000);
 	ui->Work_List->document()->setMaximumBlockCount(3000);
 	ui->Magic_Log->document()->setMaximumBlockCount(3000);
@@ -41,6 +48,7 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	QTimer::singleShot(500, this, &c_Robot_App_Widget::MySql_Init);
 	QTimer::singleShot(600, this, &c_Robot_App_Widget::Server_Init);
 	QTimer::singleShot(650, this, &c_Robot_App_Widget::Work_Init);
+	QTimer::singleShot(700, this, &c_Robot_App_Widget::Voice_Init);
 	//系统轮询
 	QTimer::singleShot(1000, this, &c_Robot_App_Widget::System_Scan);
 
@@ -71,6 +79,7 @@ void c_Robot_App_Widget::System_Scan()
 	c_Robot_App_Widget::Pre_Scan_120_Scan();
 	c_Robot_App_Widget::Server_Scan();
 	c_Robot_App_Widget::Work_Scan();
+	c_Robot_App_Widget::Voice_Scan();
 
 	ui->Status_Bar->showMessage(
 		"系统时间：" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") 
@@ -2033,9 +2042,7 @@ void c_Robot_App_Widget::Server_Scan()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Server_Button()
 {
-	QObject::connect(ui->Show_Work_Widget, &QPushButton::clicked, this, [=]() {
-		ui->stackedWidget->setCurrentWidget(ui->Work_Widget);
-	});
+
 }
 
 /*************************************************************************************************************************************************
@@ -2253,6 +2260,166 @@ void c_Robot_App_Widget::Work_Init()
 	m_Work_Remote_Thread->start();
 }
 /*************************************************************************************************************************************************
+**Function:初始化语音播报器 - 创建 Voice_Remote，绑定信号槽，启动线程
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::Voice_Init()
+{
+	m_Voice_Remote = new c_Voice_Remote;
+	m_Voice_Remote_Thread = new QThread;
+	m_Voice_Remote->moveToThread(m_Voice_Remote_Thread);
+	QObject::connect(m_Voice_Remote_Thread, &QThread::started, m_Voice_Remote, &c_Voice_Remote::Init);
+	QObject::connect(m_Voice_Remote_Thread, &QThread::finished, m_Voice_Remote, &c_Voice_Remote::deleteLater);
+	QObject::connect(m_Voice_Remote, &c_Voice_Remote::Status, this, &c_Robot_App_Widget::Write_Voice_List);
+	c_Robot_App_Widget::Voice_DB();
+	c_Robot_App_Widget::Voice_Button();
+	m_Voice_Remote_Thread->start();
+}
+/*************************************************************************************************************************************************
+**Function:语音UI变量绑定 - 读取 Communicate_DB.json 填充UI控件并绑定修改事件
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::Voice_DB()
+{
+	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
+
+	ui->Voice_Com->blockSignals(true);
+	ui->Voice_Com->setCurrentText(cfg.value("Voice_Com").toString("COM1"));
+	ui->Voice_Com->blockSignals(false);
+
+	int baudIdx = ui->Voice_Baud->findText(cfg.value("Voice_Baud").toString("9600"));
+	ui->Voice_Baud->blockSignals(true);
+	if (baudIdx >= 0) ui->Voice_Baud->setCurrentIndex(baudIdx);
+	ui->Voice_Baud->blockSignals(false);
+
+	ui->Voice_Addr->blockSignals(true);
+	ui->Voice_Addr->setValue(cfg.value("Voice_Addr").toInt(1));
+	ui->Voice_Addr->blockSignals(false);
+
+	ui->Voice_Volume_Display->setText(QString("中(%1)").arg(cfg.value("Voice_Volume").toInt(2)));
+
+	// 配置变化时自动写回 Communicate_DB
+	QObject::connect(ui->Voice_Com, &QComboBox::currentTextChanged, this, [this](const QString &text) {
+		Write_Communicate_DB("Voice_Com", text);
+	});
+	QObject::connect(ui->Voice_Baud, &QComboBox::currentTextChanged, this, [this](const QString &text) {
+		Write_Communicate_DB("Voice_Baud", text.toInt());
+	});
+	QObject::connect(ui->Voice_Addr, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("Voice_Addr", val);
+	});
+
+	// 日志表格列宽 - 比例 3:2:5
+	{
+		auto *hdr = ui->Voice_Log->horizontalHeader();
+		hdr->setSectionResizeMode(QHeaderView::Interactive);
+		hdr->setStretchLastSection(false);
+		int tw = ui->Voice_Log->width();
+		ui->Voice_Log->setColumnWidth(0, tw * 3 / 10);
+		ui->Voice_Log->setColumnWidth(1, tw * 2 / 10);
+		ui->Voice_Log->setColumnWidth(2, tw * 5 / 10);
+	}
+	// 状态表格列宽 - 平铺自动适应
+	ui->tableWidget_Joint->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui->tableWidget_TCP->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui->tableWidget_Robot->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+}
+/*************************************************************************************************************************************************
+**Function:语音按钮事件绑定 - 连接按钮点击到 Voice_Remote 控制接口
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::Voice_Button()
+{
+	auto *voice = m_Voice_Remote;
+	QObject::connect(ui->Voice_Connect, &QPushButton::clicked, voice, &c_Voice_Remote::Connect);
+	QObject::connect(ui->Voice_Disconnect, &QPushButton::clicked, voice, &c_Voice_Remote::Signal_Disconnect_Device);
+	QObject::connect(ui->btn_Voice_Stop, &QPushButton::clicked, voice, &c_Voice_Remote::Stop);
+	QObject::connect(ui->btn_Voice_Vol_Low, &QPushButton::clicked, voice, [voice]() { voice->SetVolume(1); });
+	QObject::connect(ui->btn_Voice_Vol_Med, &QPushButton::clicked, voice, [voice]() { voice->SetVolume(2); });
+	QObject::connect(ui->btn_Voice_Vol_High, &QPushButton::clicked, voice, [voice]() { voice->SetVolume(3); });
+	QObject::connect(ui->btn_Voice_Test, &QPushButton::clicked, voice, [voice]() { voice->Play(1); });
+	// 25 个音频按钮
+	QObject::connect(ui->btn_Voice_PA001, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA001);
+	QObject::connect(ui->btn_Voice_PA002, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA002);
+	QObject::connect(ui->btn_Voice_PA003, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA003);
+	QObject::connect(ui->btn_Voice_PA004, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA004);
+	QObject::connect(ui->btn_Voice_PA005, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA005);
+	QObject::connect(ui->btn_Voice_PA006, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA006);
+	QObject::connect(ui->btn_Voice_PA007, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA007);
+	QObject::connect(ui->btn_Voice_PA008, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA008);
+	QObject::connect(ui->btn_Voice_PA009, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA009);
+	QObject::connect(ui->btn_Voice_PA010, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA010);
+	QObject::connect(ui->btn_Voice_PA011, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA011);
+	QObject::connect(ui->btn_Voice_PA012, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA012);
+	QObject::connect(ui->btn_Voice_PA013, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA013);
+	QObject::connect(ui->btn_Voice_PA014, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA014);
+	QObject::connect(ui->btn_Voice_PA015, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA015);
+	QObject::connect(ui->btn_Voice_PA016, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA016);
+	QObject::connect(ui->btn_Voice_PA017, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA017);
+	QObject::connect(ui->btn_Voice_PA018, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA018);
+	QObject::connect(ui->btn_Voice_PA019, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA019);
+	QObject::connect(ui->btn_Voice_PA020, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA020);
+	QObject::connect(ui->btn_Voice_PA021, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA021);
+	QObject::connect(ui->btn_Voice_PA022, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA022);
+	QObject::connect(ui->btn_Voice_PA023, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA023);
+	QObject::connect(ui->btn_Voice_PA024, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA024);
+	QObject::connect(ui->btn_Voice_PA025, &QPushButton::clicked, voice, &c_Voice_Remote::Play_PA025);
+}
+/*************************************************************************************************************************************************
+**Function:语音状态轮询 - 刷新连接指示灯和设备状态显示
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::Voice_Scan()
+{
+	auto &voice = c_Variable::getInstance().g_Voice;
+	ui->Voice_Connected->Set_State(voice.is_connected);
+
+	QString volStr;
+	switch (voice.Volume) {
+	case 1: volStr = "低(1)"; break;
+	case 2: volStr = "中(2)"; break;
+	case 3: volStr = "高(3)"; break;
+	default: volStr = QString("中(%1)").arg(voice.Volume); break;
+	}
+	ui->Voice_Volume_Display->setText(volStr);
+
+	QString devStr;
+	switch (voice.DeviceStatus) {
+	case 0: devStr = "空闲"; break;
+	case 1: devStr = "播放中"; break;
+	case 2: devStr = "错误"; break;
+	default: devStr = QString("未知(%1)").arg(voice.DeviceStatus); break;
+	}
+	ui->Voice_Device_Status->setText(devStr);
+
+	ui->Voice_Current_Audio->setText(voice.PlayIndex > 0
+		? QString("PA%1").arg(voice.PlayIndex, 3, 10, QChar('0'))
+		: "空闲");
+}
+/*************************************************************************************************************************************************
+**Function:写入语音播报日志 - 追加到 Voice_Log 表格并写入文件
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::Write_Voice_List(QString value)
+{
+	QString time = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
+	ui->Voice_Log->insertRow(0);
+	ui->Voice_Log->setItem(0, 0, new QTableWidgetItem(time));
+	ui->Voice_Log->setItem(0, 1, new QTableWidgetItem(""));
+	ui->Voice_Log->setItem(0, 2, new QTableWidgetItem(value));
+
+	c_Variable::getInstance().g_Worry_List.append(time + "->" + value);
+	if (c_Variable::getInstance().g_Worry_List.size() > 10) {
+		c_Variable::getInstance().g_Worry_List.removeAt(0);
+	}
+
+	if (ui->Voice_Log->rowCount() > 1000) ui->Voice_Log->removeRow(1000);
+
+	QFile File;
+	File.setFileName(m_Debug_Path + "/语音播报.log");
+	File.open(QIODevice::ReadWrite | QIODevice::Text);
+	QString date;
+	for (int i = 0; i < ui->Voice_Log->rowCount(); i++)
+		date += ui->Voice_Log->item(i, 0)->text() + "->" + ui->Voice_Log->item(i, 2)->text() + "\n";
+	File.write(date.toUtf8());
+	File.close();
+}
+/*************************************************************************************************************************************************
 **Function:工作流UI变量绑定（空实现）
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Work_DB()
@@ -2377,6 +2544,11 @@ void c_Robot_App_Widget::closeEvent(QCloseEvent *event) {
 			m_Work_Remote_Thread->quit();
 			m_Work_Remote_Thread->wait(5000);
 		}
+		if (m_Voice_Remote_Thread && m_Voice_Remote_Thread->isRunning()) {
+			m_Voice_Remote_Thread->requestInterruption();
+			m_Voice_Remote_Thread->quit();
+			m_Voice_Remote_Thread->wait(5000);
+		}
 		// 允许关闭
 		event->accept();
 	}
@@ -2384,6 +2556,25 @@ void c_Robot_App_Widget::closeEvent(QCloseEvent *event) {
 		// 取消关闭
 		event->ignore();
 	}
+}
+/*************************************************************************************************************************************************
+**Function:窗口大小改变事件 - 更新各表格列宽自适应
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::resizeEvent(QResizeEvent *event) {
+	QMainWindow::resizeEvent(event);
+	// Voice_Log 按 3:2:5 比例
+	{
+		int tw = ui->Voice_Log->width();
+		if (tw > 0) {
+			ui->Voice_Log->setColumnWidth(0, tw * 3 / 10);
+			ui->Voice_Log->setColumnWidth(1, tw * 2 / 10);
+			ui->Voice_Log->setColumnWidth(2, tw * 5 / 10);
+		}
+	}
+	// 状态表格平铺自适应（Stretch 自动处理）
+	ui->tableWidget_Joint->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui->tableWidget_TCP->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui->tableWidget_Robot->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
 

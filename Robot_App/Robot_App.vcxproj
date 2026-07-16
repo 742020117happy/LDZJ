@@ -40,7 +40,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>5.12.1_msvc2015_64</QtInstall>
     <QtBuildConfig>release</QtBuildConfig>
-    <QtModules>core;gui;network;sql;serialbus;widgets;printsupport;charts;websockets;concurrent</QtModules>
+    <QtModules>core;gui;network;sql;serialbus;serialport;widgets;printsupport;charts;websockets;concurrent</QtModules>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -116,6 +116,7 @@
     <ClCompile Include="Magic_Map_View.cpp" />
     <ClCompile Include="Magic_Lidar_View.cpp" />
     <ClCompile Include="Magic_Remote.cpp" />
+    <ClCompile Include="ModeBusRTU_Master.cpp" />
     <ClCompile Include="MySql_Remote.cpp" />
     <ClCompile Include="Robot_Client.cpp" />
     <ClCompile Include="Server_Remote.cpp" />
@@ -124,10 +125,12 @@
     <ClCompile Include="Fr_Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModeBusTCP_Client.cpp" />
+    <ClCompile Include="IO_Remote.cpp" />
     <ClCompile Include="CGXi_Remote.cpp" />
     <ClCompile Include="Robot_App_Widget.cpp" />
     <ClCompile Include="Robot_Server.cpp" />
     <ClCompile Include="Scan_Client.cpp" />
+    <ClCompile Include="Voice_Remote.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="ModeBusTCP_Client.h" />
@@ -190,6 +193,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basestruct.h" />
+    <QtMoc Include="IO_Remote.h" />
+    <QtMoc Include="Voice_Remote.h" />
     <QtMoc Include="HTTP_Client.h" />
     <QtMoc Include="Magic_Remote.h" />
     <QtMoc Include="Magic_Map_View.h" />
@@ -197,6 +202,7 @@
     <QtMoc Include="Lczh_Remote.h" />
     <QtMoc Include="MySql_Remote.h" />
     <QtMoc Include="Work_Remote.h" />
+    <QtMoc Include="ModeBusRTU_Master.h" />
     <ClInclude Include="robotapi.h" />
   </ItemGroup>
   <ItemGroup>

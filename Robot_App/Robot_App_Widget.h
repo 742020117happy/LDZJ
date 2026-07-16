@@ -7,6 +7,7 @@
 #include "MySql_Remote.h"
 #include "Server_Remote.h"
 #include "Work_Remote.h"
+#include "Voice_Remote.h"
 
 class c_Robot_App_Widget : public QMainWindow
 {
@@ -54,9 +55,15 @@ public slots:
 	void Work_Scan();			// 工作流状态轮询
 	void Work_Button();			// 工作流按钮事件绑定
 
+	void Voice_Init();			// 初始化语音播报器（创建线程/绑定信号槽）
+	void Voice_DB();			// 语音UI变量绑定（读取Communicate_DB.json）
+	void Voice_Scan();			// 语音状态轮询
+	void Voice_Button();		// 语音按钮事件绑定
+
 protected:
 	void keyPressEvent(QKeyEvent *event) override;	// 键盘按键事件
 	void closeEvent(QCloseEvent *event) override;		// 窗口关闭事件
+	void resizeEvent(QResizeEvent *event) override;	// 窗口大小改变事件
 
 private:
 	QElapsedTimer m_Time;			// 计时器（帧率计算）
@@ -81,6 +88,9 @@ private:
 
 	c_Work_Remote *m_Work_Remote = nullptr;			// 轮对质检工作流
 	QThread *m_Work_Remote_Thread = nullptr;		// 工作流线程
+
+	c_Voice_Remote *m_Voice_Remote = nullptr;		// 语音播报器控制
+	QThread *m_Voice_Remote_Thread = nullptr;		// 语音播报器线程
 
 	QTimer *m_Pre_Scan_120_MonitorTimer = nullptr;	// 相机监控定时器
 
@@ -128,4 +138,5 @@ private:
 	void Write_Prec_Scan_120_List(QString value);			// 写入相机日志
 	void Write_Prec_Scan_120_Cmd(QString ip, int port, QString value);	// 发送相机指令
 	void Write_Work_List(QString value);					// 写入工作流日志
+	void Write_Voice_List(QString value);					// 写入语音播报日志
 };

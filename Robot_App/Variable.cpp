@@ -251,6 +251,8 @@ s_Work_DB c_Variable::g_Work_DB;
 s_Work_Info c_Variable::g_Work;
 s_Magic_DB c_Variable::g_Magic;
 s_CGXi_DB c_Variable::g_CGXi;
+s_IO_DB c_Variable::g_IO;
+s_Voice_DB c_Variable::g_Voice;
 
 // 单例构造（私有，仅通过getInstance访问）
 c_Variable::c_Variable(QObject * parent) : QObject(parent)

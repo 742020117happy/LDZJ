@@ -430,6 +430,30 @@ struct s_Magic_DB {
 	Magic_WriteData WriteData;
 	Magic_ReadData  ReadData;
 };
+
+struct s_IO_DB {
+	bool Connected = false;
+	bool Ready = false;
+	int FPS = 0;
+	quint16 Coils[1000] = {0};                 // 数据缓存区间
+	quint16 DiscreteInputs[1000] = {0};         // 数据缓存区间
+	quint16 InputRegisters[1000] = {0};         // 数据缓存区间
+	quint16 read_HoldingRegisters[1000] = {0};  // 数据缓存区间
+	quint16 write_HoldingRegisters[1000] = {0}; // 数据缓存区间
+};
+
+struct s_Voice_DB {
+	bool is_connected = false;     // Modbus RTU 连接状态
+	bool Ready = false;            // 就绪标志（连接成功且音量已设）
+	int Volume = 2;                // 当前音量等级 1-低/2-中/3-高
+	int PlayIndex = 0;             // 正在播放的音频索引（0=空闲/停止）
+	int DeviceStatus = 0;          // 设备状态 0-空闲 1-播放中 2-错误
+	int ServerAddress = 1;         // Modbus 从站地址
+	QString ComPort = "COM1";      // 串口号
+	int BaudRate = 9600;           // 波特率
+};
+
+
 class c_Object : public QObject
 {
 	Q_OBJECT
@@ -476,6 +500,8 @@ public:
 	static s_Work_DB g_Work_DB;
 	static s_Work_Info g_Work;
 	static s_Magic_DB g_Magic;
+	static s_IO_DB g_IO;
+	static s_Voice_DB g_Voice;
 	static s_CGXi_DB g_CGXi;
 	static QReadWriteLock g_lock;       // 跨线程数据保护（主线程读/工作线程写）
 private:
