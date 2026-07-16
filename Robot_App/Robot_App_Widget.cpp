@@ -28,8 +28,7 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	QObject::connect(ui->Show_Pre_Scan_120_Widget, &QPushButton::clicked, this, [=]() {
 		ui->stackedWidget->setCurrentWidget(ui->Pre_Scan_120_Widget);
 	});
-	//只显示100条消息
-	ui->Worry_List->document()->setMaximumBlockCount(3000);
+	ui->Work_Alarm->document()->setMaximumBlockCount(3000);
 	ui->Work_List->document()->setMaximumBlockCount(3000);
 	ui->Magic_Log->document()->setMaximumBlockCount(3000);
 	ui->CGXi_Log->document()->setMaximumBlockCount(3000);
@@ -40,7 +39,8 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	QTimer::singleShot(300, this, &c_Robot_App_Widget::CGXi_Init);
 	QTimer::singleShot(400, this, &c_Robot_App_Widget::Pre_Scan_120_Init);
 	QTimer::singleShot(500, this, &c_Robot_App_Widget::MySql_Init);
-	QTimer::singleShot(600, this, &c_Robot_App_Widget::Server_Remote_Init);
+	QTimer::singleShot(600, this, &c_Robot_App_Widget::Server_Init);
+	QTimer::singleShot(650, this, &c_Robot_App_Widget::Work_Init);
 	//系统轮询
 	QTimer::singleShot(1000, this, &c_Robot_App_Widget::System_Scan);
 
@@ -69,6 +69,8 @@ void c_Robot_App_Widget::System_Scan()
 	c_Robot_App_Widget::Magic_Scan();
 	c_Robot_App_Widget::CGXi_Scan();
 	c_Robot_App_Widget::Pre_Scan_120_Scan();
+	c_Robot_App_Widget::Server_Scan();
+	c_Robot_App_Widget::Work_Scan();
 
 	ui->Status_Bar->showMessage(
 		"系统时间：" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") 
@@ -173,6 +175,29 @@ void c_Robot_App_Widget::Magic_Init()
 			ui->widget_LidarView->Refresh_Lidar();
 		}
 		Refresh_Magic_ListData();
+	});
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_MapList, this, [this]() {
+		Refresh_Magic_ListData();
+	});
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_GraphList, this, [this]() {
+		Refresh_Magic_ListData();
+	});
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_RecordList, this, [this]() {
+		Refresh_Magic_ListData();
+	});
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_TaskQueueList, this, [this]() {
+		Refresh_Magic_ListData();
+	});
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_NavPointList, this, [this]() {
+		Refresh_Magic_ListData();
+	});
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_MapStatus, this, [this]() {
+		if (ui->widget_MapView) {
+			ui->widget_MapView->Refresh_Map();
+		}
+	});
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_RobotStatus, this, [this]() {
+		// Robot status fields are updated in Magic_Scan polling
 	});
 
 	c_Robot_App_Widget::Magic_DB();
@@ -1081,7 +1106,27 @@ void c_Robot_App_Widget::Magic_Button()
 	// 不能使用autoRepeat(pressed/released交替)，改用定时器持续发送
 	m_MoveTimer = new QTimer(this);
 	m_MoveTimer->setInterval(80);  // ~12.5Hz，满足 >10Hz 要求
-	QObject::connect(m_MoveTimer, &QTimer::timeout, this, &c_Robot_App_Widget::Move_Timer_Tick);
+	QObject::connect(m_MoveTimer, &QTimer::timeout, this, [this]() {
+		if (m_MoveDirection == 0 || !m_Magic_Remote) return;
+		auto &db = c_Variable::getInstance().g_Magic;
+		if (!db.ReadData.localized) {
+			m_MoveTimer->stop();
+			m_MoveDirection = 0;
+			QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move_Stop", Qt::QueuedConnection);
+			Write_Magic_List("警告：机器人未定位，移动指令已拦截。");
+			return;
+		}
+		auto &w = db.WriteData;
+		double lv = 0.0, av = 0.0;
+		switch (m_MoveDirection) {
+		case 1: lv =  w.linearSpeed;                               break;
+		case 2: lv = -w.linearSpeed;                               break;
+		case 3: av =  w.angularSpeed;                              break;
+		case 4: av = -w.angularSpeed;                              break;
+		}
+		QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move", Qt::QueuedConnection,
+			Q_ARG(double, lv), Q_ARG(double, av), Q_ARG(double, 0.0));
+	});
 
 	// 前进：按pressed启动定时器持续发送，released停止
 	QObject::connect(ui->btn_MoveForward, &QPushButton::pressed, this, [&]() {
@@ -1145,34 +1190,7 @@ void c_Robot_App_Widget::Magic_Button()
 		QMetaObject::invokeMethod(m_Magic_Remote, "Cancel_Move_With_Params", Qt::QueuedConnection);
 	});
 }
-// ==================== 移动控制定时器回调 ====================
-// API v1.4.4要求 /cmd/robot_move 需 >10Hz 循环请求，且机器人必须已定位
-void c_Robot_App_Widget::Move_Timer_Tick()
-{
-	if (m_MoveDirection == 0 || !m_Magic_Remote) return;
 
-	auto &db = c_Variable::getInstance().g_Magic;
-	// 定位检查：未定位时跳过移动，提示用户先执行位姿初始化
-	if (!db.ReadData.localized) {
-		m_MoveTimer->stop();
-		m_MoveDirection = 0;
-		QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move_Stop", Qt::QueuedConnection);
-		Write_Magic_List("警告：机器人未定位，移动指令已拦截。请先在 地图 标签页执行位姿初始化（动态/栅格初始化）。");
-		return;
-	}
-
-	auto &w = db.WriteData;
-	double lv = 0.0, av = 0.0;
-	switch (m_MoveDirection) {
-	case 1: lv =  w.linearSpeed;                               break; // 前进
-	case 2: lv = -w.linearSpeed;                               break; // 后退
-	case 3: av =  w.angularSpeed;                              break; // 左旋
-	case 4: av = -w.angularSpeed;                              break; // 右旋
-	}
-	// Robot_Move(double, double, double=0.0) — invokeMethod需显式传3个Q_ARG
-	QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move", Qt::QueuedConnection,
-		Q_ARG(double, lv), Q_ARG(double, av), Q_ARG(double, 0.0));
-}
 /*************************************************************************************************************************************************
 **Function:长广溪机械臂
 *************************************************************************************************************************************************/
@@ -1932,7 +1950,7 @@ void c_Robot_App_Widget::MySql_Button()
 /*************************************************************************************************************************************************
 **Function:WEB工作站通信
 *************************************************************************************************************************************************/
-void c_Robot_App_Widget::Server_Remote_Init()
+void c_Robot_App_Widget::Server_Init()
 {
 	m_Server_Remote = new c_Server_Remote;
 	m_Server_Remote_Thread = new QThread;
@@ -1975,6 +1993,18 @@ void c_Robot_App_Widget::Server_Remote_Init()
 
 	m_Server_Remote_Thread->start();
 }
+void c_Robot_App_Widget::Server_DB()
+{
+}
+void c_Robot_App_Widget::Server_Scan()
+{
+}
+void c_Robot_App_Widget::Server_Button()
+{
+	QObject::connect(ui->Show_Work_Widget, &QPushButton::clicked, this, [=]() {
+		ui->stackedWidget->setCurrentWidget(ui->Work_Widget);
+	});
+}
 
 /*************************************************************************************************************************************************
 **Function:更新数据
@@ -2008,7 +2038,7 @@ void c_Robot_App_Widget::Do_Flush_Communicate_DB()
 }
 void c_Robot_App_Widget::Write_Worry_List(QString value)
 {
-	ui->Worry_List->append(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "->" + value);
+	ui->Work_Alarm->append(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "->" + value);
 
 
 	c_Variable::getInstance().g_Worry_List.append(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "->" + value);
@@ -2022,7 +2052,7 @@ void c_Robot_App_Widget::Write_Worry_List(QString value)
 	File.setFileName(m_Debug_Path + "/系统信息.log");
 	File.open(QIODevice::ReadWrite | QIODevice::Text);
 
-	QString date = ui->Worry_List->toPlainText();
+	QString date = ui->Work_Alarm->toPlainText();
 
 	File.write(date.toUtf8());
 	File.close();
@@ -2114,6 +2144,117 @@ void c_Robot_App_Widget::Write_Work_List(QString value)
 }
 
 /*************************************************************************************************************************************************
+**Function:轮对质检工作流
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::Work_Init()
+{
+	m_Work_Remote = new c_Work_Remote;
+	m_Work_Remote_Thread = new QThread;
+	m_Work_Remote->moveToThread(m_Work_Remote_Thread);
+
+	QObject::connect(m_Work_Remote_Thread, &QThread::started, m_Work_Remote, &c_Work_Remote::Init);
+	QObject::connect(m_Work_Remote_Thread, &QThread::finished, m_Work_Remote, &c_Work_Remote::deleteLater);
+
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Status, this, &c_Robot_App_Widget::Write_Work_List);
+
+	// Magic 导航指令转发
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_Magic_Navigate, this, [this](QString pointName) {
+		auto &write = c_Variable::getInstance().g_Magic.WriteData;
+		QMetaObject::invokeMethod(m_Magic_Remote, "Dynamic_Init_Pose", Qt::QueuedConnection,
+			Q_ARG(QString, write.selectedMapName), Q_ARG(QString, pointName));
+	});
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_Magic_Charge, this, [this]() {
+		auto &write = c_Variable::getInstance().g_Magic.WriteData;
+		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Recharge", Qt::QueuedConnection,
+			Q_ARG(QString, write.selectedMapName), Q_ARG(QString, write.chargePointName));
+	});
+
+	// CGXi 指令转发
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_CGXi_SetProgram, this, [this](int progIdx) {
+		c_Variable::getInstance().g_CGXi.Transfer.target_program_index = (qint16)progIdx;
+	});
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_CGXi_Start, this, [this]() {
+		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 1;
+		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
+	});
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_CGXi_Stop, this, [this]() {
+		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 3;
+		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
+	});
+
+	// Server 指令转发
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_Server_Accepted, this, [this]() {
+		QMetaObject::invokeMethod(m_Server_Remote, "Send_Accepted", Qt::QueuedConnection);
+	});
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_Server_Completed, this, [this](int totalImages) {
+		QMetaObject::invokeMethod(m_Server_Remote, "Send_Completed", Qt::QueuedConnection,
+			Q_ARG(int, totalImages));
+	});
+
+	m_Work_Remote_Thread->start();
+}
+void c_Robot_App_Widget::Work_DB()
+{
+}
+void c_Robot_App_Widget::Work_Scan()
+{
+	auto &w = c_Variable::getInstance().g_Work_DB;
+	auto &info = c_Variable::getInstance().g_Work;
+
+	ui->Work_TaskID->setText(w.taskId);
+	ui->Work_Wheel->setText(QString::number(w.currentWheelset + 1) + "/" + QString::number(w.wheelsetCount));
+	ui->Work_Pos->setText(QString::number(w.currentPos + 1));
+	{
+		QString stateStr;
+		switch (w.workState) {
+		case 0: stateStr = "空闲"; break;
+		case 1: stateStr = "就绪"; break;
+		case 2: stateStr = "采集中"; break;
+		case 3: stateStr = "暂停"; break;
+		case 4: stateStr = "完成"; break;
+		case 5: stateStr = "错误"; break;
+		default: stateStr = QString::number(w.workState); break;
+		}
+		ui->Work_State->setText(stateStr);
+	}
+	ui->Work_Images->setText(QString::number(w.totalImages));
+	ui->Work_Gain->setText(QString::number(w.currentGain));
+	ui->Work_Part1->setText(w.currentPart1);
+	ui->Work_Part2->setText(w.currentPart2);
+	ui->Work_Point->setText(w.currentPointStr);
+	ui->Work_WheelsetNo->setText(w.wheelsetNo);
+	ui->Work_AxleNo->setText(w.axleNo);
+	ui->Work_SendUnit->setText(w.sendUnit);
+	ui->Work_Repair->setText(w.repairLevel);
+	ui->Work_StartTime->setText(w.startTime);
+	ui->label_ErrorCode->setText(QString::number(w.errorCode));
+
+	ui->Work_Server_Light->Set_State(info.Connected);
+	ui->Work_Client_Light->Set_State(info.Connected);
+}
+void c_Robot_App_Widget::Work_Button()
+{
+	QObject::connect(ui->Work_Btn_Start, &QPushButton::clicked, this, [this]() {
+		QMetaObject::invokeMethod(m_Work_Remote, "Start_Inspection", Qt::QueuedConnection);
+	});
+	QObject::connect(ui->Work_Btn_Cancel, &QPushButton::clicked, this, [this]() {
+		QMetaObject::invokeMethod(m_Work_Remote, "Cancel_Inspection", Qt::QueuedConnection);
+	});
+	QObject::connect(ui->Work_Btn_Pause, &QPushButton::clicked, this, [this]() {
+		QMetaObject::invokeMethod(m_Work_Remote, "Pause_Inspection", Qt::QueuedConnection);
+	});
+	QObject::connect(ui->Work_Btn_Resume, &QPushButton::clicked, this, [this]() {
+		QMetaObject::invokeMethod(m_Work_Remote, "Resume_Inspection", Qt::QueuedConnection);
+	});
+	QObject::connect(ui->Work_Btn_Stop, &QPushButton::clicked, this, [this]() {
+		QMetaObject::invokeMethod(m_Work_Remote, "Emergency_Stop", Qt::QueuedConnection);
+	});
+	QObject::connect(ui->Work_Btn_Home, &QPushButton::clicked, this, [this]() {
+		QMetaObject::invokeMethod(m_Work_Remote, "Return_Home", Qt::QueuedConnection);
+	});
+}
+
+/*************************************************************************************************************************************************
 **Function:刷新样式表
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::keyPressEvent(QKeyEvent *event)
@@ -2159,6 +2300,11 @@ void c_Robot_App_Widget::closeEvent(QCloseEvent *event) {
 			m_Server_Remote_Thread->requestInterruption();
 			m_Server_Remote_Thread->quit();
 			m_Server_Remote_Thread->wait(5000);
+		}
+		if (m_Work_Remote_Thread && m_Work_Remote_Thread->isRunning()) {
+			m_Work_Remote_Thread->requestInterruption();
+			m_Work_Remote_Thread->quit();
+			m_Work_Remote_Thread->wait(5000);
 		}
 		// 允许关闭
 		event->accept();

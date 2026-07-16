@@ -278,6 +278,14 @@ public:
 
 signals:
 	void Update_Magic_DB();
+	void update_MapList();
+	void update_GraphList();
+	void update_RecordList();
+	void update_TaskQueueList();
+	void update_NavPointList();
+	void update_RobotStatus();
+	void update_MapStatus();
+	void update_DriveStatus();
 	void Signal_Connect(QString ip, quint16 port, QString url);
 	void Signal_Disconnect();
 	void Signal_Set_Token(QString token);

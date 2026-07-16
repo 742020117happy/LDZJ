@@ -882,6 +882,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			Get_Single_Map_Info(defaultMap);
 			Get_Map_Png(defaultMap);
 		}
+		emit update_MapList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -907,6 +908,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			.arg(read.resolution)
 			.arg(read.gridWidth)
 			.arg(read.gridHeight));
+		emit update_MapStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -968,6 +970,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			read.gridHeight = dataObj["gridHeight"].toInt(0);
 			read.mapping = false;
 			emit Status("Magic遥控：建图完成，地图已保存");
+			emit update_MapStatus();
 			emit Update_Magic_DB();
 		}
 		return;
@@ -1010,6 +1013,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 				}
 				emit Status(QString("Magic遥控：地图底图加载成功 size=%1x%2")
 					.arg(read.mapImage.width()).arg(read.mapImage.height()));
+				emit update_MapStatus();
 				emit Update_Magic_DB();
 			}
 			else {
@@ -1041,6 +1045,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		}
 
 		magicDB.Ready = !magicDB.Ready;
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1048,6 +1053,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// --- 4.6.6 机器人定位状态 ---
 	if (path == "/real_time_data/robot_local_status") {
 		read.localized = dataVal.toBool(false);
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1078,6 +1084,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		read.odomOnline = data["odom"].toBool(false);
 		read.cameraOnline = (data["camera_num"].toInt(0) > 0);
 
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1096,6 +1103,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			read.taskLoopTimes = statusData["loop_times"].toInt(0);
 			read.taskRemainSec = statusData["less_second"].toInt(0);
 		}
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1224,6 +1232,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QJsonObject data = dataVal.toObject();
 		read.chassisVersion = data["chassis_version"].toString();
 		read.navigationVersion = data["navigation_version"].toString();
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1265,7 +1274,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			if (b64.contains(",")) b64 = b64.split(",").last();
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
 			if (imgData.size() < 50000000 && read.frontCameraImage.loadFromData(imgData))
-				emit Update_Magic_DB();
+				emit update_DriveStatus();
+			emit Update_Magic_DB();
 		}
 		return;
 	}
@@ -1275,7 +1285,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			if (b64.contains(",")) b64 = b64.split(",").last();
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
 			if (imgData.size() < 50000000 && read.rearCameraImage.loadFromData(imgData))
-				emit Update_Magic_DB();
+				emit update_DriveStatus();
+			emit Update_Magic_DB();
 		}
 		return;
 	}
@@ -1285,7 +1296,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			if (b64.contains(",")) b64 = b64.split(",").last();
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
 			if (imgData.size() < 50000000 && read.frontDepthImage.loadFromData(imgData))
-				emit Update_Magic_DB();
+				emit update_DriveStatus();
+			emit Update_Magic_DB();
 		}
 		return;
 	}
@@ -1295,7 +1307,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			if (b64.contains(",")) b64 = b64.split(",").last();
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
 			if (imgData.size() < 50000000 && read.rearDepthImage.loadFromData(imgData))
-				emit Update_Magic_DB();
+				emit update_DriveStatus();
+			emit Update_Magic_DB();
 		}
 		return;
 	}
@@ -1374,6 +1387,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// --- 4.2.x 恢复地图 ---
 	if (path == "/cmd/recover_map") {
 		emit Status("Magic遥控：地图恢复指令已下发");
+		emit update_MapStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1390,6 +1404,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		else {
 			read.taskStatus = (dataVal.toInt() == 0) ? 0 : 1;
 		}
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1399,6 +1414,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QJsonObject data = dataVal.toObject();
 		int status = data["status"].toInt(0);
 		read.taskStatus = status;
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1408,6 +1424,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		int status = dataVal.toInt(1);
 		read.chargeStatus = status;
 		read.charging = (status == 4);
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1432,6 +1449,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (read.workingMode == 0) {
 			read.workingMode = sysStatus;
 		}
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1447,6 +1465,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		else if (dataVal.isString()) {
 			read.sysMac = dataVal.toString();
 		}
+		emit update_RobotStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1481,6 +1500,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 				read.navPoints.append(obj);
 			}
 		}
+		emit update_NavPointList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1494,6 +1514,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 				read.graphPaths.append(obj);
 			}
 		}
+		emit update_GraphList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1507,6 +1528,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 				read.recordPaths.append(obj);
 			}
 		}
+		emit update_RecordList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1520,6 +1542,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 				read.taskQueues.append(obj);
 			}
 		}
+		emit update_TaskQueueList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1536,6 +1559,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		else {
 			emit Status("Magic遥控：导航点保存成功");
 		}
+		emit update_NavPointList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1549,6 +1573,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		else {
 			emit Status("Magic遥控：手绘路径保存成功");
 		}
+		emit update_GraphList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1556,6 +1581,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// 4.3.10 重命名手绘路径
 	if (path == "/cmd/update_graph_path_name") {
 		emit Status("Magic遥控：手绘路径已重命名");
+		emit update_GraphList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1575,6 +1601,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// 4.3.14 停止并保存路径
 	if (path == "/cmd/stop_record_path") {
 		emit Status("Magic遥控：路径录制已停止保存");
+		emit update_RecordList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1594,6 +1621,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// 4.3.18 删除录制路径
 	if (path == "/cmd/record_path") {
 		emit Status("Magic遥控：录制路径已删除");
+		emit update_RecordList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1601,6 +1629,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// 4.3.20 重命名录制路径
 	if (path == "/cmd/update_rec_path_name") {
 		emit Status("Magic遥控：录制路径已重命名");
+		emit update_RecordList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1658,6 +1687,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		else {
 			emit Status("Magic遥控：路径组合保存成功");
 		}
+		emit update_TaskQueueList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1689,6 +1719,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// 4.4.19 重命名路径组合
 	if (path == "/task_queue/rename") {
 		emit Status("Magic遥控：路径组合已重命名");
+		emit update_TaskQueueList();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1744,11 +1775,13 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	}
 	if (path == "/data/upload_map") {
 		emit Status("Magic遥控：地图文件上传成功");
+		emit update_MapStatus();
 		emit Update_Magic_DB();
 		return;
 	}
 	if (path == "/data/down_map_png") {
 		emit Status("Magic遥控：地图PNG下载成功");
+		emit update_MapStatus();
 		emit Update_Magic_DB();
 		return;
 	}
@@ -1808,11 +1841,13 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// ==================== 4.2 地图操作响应（补充） ====================
 	if (path == "/cmd/rename_map") {
 		emit Status("Magic遥控：地图已重命名");
+		emit update_MapList();
 		emit Update_Magic_DB();
 		return;
 	}
 	if (path == "/cmd/delete_map") {
 		emit Status("Magic遥控：地图已删除");
+		emit update_MapList();
 		emit Update_Magic_DB();
 		return;
 	}
