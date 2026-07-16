@@ -277,7 +277,6 @@ public:
 	void Reset_Robot_Base_Default();
 
 signals:
-	void Update_Magic_DB();
 	void update_MapList();
 	void update_GraphList();
 	void update_RecordList();

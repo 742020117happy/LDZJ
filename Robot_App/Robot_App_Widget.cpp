@@ -131,6 +131,9 @@ void c_Robot_App_Widget::Variable_Init()
 	}
 	Variable_DB();
 }
+/*************************************************************************************************************************************************
+**Function:全局变量绑定 - 读取Communicate_DB.json配置文件
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Variable_DB()
 {
 	//打开文件
@@ -167,29 +170,89 @@ void c_Robot_App_Widget::Magic_Init()
 	QObject::connect(m_Magic_Remote_Thread, &QThread::finished, m_Magic_Remote, &c_Magic_Remote::deleteLater);
 
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::Status, this, &c_Robot_App_Widget::Write_Magic_List);
-	QObject::connect(m_Magic_Remote, &c_Magic_Remote::Update_Magic_DB, this, [this]() {
-		if (ui->widget_MapView) {
-			ui->widget_MapView->Refresh_Map();
-		}
-		if (ui->widget_LidarView) {
-			ui->widget_LidarView->Refresh_Lidar();
-		}
-		Refresh_Magic_ListData();
-	});
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_MapList, this, [this]() {
-		Refresh_Magic_ListData();
+		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		ui->comboBox_MapList->blockSignals(true);
+		QString current = ui->comboBox_MapList->currentText();
+		ui->comboBox_MapList->clear();
+		ui->comboBox_MapList->addItems(r.mapList);
+		int idx = ui->comboBox_MapList->findText(current);
+		if (idx < 0 && !r.mapList.isEmpty()) idx = 0;
+		if (idx >= 0) ui->comboBox_MapList->setCurrentIndex(idx);
+		ui->comboBox_MapList->blockSignals(false);
 	});
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_GraphList, this, [this]() {
-		Refresh_Magic_ListData();
+		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		ui->table_GraphPaths->setRowCount(r.graphPaths.size());
+		for (int i = 0; i < r.graphPaths.size(); ++i) {
+			QJsonObject obj = r.graphPaths[i];
+			ui->table_GraphPaths->setItem(i, 0, new QTableWidgetItem(obj["name"].toString()));
+			ui->table_GraphPaths->setItem(i, 1, new QTableWidgetItem(QString::number(obj["length"].toDouble(), 'f', 2)));
+			ui->table_GraphPaths->setItem(i, 2, new QTableWidgetItem(obj["close"].toBool(false) ? "是" : "否"));
+		}
 	});
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_RecordList, this, [this]() {
-		Refresh_Magic_ListData();
+		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		ui->table_RecordPaths->setRowCount(r.recordPaths.size());
+		for (int i = 0; i < r.recordPaths.size(); ++i) {
+			QJsonObject obj = r.recordPaths[i];
+			ui->table_RecordPaths->setItem(i, 0, new QTableWidgetItem(obj["name"].toString()));
+			ui->table_RecordPaths->setItem(i, 1, new QTableWidgetItem(QString::number(obj["pointCount"].toInt(0))));
+		}
 	});
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_TaskQueueList, this, [this]() {
-		Refresh_Magic_ListData();
+		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		ui->table_PathCombines->setRowCount(r.taskQueues.size());
+		for (int i = 0; i < r.taskQueues.size(); ++i) {
+			QJsonObject obj = r.taskQueues[i];
+			ui->table_PathCombines->setItem(i, 0, new QTableWidgetItem(obj["name"].toString()));
+			ui->table_PathCombines->setItem(i, 1, new QTableWidgetItem(QString::number(obj["tasks"].toArray().size())));
+		}
+		ui->combo_TaskName->blockSignals(true);
+		QString curTask = ui->combo_TaskName->currentText();
+		ui->combo_TaskName->clear();
+		for (const auto &obj : r.taskQueues)
+			ui->combo_TaskName->addItem(obj["name"].toString());
+		int taskIdx = ui->combo_TaskName->findText(curTask);
+		if (taskIdx >= 0) ui->combo_TaskName->setCurrentIndex(taskIdx);
+		ui->combo_TaskName->blockSignals(false);
 	});
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_NavPointList, this, [this]() {
-		Refresh_Magic_ListData();
+		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		ui->table_NavPoints->setRowCount(r.navPoints.size());
+		for (int i = 0; i < r.navPoints.size(); ++i) {
+			QJsonObject obj = r.navPoints[i];
+			QString typeStr;
+			int type = obj["type"].toInt();
+			if (type == 0)      typeStr = "初始点";
+			else if (type == 1) typeStr = "充电点";
+			else if (type == 2) typeStr = "导航点";
+			else                typeStr = QString::number(type);
+			ui->table_NavPoints->setItem(i, 0, new QTableWidgetItem(obj["name"].toString()));
+			ui->table_NavPoints->setItem(i, 1, new QTableWidgetItem(typeStr));
+			ui->table_NavPoints->setItem(i, 2, new QTableWidgetItem(QString::number(obj["gridX"].toDouble())));
+			ui->table_NavPoints->setItem(i, 3, new QTableWidgetItem(QString::number(obj["gridY"].toDouble())));
+			ui->table_NavPoints->setItem(i, 4, new QTableWidgetItem(QString::number(obj["angle"].toDouble())));
+		}
+		ui->combo_TaskName->blockSignals(true);
+		QString curTask = ui->combo_TaskName->currentText();
+		ui->combo_TaskName->clear();
+		for (const auto &obj : r.navPoints)
+			ui->combo_TaskName->addItem(obj["name"].toString());
+		int taskIdx = ui->combo_TaskName->findText(curTask);
+		if (taskIdx >= 0) ui->combo_TaskName->setCurrentIndex(taskIdx);
+		ui->combo_TaskName->blockSignals(false);
+		if (ui->combo_InitPoint) {
+			ui->combo_InitPoint->blockSignals(true);
+			QString cur = ui->combo_InitPoint->currentText();
+			ui->combo_InitPoint->clear();
+			ui->combo_InitPoint->addItem("");
+			for (const auto &obj : r.navPoints)
+				ui->combo_InitPoint->addItem(obj["name"].toString());
+			int idx2 = ui->combo_InitPoint->findText(cur);
+			if (idx2 >= 0) ui->combo_InitPoint->setCurrentIndex(idx2);
+			ui->combo_InitPoint->blockSignals(false);
+		}
 	});
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_MapStatus, this, [this]() {
 		if (ui->widget_MapView) {
@@ -205,6 +268,9 @@ void c_Robot_App_Widget::Magic_Init()
 
 	m_Magic_Remote_Thread->start();
 }
+/*************************************************************************************************************************************************
+**Function:底盘UI变量绑定 - 连接UI控件与全局配置
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Magic_DB()
 {
 	// ---------- 连接参数 ----------
@@ -275,8 +341,31 @@ void c_Robot_App_Widget::Magic_DB()
 		this, [this](int idx) {
 		auto &write = c_Variable::getInstance().g_Magic.WriteData;
 		write.taskTypeIndex = idx;
-		// 立即刷新列表控件（不再依赖 Magic_Scan 轮询）
-		Refresh_Magic_ListData();
+		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		ui->combo_TaskName->blockSignals(true);
+		QString curTask = ui->combo_TaskName->currentText();
+		ui->combo_TaskName->clear();
+		switch (idx) {
+		case 0:
+			for (const auto &obj : r.navPoints)
+				ui->combo_TaskName->addItem(obj["name"].toString());
+			break;
+		case 1:
+			for (const auto &obj : r.graphPaths)
+				ui->combo_TaskName->addItem(obj["name"].toString());
+			break;
+		case 2:
+			for (const auto &obj : r.recordPaths)
+				ui->combo_TaskName->addItem(obj["name"].toString());
+			break;
+		case 3:
+			for (const auto &obj : r.taskQueues)
+				ui->combo_TaskName->addItem(obj["name"].toString());
+			break;
+		}
+		int taskIdx = ui->combo_TaskName->findText(curTask);
+		if (taskIdx >= 0) ui->combo_TaskName->setCurrentIndex(taskIdx);
+		ui->combo_TaskName->blockSignals(false);
 		write.taskName = ui->combo_TaskName->currentText();
 	});
 	// activated 仅在用户主动选择时触发，程序化刷新（clear/setCurrentIndex）不会触发
@@ -291,6 +380,9 @@ void c_Robot_App_Widget::Magic_DB()
 
 	
 }
+/*************************************************************************************************************************************************
+**Function:底盘状态轮询 - 刷新连接状态、位置、导航点、地图等UI显示
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Magic_Scan()
 {
 	QReadLocker lock_read(&c_Variable::g_lock);
@@ -402,99 +494,10 @@ void c_Robot_App_Widget::Magic_Scan()
 	if (!r.rearCameraImage.isNull())
 		ui->label_RearCamera->setPixmap(QPixmap::fromImage(r.rearCameraImage));
 }
-// 信号驱动刷新：仅在 m_Magic_Remote 发出 Update_Magic_DB 时调用，不在 Magic_Scan 轮询中执行
-void c_Robot_App_Widget::Refresh_Magic_ListData()
-{
-	const auto &r = c_Variable::getInstance().g_Magic.ReadData;
 
-	// 地图下拉框（保留当前选中）
-	ui->comboBox_MapList->blockSignals(true);
-	QString current = ui->comboBox_MapList->currentText();
-	ui->comboBox_MapList->clear();
-	ui->comboBox_MapList->addItems(r.mapList);
-	int idx = ui->comboBox_MapList->findText(current);
-	if (idx < 0 && !r.mapList.isEmpty()) idx = 0;
-	if (idx >= 0) ui->comboBox_MapList->setCurrentIndex(idx);
-	ui->comboBox_MapList->blockSignals(false);
-
-	// 刷新导航点表格
-	ui->table_NavPoints->setRowCount(r.navPoints.size());
-	for (int i = 0; i < r.navPoints.size(); ++i) {
-		QJsonObject obj = r.navPoints[i];
-		QString typeStr;
-		int type = obj["type"].toInt();
-		if (type == 0)      typeStr = "初始点";
-		else if (type == 1) typeStr = "充电点";
-		else if (type == 2) typeStr = "导航点";
-		else                typeStr = QString::number(type);
-		ui->table_NavPoints->setItem(i, 0, new QTableWidgetItem(obj["name"].toString()));
-		ui->table_NavPoints->setItem(i, 1, new QTableWidgetItem(typeStr));
-		ui->table_NavPoints->setItem(i, 2, new QTableWidgetItem(QString::number(obj["gridX"].toDouble())));
-		ui->table_NavPoints->setItem(i, 3, new QTableWidgetItem(QString::number(obj["gridY"].toDouble())));
-		ui->table_NavPoints->setItem(i, 4, new QTableWidgetItem(QString::number(obj["angle"].toDouble())));
-	}
-	// 刷新手绘路径表格
-	ui->table_GraphPaths->setRowCount(r.graphPaths.size());
-	for (int i = 0; i < r.graphPaths.size(); ++i) {
-		QJsonObject obj = r.graphPaths[i];
-		ui->table_GraphPaths->setItem(i, 0, new QTableWidgetItem(obj["name"].toString()));
-		ui->table_GraphPaths->setItem(i, 1, new QTableWidgetItem(QString::number(obj["length"].toDouble(), 'f', 2)));
-		ui->table_GraphPaths->setItem(i, 2, new QTableWidgetItem(obj["close"].toBool(false) ? "是" : "否"));
-	}
-	// 刷新录制路径表格
-	ui->table_RecordPaths->setRowCount(r.recordPaths.size());
-	for (int i = 0; i < r.recordPaths.size(); ++i) {
-		QJsonObject obj = r.recordPaths[i];
-		ui->table_RecordPaths->setItem(i, 0, new QTableWidgetItem(obj["name"].toString()));
-		ui->table_RecordPaths->setItem(i, 1, new QTableWidgetItem(QString::number(obj["pointCount"].toInt(0))));
-	}
-	// 刷新路径组合表格
-	ui->table_PathCombines->setRowCount(r.taskQueues.size());
-	for (int i = 0; i < r.taskQueues.size(); ++i) {
-		QJsonObject obj = r.taskQueues[i];
-		ui->table_PathCombines->setItem(i, 0, new QTableWidgetItem(obj["name"].toString()));
-		ui->table_PathCombines->setItem(i, 1, new QTableWidgetItem(QString::number(obj["tasks"].toArray().size())));
-	}
-
-	// 刷新任务名称下拉框
-	ui->combo_TaskName->blockSignals(true);
-	QString curTask = ui->combo_TaskName->currentText();
-	ui->combo_TaskName->clear();
-	switch (ui->combo_TaskType->currentIndex()) {
-	case 0:
-		for (const auto &obj : r.navPoints)
-			ui->combo_TaskName->addItem(obj["name"].toString());
-		break;
-	case 1:
-		for (const auto &obj : r.graphPaths)
-			ui->combo_TaskName->addItem(obj["name"].toString());
-		break;
-	case 2:
-		for (const auto &obj : r.recordPaths)
-			ui->combo_TaskName->addItem(obj["name"].toString());
-		break;
-	case 3:
-		for (const auto &obj : r.taskQueues)
-			ui->combo_TaskName->addItem(obj["name"].toString());
-		break;
-	}
-	int taskIdx = ui->combo_TaskName->findText(curTask);
-	if (taskIdx >= 0) ui->combo_TaskName->setCurrentIndex(taskIdx);
-	ui->combo_TaskName->blockSignals(false);
-
-	// 刷新动态初始化导航点下拉框
-	if (ui->combo_InitPoint) {
-		ui->combo_InitPoint->blockSignals(true);
-		QString cur = ui->combo_InitPoint->currentText();
-		ui->combo_InitPoint->clear();
-		ui->combo_InitPoint->addItem("");
-		for (const auto &obj : r.navPoints)
-			ui->combo_InitPoint->addItem(obj["name"].toString());
-		int idx = ui->combo_InitPoint->findText(cur);
-		if (idx >= 0) ui->combo_InitPoint->setCurrentIndex(idx);
-		ui->combo_InitPoint->blockSignals(false);
-	}
-}
+/*************************************************************************************************************************************************
+**Function:底盘按钮事件绑定 - 连接/登录/导航/充电等按钮信号
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Magic_Button()
 {
 	// ========== 连接 / 登录 / 断开 ==========
@@ -1261,6 +1264,9 @@ void c_Robot_App_Widget::CGXi_Init()
 	// 5. 启动子线程
 	m_CGXi_Remote_Thread->start();
 }
+/*************************************************************************************************************************************************
+**Function:机械臂UI变量绑定 - 连接UI控件与全局配置
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::CGXi_DB()
 {
 	// 2. 绑定 UI 修改事件，实时同步到全局配置数据库
@@ -1388,6 +1394,9 @@ void c_Robot_App_Widget::CGXi_DB()
 	ui->CGXi_Payload_CY_w->setText(c_Variable::getInstance().g_Communicate_DB.value("CGXi_Payload_CY_w").toString());
 	ui->CGXi_Payload_CZ_w->setText(c_Variable::getInstance().g_Communicate_DB.value("CGXi_Payload_CZ_w").toString());
 }
+/*************************************************************************************************************************************************
+**Function:机械臂状态轮询 - 刷新连接、就绪、程序状态、IO、位置等UI显示
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::CGXi_Scan()
 {
 	// 1. 刷新连接与就绪状态指示灯
@@ -1509,6 +1518,9 @@ void c_Robot_App_Widget::CGXi_Scan()
 	ui->CGXi_CO7_State->Set_State((coVal & 0x0080) != 0);
 
 }
+/*************************************************************************************************************************************************
+**Function:机械臂按钮事件绑定 - 连接/断开/程序控制/IO/点动等按钮信号
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::CGXi_Button()
 {
 	// 1. 连接/断开控制
@@ -1667,6 +1679,10 @@ void c_Robot_App_Widget::CGXi_Button()
 	QObject::connect(ui->Coils_1007, &QPushButton::pressed, m_CGXi_Remote, &c_CGXi_Remote::Set_Coils_1007);
 	QObject::connect(ui->Coils_1007, &QPushButton::released, m_CGXi_Remote, &c_CGXi_Remote::Reset_Coils_1007);
 }
+
+/*************************************************************************************************************************************************
+**Function:初始化相机控制 - 创建线程，绑定信号槽，启动线程
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Pre_Scan_120_Init()
 {
 	m_Pre_Scan_120 = new c_Lczh_Remote;
@@ -1685,7 +1701,9 @@ void c_Robot_App_Widget::Pre_Scan_120_Init()
 
 	m_Pre_Scan_120_Thread->start();
 }
-
+/*************************************************************************************************************************************************
+**Function:相机UI变量绑定 - 连接UI控件与全局配置
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Pre_Scan_120_DB()
 {
 	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
@@ -1763,7 +1781,9 @@ void c_Robot_App_Widget::Pre_Scan_120_DB()
 	// 推送 g_Work_DB 默认值到界面
 	c_Robot_App_Widget::Pre_Scan_120_Scan();
 }
-
+/*************************************************************************************************************************************************
+**Function:相机按钮事件绑定 - 连接/断开/开始/结束/增益等按钮信号
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Pre_Scan_120_Button()
 {
 	// ====== 连接/断开 ======
@@ -1840,7 +1860,9 @@ void c_Robot_App_Widget::Pre_Scan_120_Button()
 			Q_ARG(QString, QString::number(m_wGain)));
 	});
 }
-
+/*************************************************************************************************************************************************
+**Function:相机状态轮询 - 刷新任务参数、连接状态等UI显示
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Pre_Scan_120_Scan()
 {
 	auto &work = c_Variable::getInstance().g_Work_DB;
@@ -1874,6 +1896,9 @@ void c_Robot_App_Widget::Pre_Scan_120_Scan()
 	m_UpdatingUI = false;
 }
 
+/*************************************************************************************************************************************************
+**Function:初始化MySQL数据库 - 创建线程，绑定信号槽，启动线程
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::MySql_Init()
 {
 	m_Sql_Remote = new c_Sql_Remote;
@@ -1905,7 +1930,9 @@ void c_Robot_App_Widget::MySql_Init()
 	// ====== MySQL 状态监控定时器 ======
 	QTimer::singleShot(2000, this, [this]() { MySql_Scan(); });
 }
-
+/*************************************************************************************************************************************************
+**Function:数据库UI变量绑定 - 连接UI控件与MySQL配置参数
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::MySql_DB()
 {
 	using DB = c_Variable;
@@ -1926,20 +1953,16 @@ void c_Robot_App_Widget::MySql_DB()
 		QMetaObject::invokeMethod(m_Sql_Remote, "connectMysql", Qt::QueuedConnection);
 	});
 }
-
+/*************************************************************************************************************************************************
+**Function:数据库状态轮询（空实现）
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::MySql_Scan()
 {
-	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
-
-	ui->Pre_Scan_120_MySql_Server->setText(cfg.value("Web_Server_Ip").toString("127.0.0.1"));
-	ui->MySql_Port->setText(QString::number(cfg.value("MySql_Port").toInt(3306)));
-	ui->MySql_User->setText(cfg.value("MySql_User").toString("root"));
-	ui->MySql_Password->setText(cfg.value("MySql_Password").toString("root"));
-	ui->MySql_Database->setText(cfg.value("MySql_Database").toString("robot_db"));
-
-	QTimer::singleShot(5000, this, [this]() { MySql_Scan(); });
+	
 }
-
+/*************************************************************************************************************************************************
+**Function:数据库按钮事件绑定 - 重连按钮信号
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::MySql_Button()
 {
 	QObject::connect(ui->Pre_Scan_120_MySql_Reconnect, &QPushButton::clicked, this, [this]() {
@@ -1993,12 +2016,21 @@ void c_Robot_App_Widget::Server_Init()
 
 	m_Server_Remote_Thread->start();
 }
+/*************************************************************************************************************************************************
+**Function:工作站UI变量绑定（空实现）
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Server_DB()
 {
 }
+/*************************************************************************************************************************************************
+**Function:工作站状态轮询（空实现）
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Server_Scan()
 {
 }
+/*************************************************************************************************************************************************
+**Function:工作站按钮事件绑定 - Show_Work_Widget切换按钮
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Server_Button()
 {
 	QObject::connect(ui->Show_Work_Widget, &QPushButton::clicked, this, [=]() {
@@ -2014,16 +2046,25 @@ void c_Robot_App_Widget::Write_Communicate_DB(QString key, int value)
 	c_Variable::getInstance().g_Communicate_DB.insert(key, value);
 	if (m_FlushTimer) m_FlushTimer->start(200);
 }
+/*************************************************************************************************************************************************
+**Function:写入字符串配置到Communicate_DB
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Write_Communicate_DB(QString key, QString value)
 {
 	c_Variable::getInstance().g_Communicate_DB.insert(key, value);
 	if (m_FlushTimer) m_FlushTimer->start(200);
 }
+/*************************************************************************************************************************************************
+**Function:写入浮点配置到Communicate_DB
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Write_Communicate_DB(QString key, double value)
 {
 	c_Variable::getInstance().g_Communicate_DB.insert(key, value);
 	if (m_FlushTimer) m_FlushTimer->start(200);
 }
+/*************************************************************************************************************************************************
+**Function:写入Communicate_DB到文件
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Do_Flush_Communicate_DB()
 {
 	QFile File;
@@ -2036,6 +2077,9 @@ void c_Robot_App_Widget::Do_Flush_Communicate_DB()
 	File.write(DB_Doc.toJson());
 	File.close();
 }
+/*************************************************************************************************************************************************
+**Function:写入报警日志 - 追加到Work_Alarm控件并写入文件
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Write_Worry_List(QString value)
 {
 	ui->Work_Alarm->append(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "->" + value);
@@ -2057,6 +2101,9 @@ void c_Robot_App_Widget::Write_Worry_List(QString value)
 	File.write(date.toUtf8());
 	File.close();
 }
+/*************************************************************************************************************************************************
+**Function:写入底盘日志 - 追加到Magic_Log控件并写入文件
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Write_Magic_List(QString value)
 {
 	// 输出到 Magic 日志控件（textEdit_Log）
@@ -2076,6 +2123,9 @@ void c_Robot_App_Widget::Write_Magic_List(QString value)
 	File.write(date.toUtf8());
 	File.close();
 }
+/*************************************************************************************************************************************************
+**Function:写入机械臂日志 - 追加到CGXi_Log控件并写入文件
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Write_CGXi_List(QString value)
 {
 	ui->CGXi_Log->append(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "->" + value);
@@ -2095,6 +2145,9 @@ void c_Robot_App_Widget::Write_CGXi_List(QString value)
 	File.write(date.toUtf8());
 	File.close();
 }
+/*************************************************************************************************************************************************
+**Function:写入相机日志 - 追加到Prec_Scan_120_Cmd控件并写入文件
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Write_Prec_Scan_120_List(QString value)
 {
 	ui->Prec_Scan_120_Cmd->append(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss-zzz") + "->" + value);
@@ -2108,6 +2161,9 @@ void c_Robot_App_Widget::Write_Prec_Scan_120_List(QString value)
 	File.write(date.toUtf8());
 	File.close();
 }
+/*************************************************************************************************************************************************
+**Function:发送相机指令 - 通过远程调用发送UDP命令
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Write_Prec_Scan_120_Cmd(QString ip, int port, QString value)
 {
 	ui->Prec_Scan_120_Cmd->append(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss-zzz") + "->" + value);
@@ -2121,6 +2177,9 @@ void c_Robot_App_Widget::Write_Prec_Scan_120_Cmd(QString ip, int port, QString v
 	File.write(date.toUtf8());
 	File.close();
 }
+/*************************************************************************************************************************************************
+**Function:写入工作流日志 - 追加到Work_List控件并写入文件
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Write_Work_List(QString value)
 {
 
@@ -2193,9 +2252,15 @@ void c_Robot_App_Widget::Work_Init()
 
 	m_Work_Remote_Thread->start();
 }
+/*************************************************************************************************************************************************
+**Function:工作流UI变量绑定（空实现）
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Work_DB()
 {
 }
+/*************************************************************************************************************************************************
+**Function:工作流状态轮询 - 刷新任务ID、轮对、工位、状态等UI显示
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Work_Scan()
 {
 	auto &w = c_Variable::getInstance().g_Work_DB;
@@ -2232,6 +2297,9 @@ void c_Robot_App_Widget::Work_Scan()
 	ui->Work_Server_Light->Set_State(info.Connected);
 	ui->Work_Client_Light->Set_State(info.Connected);
 }
+/*************************************************************************************************************************************************
+**Function:工作流按钮事件绑定 - 开始/取消/复位/回零/回充/暂停等按钮信号
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::Work_Button()
 {
 	QObject::connect(ui->Work_Btn_Start, &QPushButton::clicked, this, [this]() {
@@ -2270,6 +2338,9 @@ void c_Robot_App_Widget::keyPressEvent(QKeyEvent *event)
 		File.close();
 	}
 }
+/*************************************************************************************************************************************************
+**Function:窗口关闭事件 - 弹出确认对话框，停止所有线程
+*************************************************************************************************************************************************/
 void c_Robot_App_Widget::closeEvent(QCloseEvent *event) {
 	int ret = QMessageBox::question(this, "确认退出", "确定要退出吗？");
 	if (ret == QMessageBox::Yes) {

@@ -67,6 +67,9 @@
     <Filter Include="业务层\WEB接口">
       <UniqueIdentifier>{f9497ef5-d48e-4f75-a6ff-0591086a1402}</UniqueIdentifier>
     </Filter>
+    <Filter Include="业务层\轮对质检">
+      <UniqueIdentifier>{48202731-1757-469c-954e-acab9f7970dd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Fr_Light.cpp">
@@ -117,6 +120,9 @@
     <ClCompile Include="Server_Remote.cpp">
       <Filter>业务层\WEB接口</Filter>
     </ClCompile>
+    <ClCompile Include="Work_Remote.cpp">
+      <Filter>业务层\轮对质检</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Fr_Light.h">
@@ -163,6 +169,9 @@
     </QtMoc>
     <QtMoc Include="Server_Remote.h">
       <Filter>业务层\WEB接口</Filter>
+    </QtMoc>
+    <QtMoc Include="Work_Remote.h">
+      <Filter>业务层\轮对质检</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
