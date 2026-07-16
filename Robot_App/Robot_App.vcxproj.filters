@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="主函数">
+      <UniqueIdentifier>{b0348c6b-8b97-46c4-82a9-0d4a8a7fb379}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="运行文件">
+      <UniqueIdentifier>{03adaeab-a15b-438f-94ce-5f619fb4453b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通讯层">
+      <UniqueIdentifier>{253ef675-2ce6-4a19-9eb9-3fbf3732a850}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通讯层\HttpClient">
+      <UniqueIdentifier>{5f92744d-c633-45e2-bd18-eb8d936ac321}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通讯层\ModeBusTCP">
+      <UniqueIdentifier>{a57333a8-a1ce-4532-84b2-da577a81abb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通讯层\SocketClient">
+      <UniqueIdentifier>{b3547871-e5cf-4510-80bc-0a58668d4d60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通讯层\SocketUDP">
+      <UniqueIdentifier>{f8193713-7006-4fba-93f6-f1c5d9df7328}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通讯层\TcpServer">
+      <UniqueIdentifier>{223ee454-d983-4db5-8529-f4c65bd2fb17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="业务层">
+      <UniqueIdentifier>{c6580657-a066-411e-950b-c3889a6b4600}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="业务层\长广溪机械臂控制">
+      <UniqueIdentifier>{8dc24cce-1bc8-43c3-825e-03e4ea818988}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="业务层\煜禾森底盘控制">
+      <UniqueIdentifier>{8c60c0ab-5b9a-4acb-bb6f-1a6113947887}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="软件开发工具包">
+      <UniqueIdentifier>{fc264588-08ea-4c8c-8d9d-a1312a2c2153}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="软件开发工具包\数据缓存工具包">
+      <UniqueIdentifier>{b12834e2-ee88-4947-ba7f-b671f105282c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="软件开发工具包\图标资源工具包">
+      <UniqueIdentifier>{a2886b1e-d41a-456d-9f75-00824307bfcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="软件开发工具包\长广溪SDK">
+      <UniqueIdentifier>{7d9974ac-8e85-4dea-8c90-b7910cc5340d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="软件开发工具包\导航地图">
+      <UniqueIdentifier>{976cdf6b-04e4-4a9e-96f3-feb32a982180}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="软件开发工具包\三色灯">
+      <UniqueIdentifier>{8566751d-20ac-434b-9b39-6001420ad9a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="界面层">
+      <UniqueIdentifier>{e78ce0d1-5899-4529-bcab-7b44d19ddbae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="界面层\主界面">
+      <UniqueIdentifier>{4004f5c2-85fb-48d8-9d96-55020a070807}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="业务层\立创致恒相机">
+      <UniqueIdentifier>{fbf15fb9-fdd1-4153-ba40-9b59dd427ca7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="业务层\数据库MySql">
+      <UniqueIdentifier>{e5f25bd4-d805-482e-aaae-d8bd4e849611}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="业务层\WEB接口">
+      <UniqueIdentifier>{f9497ef5-d48e-4f75-a6ff-0591086a1402}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Fr_Light.cpp">
+      <Filter>软件开发工具包\三色灯</Filter>
+    </ClCompile>
+    <ClCompile Include="Robot_App_Widget.cpp">
+      <Filter>界面层\主界面</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>主函数</Filter>
+    </ClCompile>
+    <ClCompile Include="Scan_Client.cpp">
+      <Filter>通讯层\SocketUDP</Filter>
+    </ClCompile>
+    <ClCompile Include="Robot_Server.cpp">
+      <Filter>通讯层\TcpServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Variable.cpp">
+      <Filter>软件开发工具包\数据缓存工具包</Filter>
+    </ClCompile>
+    <ClCompile Include="Robot_Client.cpp">
+      <Filter>通讯层\SocketClient</Filter>
+    </ClCompile>
+    <ClCompile Include="CGXi_Remote.cpp">
+      <Filter>业务层\长广溪机械臂控制</Filter>
+    </ClCompile>
+    <ClCompile Include="ModeBusTCP_Client.cpp">
+      <Filter>通讯层\ModeBusTCP</Filter>
+    </ClCompile>
+    <ClCompile Include="HTTP_Client.cpp">
+      <Filter>通讯层\HttpClient</Filter>
+    </ClCompile>
+    <ClCompile Include="Magic_Remote.cpp">
+      <Filter>业务层\煜禾森底盘控制</Filter>
+    </ClCompile>
+    <ClCompile Include="Magic_Map_View.cpp">
+      <Filter>软件开发工具包\导航地图</Filter>
+    </ClCompile>
+    <ClCompile Include="Magic_Lidar_View.cpp">
+      <Filter>软件开发工具包\导航地图</Filter>
+    </ClCompile>
+    <ClCompile Include="Lczh_Remote.cpp">
+      <Filter>业务层\立创致恒相机</Filter>
+    </ClCompile>
+    <ClCompile Include="MySql_Remote.cpp">
+      <Filter>业务层\数据库MySql</Filter>
+    </ClCompile>
+    <ClCompile Include="Server_Remote.cpp">
+      <Filter>业务层\WEB接口</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="Fr_Light.h">
+      <Filter>软件开发工具包\三色灯</Filter>
+    </QtMoc>
+    <QtMoc Include="Robot_App_Widget.h">
+      <Filter>界面层\主界面</Filter>
+    </QtMoc>
+    <QtMoc Include="Scan_Client.h">
+      <Filter>通讯层\SocketUDP</Filter>
+    </QtMoc>
+    <QtMoc Include="Robot_Server.h">
+      <Filter>通讯层\TcpServer</Filter>
+    </QtMoc>
+    <QtMoc Include="Variable.h">
+      <Filter>软件开发工具包\数据缓存工具包</Filter>
+    </QtMoc>
+    <QtMoc Include="Robot_Client.h">
+      <Filter>通讯层\SocketClient</Filter>
+    </QtMoc>
+    <QtMoc Include="ModeBusTCP_Client.h">
+      <Filter>通讯层\ModeBusTCP</Filter>
+    </QtMoc>
+    <QtMoc Include="CGXi_Remote.h">
+      <Filter>业务层\长广溪机械臂控制</Filter>
+    </QtMoc>
+    <QtMoc Include="HTTP_Client.h">
+      <Filter>通讯层\HttpClient</Filter>
+    </QtMoc>
+    <QtMoc Include="Magic_Remote.h">
+      <Filter>业务层\煜禾森底盘控制</Filter>
+    </QtMoc>
+    <QtMoc Include="Magic_Map_View.h">
+      <Filter>软件开发工具包\导航地图</Filter>
+    </QtMoc>
+    <QtMoc Include="Magic_Lidar_View.h">
+      <Filter>软件开发工具包\导航地图</Filter>
+    </QtMoc>
+    <QtMoc Include="Lczh_Remote.h">
+      <Filter>业务层\立创致恒相机</Filter>
+    </QtMoc>
+    <QtMoc Include="MySql_Remote.h">
+      <Filter>业务层\数据库MySql</Filter>
+    </QtMoc>
+    <QtMoc Include="Server_Remote.h">
+      <Filter>业务层\WEB接口</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="Robot_App_Widget.ui">
+      <Filter>界面层\主界面</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Robot_App\stuqss.css">
+      <Filter>界面层\主界面</Filter>
+    </None>
+    <None Include="Images\Bjtds.aps">
+      <Filter>软件开发工具包\图标资源工具包</Filter>
+    </None>
+    <None Include="..\x64\Release\Work_DB\Axis_Position.json">
+      <Filter>运行文件</Filter>
+    </None>
+    <None Include="..\x64\Release\System_DB\Communicate_DB.json">
+      <Filter>运行文件</Filter>
+    </None>
+    <None Include="..\x64\Release\Robot_App\stuqss.css">
+      <Filter>运行文件</Filter>
+    </None>
+    <None Include="System_DB\Communicate_DB.json">
+      <Filter>软件开发工具包\数据缓存工具包</Filter>
+    </None>
+    <None Include="..\lib\CGXIZip.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\cr_sdk.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\LogStorageDll.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\msvcp140.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\msvcr100.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\protobuf-c.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\protobuf-rpc.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\pthreadVC2.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\RobotConfigDll.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\ucrtbase.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\vcruntime140.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\vcruntime140_1.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\lib\zlib.dll">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </None>
+    <None Include="..\轮对质检\轮对质检机器人-图像采集上传协议.md">
+      <Filter>运行文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Images\Bjtds.rc">
+      <Filter>软件开发工具包\图标资源工具包</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Images\icon.ico">
+      <Filter>软件开发工具包\图标资源工具包</Filter>
+    </Image>
+    <Image Include="Images\LOGO.png">
+      <Filter>软件开发工具包\图标资源工具包</Filter>
+    </Image>
+    <Image Include="Images\LOGO2.png">
+      <Filter>软件开发工具包\图标资源工具包</Filter>
+    </Image>
+    <Image Include="Images\LogonWidget.jpg">
+      <Filter>软件开发工具包\图标资源工具包</Filter>
+    </Image>
+    <Image Include="Images\Robot.png">
+      <Filter>软件开发工具包\图标资源工具包</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Images\Logo.qrc">
+      <Filter>软件开发工具包\图标资源工具包</Filter>
+    </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="basestruct.h">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="robotapi.h">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\lib\cr_sdk.lib">
+      <Filter>软件开发工具包\长广溪SDK</Filter>
+    </Library>
+  </ItemGroup>
+</Project>

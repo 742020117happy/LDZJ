@@ -1,0 +1,45 @@
+function flush_recv_buffer()
+	while true do
+		local ok, data = pcall(socket_read_string, 8, 50);
+		if not ok or data == nil  or data == "" then
+			break
+		end
+		print("Flushed residual:" .. data)
+	end
+end
+function PHOTO(gain, program_index, part_1, part_2, point_id)
+	--增益-程序索引-一级部件-二级部件-编号
+	gain = tostring(gain or "1")
+	program_index = tostring(program_index or "01")
+	part_1 = tostring(part_1 or "TCLD")
+	part_2= tostring(part_2 or "01")
+	point_id = tostring(point_id or "01")
+	local status = get_socket_connect_status(8)
+	if status == 0 then
+		local send_str = "CHANG&GAIN&" .. gain .. "&PHOTO&" .. program_index .. "-" .. part_1 .. "-" .. part_2 .. "-" .. point_id .. "!"
+		flush_recv_buffer()
+		socket_send_string(8, send_str)
+		print("Send:" .. send_str)
+		-- TCP 粘包安全: 累积 buffer + string.find
+		local buffer = ""
+		while true do
+			if get_socket_connect_status(8) ~= 0 then
+				print("Socket disconnect while waiting for response")
+				break
+			end
+			local read_success, recv_str = pcall(socket_read_string, 8, 2000)
+			if read_success and recv_str ~= nil and recv_str ~= "" then
+				buffer = buffer .. recv_str
+				if string.find(buffer, "<COMPLETE><T1>!") then
+					print("Receive COMPLETE signal")
+					break
+				end
+				print(recv_str)
+			end
+			wait(10)
+		end
+	else
+		print("Socket 8 is not connected")
+	end
+end
+PHOTO("3","02","TCLD","02","03")

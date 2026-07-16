@@ -1,0 +1,4121 @@
+========================================
+ENVIRONMENTS (12)
+========================================
+
+  Name: 默认环境 (ID: 1)
+    Server: 默认服务 -> http://192.168.1.102:8888/yhs-robot/
+
+  Name: Mock环境 (ID: 2)
+    Server: 默认服务 -> https://mock.apipost.net/mock/345aae
+
+  Name: 邓福平本地环境副本 (ID: 1de632)
+    Server: 默认服务 -> http://192.168.8.63:8888/yhs-robot
+
+  Name: 更新接口 (ID: 1de633)
+    Server: 默认服务 -> http://192.168.1.102:8889
+
+  Name: 王海军环境 (ID: 1de634)
+    Server: 默认服务 -> http://10.2.1.28:8888/yhs-robot
+
+  Name: 陈冬-本地环境 (ID: 1de635)
+    Server: 默认服务 -> http://127.0.0.1:8888/yhs-robot
+
+  Name: 邓福平本地环境 (ID: 1de636)
+    Server: 默认服务 -> http://192.168.8.50:8888/yhs-robot
+
+  Name: 打包测试环境端口8000 (ID: 1de637)
+    Server: 默认服务 -> http://192.168.1.102:8000/yhs-robot
+
+  Name: 生产环境 (ID: 1de638)
+    Server: 默认服务 -> http://192.168.1.102:8888/yhs-robot
+
+  Name: 默认环境副本 (ID: 1de639)
+    Server: 默认服务 -> http://192.168.1.102:8888/yhs-robot/
+
+  Name: 本地环境 (ID: cb6541bf0002)
+    Server: 默认服务 -> 
+
+  Name: 本地环境 (ID: 17db4342b45002)
+    Server: 默认服务 -> 
+
+
+========================================
+API ENDPOINTS BY MODULE (166 total entries)
+========================================
+
+----------------------------------------
+MODULE: 登录认证 (ID: 53f169d)
+----------------------------------------
+  --- API ---
+    Name: 登录获取Token
+    ID: 53f169b
+    Method: POST
+    URL: /auth/token
+    Description: 登录获取token用于认证
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "userCode": "admin",
+          "password": "admin123"
+      }
+    Response Example:
+      {
+      	"data": {
+      		"expires": "2024-12-01 14:21:06",
+      		"mac_address": [ //mac地址
+      			"c4:83:72:10:cf:9c",
+      			"c4:83:72:10:cf:9d"
+      		],
+      		"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2MjUyNzY0NC04ZmU3LTRlYmMtYTZjYi1hYmRmZGI4YTA2OGUiLCJleHAiOjE3MzMwMzQwNjYsImlhdCI6MTczMDQ0MjA2NiwidHlwZSI6InJlZnJlc2giLCJuYmYiOjE3MzA0NDIwNjYsImlkZW50aXR5IjoiYWRtaW4ifQ.jomMXe1-EidKmhngzI2aGqkrkUUy0MSVzbwmvP2q4-k",	//未使用
+      		"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5OGYxOWJhMC04Y2U
+
+  --- API ---
+    Name: 刷新token(未使用)
+    ID: 53f169c
+    Method: GET
+    URL: /auth/token/refresh
+    Description: 该接口的token, 传的是refresh_token
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Default/Example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkYzZmNTI2Ny00MDE5LTQ2ODktYmNkZi03YzBlYTRhMjAwNWYiLCJleHAiOjE2OTE3MTg2MTgsImlhdCI6MTY4OTEyNjYxOCwidHlwZSI6InJlZnJlc2giLCJuYmYiOjE2ODkxMjY2MTgsImlkZW50aXR5IjoiYWRtaW4ifQ.6_svJJYcJZ9dr3kJSQNG5_9ifiDX1Gi90RgCMBsoFwc"
+
+
+----------------------------------------
+MODULE: 地图模块 (ID: 53f169a)
+----------------------------------------
+  --- API ---
+    Name: 扫图
+    ID: 53f1699
+    Method: POST
+    URL: /cmd/begin_map?map_name=map2
+    Description: 建图
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "map2"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "开启新建地图节点成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取实时建图图片png(扫图时调用)
+    ID: 53f168a
+    Method: GET
+    URL: /real_time_data/file_map
+    Description: 获取建图时候扫描的地图图片base64格式
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"py/b64": "iVBORw0KGgoAAAANSUhEUgAABAMAAAHUCAIAAADA33ZJAAAgAElEQVR4AezBW25qTa9A0bkk98H15Op/s8pPdhuwxNlan/gFJyGB3BM8xrbiQGuttdZaa+3BbCsOtNZaa6211h7MtuJAa6211lpr7cFsKw601lprrbXWHsy24kBrrbXWWmvtwWwrDrTWWmuttdYezLbiQGuttdZaa+3BbCsOtNZuM4ewW1G01lprrf1m24oDrbX7zSGcrChaa6211n6VbcWB1lprrbXW2oPZVhxorbXWWmutPZhtxYHWWmuttdbag9lWHGittdZaa609mG3FgdZaa6211tqD2VYcaK211lprrT2YbcWB1lprrbXW2oPZVhxorV03h7BbUbTWWmut/RXbigOttdZaa621B7OtONBaa6211lp7MNuKA6211lprrbUHs6040FprrbXWWnsw24oDrbXWWmuttQezrTjQWm
+
+  --- API ---
+    Name: 结束扫描保存地图(扫图时调用)(异步)
+    ID: 53f1691
+    Method: GET
+    URL: /cmd/async_stop_scan_map
+    Description: 建图后进行地图保存(没有建图时，禁止调用该接口！）
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"createdAt": "2024/10/31 09:02:45",
+      		"gridHeight": 39,
+      		"gridWidth": 30,
+      		"originX": 10,
+      		"originY": 13,
+      		"resolution": 72
+      	},
+      	"errCode": 0,
+      	"msg": "保存地图成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 取消扫描不保存地图(扫图时调用)
+    ID: 53f1695
+    Method: GET
+    URL: /cmd/cancel_scan_map
+    Description: 不保存地图
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": true,
+      	"errCode": 0,
+      	"msg": "取消成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取地图图片png格式
+    ID: 53f1689
+    Method: GET
+    URL: /data/get_map_png?map_name=map1
+    Description: 获取已经保存的地图的图片base64格式
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "map1"
+    Response Example:
+      {
+      	"data": "iVBORw0KGgoAAAANSUhEUgAAAcwAAAP4CAIAAADfzVtDAAAgAElEQVR4AezBW24b2w4FwEWAc2B/sec/LPKLHMMm4Bso8IF9HSd+SC1LWlUStUBERJchUQtERHQZErVARESXIVELRER0GRK1QERElyFRC0REdBkStUBERJchUQtERHQZErVA927fNGpARIeTqAW6O/umUbNvCiBq9k2jBkR0OIlaoDuyb4qTqAERXZtELdAN2jeNmn3TqAER/VQStUC3Y98UQNTsm0bNvmnUgIh+KolaoFuwbxo1+J5906gBER1FohaIiOgyJGqB6JP2TaMGRPQvErVA9I59UwBRg5N906gBEX2YRC3QA9s3jRoA+6ZRs28KIGr2TaMGRPQ9ErVAD2zfFM+iZt80akBEZyJRC/SQ9k2jZt8Uz6IGRHRWErVA92LfNGrwAfum+JOoARGdj0QtEBHRZUjUAj0AN8Wz7HFTvCN7QERnIlEL
+
+  --- API ---
+    Name: 修改地图名称(会重启导航服务)
+    ID: 53f1690
+    Method: GET
+    URL: /cmd/rename_map?origin_map_name=test&new_map_name=gzhy–1f
+    Description: 重命名地图名称，重命名后导航会重新启动
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 原地图名
+        Default/Example: "test"
+      [query] undefined (string) [REQUIRED]
+        Description: 新地图名
+        Default/Example: "gzhy–1f"
+    Response Example:
+      {
+      	"data": true,
+      	"errCode": 0,
+      	"msg": "修改成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取地图列表
+    ID: 53f1697
+    Method: GET
+    URL: /data/list_maps
+    Description: 获取已经创建好的地图的列表
+“id”对应yhs-robot/datas中的文件夹名称
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"createdAt": "2024/11/11 11:02:11",
+      			"creator": "董小菘",
+      			"default": true,
+      			"id": "573be798-9fd9-11ef-b5c3-c4837210cf9c",
+      			"mapInfo": {
+      				"createdAt": "2024/11/11 11:02:11",
+      				"gridHeight": 734,
+      				"gridWidth": 600,
+      				"originX": -8.35,
+      				"originY": -17.38670654296875,
+      				"resolution": 0.05000000074505806
+      			},
+      			"name": "in"
+      		}
+      	],
+      	"errCode": 0,
+      	"msg": "数据获取成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 显示指定的地图信息
+    ID: 53f1692
+    Method: GET
+    URL: /data/single_map_info?map_name=in
+    Description: 获取某张地图的地图信息
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Default/Example: "in"
+    Response Example:
+      {
+      	"data": {
+      		"createdAt": "2024/11/11 11:02:11",
+      		"gridHeight": 734,
+      		"gridWidth": 600,
+      		"mapname": "in",
+      		"mapsize": "2.9M",
+      		"originX": -8.35,
+      		"originY": -17.38670654296875,
+      		"resolution": 0.05000000074505806
+      	},
+      	"errCode": 0,
+      	"msg": "数据获取成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取当前使用的默认地图
+    ID: 53f168f
+    Method: GET
+    URL: /cmd/use_map
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"createdAt": "2024/11/11 11:02:11", //地图创建时间
+      		"creator": "董小菘", //创建者
+      		"default": true, //是否为默认地图
+      		"id": "573be798-9fd9-11ef-b5c3-c4837210cf9c", //地图ID
+      		"mapInfo": {
+      			"createdAt": "2024/11/11 11:02:11",
+      			"gridHeight": 734, //地图栅格高度和宽度
+      			"gridWidth": 600,
+      			"originX": -8.35, //原始坐标值,在地图左下角
+      			"originY": -17.38670654296875,
+      			"resolution": 0.05000000074505806 //地图分辨率
+      		},
+      		"name": "in" //地图名字
+      	},
+      	"errCode": 0,
+      	"msg": "",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 删除地图
+    ID: 53f1688
+    Method: GET
+    URL: /cmd/delete_map?map_name=map
+    Description: 注意：不能删除正在使用的地图
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Default/Example: "map"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "地图删除成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 切换地图
+    ID: 53f1696
+    Method: POST
+    URL: /cmd/use_map?map_name=i
+    Description: 切换当前正在使用的地图，切换后会重启导航
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Default/Example: "i"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "开启navigation.launch0619-4成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 绘制特殊区域
+    ID: 53f168d
+    Method: POST
+    URL: /obstacle?map_name=map
+    Description: 
+1、特殊区域类型：
+* obstacles  # 虚拟墙
+* slopes  # 斜坡
+* carpets  # 地毯区域（未使用）
+* decelerations   # 减速带区域
+* displays   # 窄道
+* highlight  # 高亮区域（未使用）
+
+2、虚拟墙形状类型：
+*  lines # 线段
+*  polylines  # 不封闭多边形，折线
+*  polygons  # 封闭多边形
+*  circles  # 圆形
+*  rectangles  # 矩形
+
+    Request Body Mode: json
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "map"
+    Request Body (raw):
+      {
+      	"carpets": { //地毯区域(未使用)
+      		"circles": [],
+      		"lines": [],
+      		"polygons": [],
+      		"polylines": [],
+      		"rectangles": []
+      	},
+      	"decelerations": { //减速带区域
+      		"circles": [],
+      		"lines": [],
+      		"polygons": [ //多边形减速带
+      			[
+      				{
+      					"x": 527,
+      					"y": 366
+      				},
+      				{
+      					"x": 538,
+      					"y": 366
+      				},
+      				{
+      					"x": 537,
+      					"y": 401
+      				},
+      				{
+      					"x": 524,
+      					"y": 400
+      				}
+      			]
+      		],
+      		"polylines": [],
+      		"rectangles": []
+      	},
+      	"displays": { //窄道
+      		"circles": [],
+    Response Example:
+      {
+      	"data": "保存成功",
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取特殊区域数据
+    ID: 53f1686
+    Method: GET
+    URL: /obstacle?map_name=a
+    Description: 1. 虚拟墙obstacles：圆circles，多边形polygons，线段polylines
+2. 斜坡slopes：多边形polygons
+3. 减速带区域decelerations：多边形polygons
+4. 窄道displays：多边形polygons
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "a"
+    Response Example:
+      {
+      	"data": {
+      		"carpets": {
+      			"circles": [
+      				{}
+      			],
+      			"lines": [
+      				{}
+      			],
+      			"polygons": [
+      				{}
+      			],
+      			"polylines": [
+      				{}
+      			],
+      			"rectangles": [
+      				{}
+      			]
+      		},
+      		"decelerations": {
+      			"circles": [
+      				{}
+      			],
+      			"lines": [
+      				{}
+      			],
+      			"polygons": [
+      				{}
+      			],
+      			"polylines": [
+      				{}
+      			],
+      			"rectangles": [
+      				{}
+      			]
+      		},
+      		"displays": {
+      			"circles": [
+      				{}
+      			],
+      			"lines": [
+      				{}
+      			],
+      			"polygons": [
+      				{}
+      			],
+      			"polylines": [
+      				{}
+      			],
+      			"rectangl
+
+  --- API ---
+    Name: 原图编辑(会重启导航服务)
+    ID: 53f1693
+    Method: POST
+    URL: /cmd/edit_map?map_name=in
+    Description: 清除或生成地图障碍物，调用接口会重启导航
+    Request Body Mode: json
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "in"
+    Request Body (raw):
+      [ //注意:该接口操作会使导航系统重启
+          // {
+          //     "type": "polygons", //多边形
+          //     "operation_type": "add", //操作类型：add：填充 remove：清除
+          //     "datas": [
+          //         {
+          //             "x": 705,
+          //             "y": 495
+          //         },
+          //         {
+          //             "x": 715,
+          //             "y": 495
+          //         },
+          //         {
+          //             "x": 705,
+          //             "y": 485
+          //         },
+          //         {
+          //             "x": 715,
+          //    
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "操作成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 动态位姿初始化(小车原地旋转)
+    ID: 53f1698
+    Method: POST
+    URL: /real_time_data/dynamic_init_pose?map_name=mmm&point_name=init
+    Description: 启动导航后，通过APP或者接口观察小车定位是否成功，如果未定位成功，需要进行动态初始化，动态初始化过程，小车会原地旋转
+
+把机器人开到对应初始化点上，并且车头朝向初始化点方向，然后调用动态位姿初始化即可。
+（如果在APP上观察到红色激光点和周围障碍物边缘对齐或是偏差不大，可以手动遥控小车原地旋转，可快速初始化成功。）
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "mmm"
+      [query] undefined (string) [REQUIRED]
+        Description: 初始化点名称
+        Default/Example: "init"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "正在动态初始化....",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 使用地图栅格坐标初始化(小车原地旋转)
+    ID: 53f1694
+    Method: POST
+    URL: /real_time_data/temp_point_init_pose
+    Description: 使用地图上的栅格坐标点进行动态初始化
+    Request Body Mode: json
+    Request Body (raw):
+      {
+        "angle": 23.55, //点的角度
+        "gridX": 503,//栅格坐标
+        "gridY": 304,
+        "mapName": "in",//地图名称
+        "type": 1
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "正在使用地图坐标初始化....",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 静态位姿初始化(未使用)
+    ID: 53f168c
+    Method: POST
+    URL: /real_time_data/static_init_pose?map_name=map&point_name=init
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "map"
+      [query] undefined (string) [REQUIRED]
+        Description: 初始化点名称
+        Default/Example: "init"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "正在静态初始化....",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 初始化结果
+    ID: 53f1687
+    Method: GET
+    URL: /real_time_data/init_pose_result
+    Description: “data”：true代表初始化成功
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": true,
+      	"errCode": 0,
+      	"msg": "初始化成功....",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 恢复地图(开发中)
+    ID: 53f168e
+    Method: GET
+    URL: /cmd/recover_map?map_name=ttt
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名
+        Default/Example: "ttt"
+    Response Example:
+      {
+      	"data": true,
+      	"errCode": 0,
+      	"msg": "恢复成功",
+      	"successed": true
+      }
+
+
+----------------------------------------
+MODULE: 路径与点模块 (ID: 53f166a)
+----------------------------------------
+  --- API ---
+    Name: 创建导航点
+    ID: 53f1657
+    Method: POST
+    URL: /cmd/pos
+    Description: 导航点的类型：
+* type：
+* 0 初始化点：可用于小车动态位姿初始化，或者用于导航
+* 1 充电点：用于小车自主回充
+* 2 导航点：进行导航的点
+    Request Body Mode: json
+    Request Body (raw):
+      {
+        "angle": 0, //导航点朝向角度
+        "gridX": 537, //导航点栅格坐标
+        "gridY": 347,
+        "mapName": "7-1", //地图名称
+        "name": "point", //导航点名称
+        "type": 2, //导航点类型,目前只用到了0，1，2
+        //初始化点:0
+        //充电点:1
+        //导航点:2
+        //RFID点:3
+        //注水点:4
+        //排水点:5
+        //二维码点:11
+        //导航结束点:12
+        "markPoint": false, //是否标记当前位姿(将小车当前位姿作为导航点的位姿)
+        "moveType": 1 //导航模式 1：前进导航，2：后退导航，3：横移导航
+      }
+    Response Example:
+      {
+      	"data": {
+      		"angle": 0, //导航点角度（°）
+      		"gridX": 384, //导航点栅格坐标
+      		"gridY": 385,
+      		"id": "770c0c68-9757-11ef-9db5-c4837210cf9c", //导航点ID
+      		"mapId": "8b0d382e-9755-11ef-9db5-c4837210cf9c", //地图ID,对应后端地图文件夹名称
+      		"mapName": "map", //地图名称
+      		"markPoint": false, //是否为标记当前点（将小车当前位姿作为该点的位姿）
+      		"moveType": 1, //导航模式: 1前进导航, 2后退导航, 3横移模式
+      		"name": "1", //导航点名称
+      		"type": 2, //导航点类型
+      		"worldPose": { //导航点世界坐标
+      			"orientation": {
+      				"w": {
+      					"py/newargs": [
+      						1
+      					]
+      				},
+      				"x": {
+      					"py/newargs"
+
+  --- API ---
+    Name: 编辑导航点
+    ID: 53f1664
+    Method: PUT
+    URL: /cmd/pos
+    Request Body Mode: json
+    Request Body (raw):
+      {
+        "angle": 112,
+        "gridX": 120,
+        "gridY": 1339,
+        "mapName": "ab",
+        "id": "91c662c8-2c72-11f0-93e0-c4837210cf9c", //导航点ID
+        "name": "g", //修改后的点的名称
+        "markPoint": false, //标记当前位置
+        "type": 0, //修改后的点的类型
+        "moveType": 1 //修改后点的导航模式 1：前进导航，2：后退导航，3：横移导航
+      }
+      // 注意: 使用该接口时, 如果某些字段属性没有填入, 会自动变成默认属性. 例如原本moveType为2, 编辑导航点时moveType注释了, 则会默认变成1
+    Response Example:
+      {
+      	"data": {
+      		"angle": 112,
+      		"gridX": 120,
+      		"gridY": 1339,
+      		"id": "770c0c68-9757-11ef-9db5-c4837210cf9c",
+      		"mapId": "8b0d382e-9755-11ef-9db5-c4837210cf9c",
+      		"mapName": "map",
+      		"markPoint": false,
+      		"name": "p1",
+      		"type": 0,
+      		"worldPose": {
+      			"orientation": {
+      				"w": {
+      					"py/newargs": [
+      						0.5591929034707468
+      					]
+      				},
+      				"x": {
+      					"py/newargs": [
+      						0
+      					]
+      				},
+      				"y": {
+      					"py/newargs": [
+      						0
+      					]
+      				},
+      				"z": {
+      					"py/newargs": [
+      						0.829037572555
+
+  --- API ---
+    Name: 删除导航点
+    ID: 53f165c
+    Method: DELETE
+    URL: /cmd/pos?map_name=g&position_name=a
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "g"
+      [query] undefined (string) [REQUIRED]
+        Description: 点名称
+        Default/Example: "a"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "删除成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取地图上导航点列表
+    ID: 53f1659
+    Method: GET
+    URL: /data/poslist?map_name=7-1&type=
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "7-1"
+      [query] undefined (string) [REQUIRED]
+        Description: 点类型 不传值时获取所有的类型
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"angle": 0,
+      			"createdAt": "2023-07-12 10:07:37",
+      			"gridX": 592,
+      			"gridY": 190,
+      			"id": 0,
+      			"mapId": "926a94e8-2057-11ee-9650-042b58098dc5",
+      			"mapName": "0712",
+      			"name": "001",
+      			"type": 0,
+      			"worldPose": {
+      				"orientation": {
+      					"w": 1,
+      					"x": 0,
+      					"y": 0,
+      					"z": 0
+      				},
+      				"position": {
+      					"x": 15.514233,
+      					"y": -3.5,
+      					"z": 0
+      				}
+      			}
+      		}
+      	],
+      	"errCode": 0,
+      	"msg": "获取成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 生成手绘路径
+    ID: 53f1655
+    Method: POST
+    URL: /cmd/graph
+    Description: 手绘路径上两个点设置的最小距离需大于0.1m，即两个栅格
+    Request Body Mode: json
+    Request Body (raw):
+      {
+        "name": "path", //手绘路径名称
+        "mapId": "6b5b0334-6b90-11f0-b572-c4837210cf9c", //地图ID
+        "mapName": "test", //地图名称
+        "points": [
+          {
+            "name": "1", //手绘路径第一个点的名称
+            "actions": [
+              {
+                "fields": [
+                  {
+                    "fields": [],
+                    "name": "millisecond",
+                    "type": "3",
+                    "value": "3000" //停留5000ms
+                  }
+                ],
+                "isChecked": false,
+                "isDevice": false,
+                "name": "Pause" //暂
+    Response Example:
+      {
+      	"data": {
+      		"close": false,
+      		"fileName": "47481fff-9765-11ef-9db5-c4837210cf9c.json",
+      		"id": "47481ffe-9765-11ef-9db5-c4837210cf9c",
+      		"length": 1.5, //线段长度
+      		"lines": [
+      			{
+      				"begin": "p1",
+      				"end": "p2",
+      				"length": 1.5,
+      				"name": "p1-p2",
+      				"radius": 0
+      			}
+      		],
+      		"mapId": "8b0d382e-9755-11ef-9db5-c4837210cf9c",
+      		"mapName": "mapa",
+      		"name": "path",
+      		"pathGroups": [],
+      		"paths": [
+      			{
+      				"lines": [
+      					{
+      						"name": "p1-p2",
+      						"reverse": false
+      					}
+      				],
+      				"nam
+
+  --- API ---
+    Name: 更新手绘路径（路径动作点)
+    ID: 53f165d
+    Method: PUT
+    URL: /cmd/graph
+    Request Body Mode: json
+    Request Body (raw):
+      {//先通过“获取手绘路径”接口，获取字段，填入该接口中，再修改路径动作点
+      	"close": false,	//是否为闭环路径
+      	"coverageArea": null,
+      	"createAt": "2024-08-21 11:20:58",
+      	"data": {},
+      	"fileName": "62a89b07-5f6c-11ef-82c9-c4837210cf9c.json",//后端中,路径的数据文件
+      	"id": "62a89b06-5f6c-11ef-82c9-c4837210cf9c",
+      	"length": 4.004996878900157,//路径长度
+      	"lines": [
+      		{
+      			"angle": -20,
+      			"begin": "1",//线段起点坐标
+      			"end": "2",//线段终点坐标
+      			"length": 2.0024984394500787,//线段长度
+      			"name": "1_2",//线段名称
+      			"radius": 0//线段曲率半径
+      		},
+      		{
+      			"angle": -20,
+      			"begin": "2",
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "更新手画路径成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 删除手绘路径
+    ID: 53f1667
+    Method: DELETE
+    URL: /cmd/graph?map_name=test&graph_path_name=demo1
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "test"
+      [query] undefined (string) [REQUIRED]
+        Description: 手绘路径名称
+        Default/Example: "demo1"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "删除手画路径成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 手绘路径列表
+    ID: 53f1668
+    Method: GET
+    URL: data/graph_list?map_name=inab
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "inab"
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"coverageArea": null,
+      			"createAt": "2023-07-12 09:59:13", //手绘路径创建时间
+      			"fileName": "b2e348be-2057-11ee-9650-042b58098dc5.json", //后端中手绘路径数据文件名称
+      			"id": null,
+      			"length": 2.7080014047363785, //路径长度
+      			"lines": [
+      				{
+      					"begin": "1", //线段起点名称
+      					"end": "2", //线段终点名称
+      					"length": 1.628649747490233, //线段长度
+      					"name": "1_2", //线段名称
+      					"radius": 0 //线段曲率半径
+      				},
+      				{
+      					"begin": "2",
+      					"end": "3",
+      					"length": 1.0793516572461452,
+      					"name": "2_3",
+      					"
+
+  --- API ---
+    Name: 获取手绘路径
+    ID: 53f1669
+    Method: GET
+    URL: data/graph_path?map_name=in&path_name=a&contains_details=
+    Description: 包含路径中所有点数据 不需要就可以不传 需要 就传True
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "in"
+      [query] undefined (string) [REQUIRED]
+        Description: 路径名称
+        Default/Example: "a"
+      [query] undefined (string) [REQUIRED]
+        Description: 包含路径中所有点数据 不需要就可以不传 需要 就传True
+    Response Example:
+      {
+      	"data": {
+      		"close": null,
+      		"coverageArea": null,
+      		"createAt": "2024-10-31 17:12:22",
+      		"data": {},
+      		"fileName": "3cf6cc01-9768-11ef-9db5-c4837210cf9c.json",
+      		"id": "3cf6cc00-9768-11ef-9db5-c4837210cf9c",
+      		"length": 3.50891721190455,
+      		"lines": [
+      			{
+      				"begin": "1",
+      				"end": "2",
+      				"length": 3.50891721190455,
+      				"name": "1_2",
+      				"radius": 0
+      			}
+      		],
+      		"mapId": "8b0d382e-9755-11ef-9db5-c4837210cf9c",
+      		"mapName": "mapa",
+      		"name": "graph_path1",
+      		"paths": [
+      			{
+      				"lines": [
+
+  --- API ---
+    Name: 重命名手绘路径
+    ID: 53f1660
+    Method: PUT
+    URL: /cmd/update_graph_path_name?map_name=test&origin_name=demo1&new_name=new_path1
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "test"
+      [query] undefined (string) [REQUIRED]
+        Description: 原名称
+        Default/Example: "demo1"
+      [query] undefined (string) [REQUIRED]
+        Description: 新名称
+        Default/Example: "new_path1"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "重命名路径成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 检测两点之间是否可以生成线段
+    ID: 53f1658
+    Method: POST
+    URL: /cmd/graph_check_point
+    Request Body Mode: json
+    Request Body (raw):
+      {
+      	"begin": {
+      		"x": 306,
+      		"y": 565
+      	},
+      	"end": {
+      		"x": 317,
+      		"y": 574
+      	},
+      	"mapName": "mapa",
+      	"radius": 0 //线段的曲率半径,可通过两点的地图坐标求解最小的圆弧半径，radius只能比最小圆弧半径值大，不能小。0为直线（单位为栅格）
+      }
+      //需要将导航参数is_check_obs_in_path设置为true
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "路径可以通行",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 验证几条线段是否可以生成路径
+    ID: 53f165b
+    Method: POST
+    URL: /cmd/graph_check_line
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "lines": [
+              {
+                  "begin": {
+                      "x": 652,
+                      "y": 400
+                  }, //开始点
+                  "end": {
+                      "x": 649,
+                      "y": 453
+                  }, //结束点
+                  "radius": -26.542418879973994 //半径,（单位为栅格）
+              },
+              {
+                  "begin": {
+                      "x": 649,
+                      "y": 453
+                  }, //开始点
+                  "end": {
+                      "x": 551,
+                      "y": 454
+                  }, //结束点
+                  "radius":
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "路径可以通行",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 开始录制路径
+    ID: 53f165e
+    Method: GET
+    URL: cmd/start_record_path?map_name=workshop&path_name=record
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "workshop"
+      [query] undefined (string) [REQUIRED]
+        Description: 录制路径名称
+        Default/Example: "record"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "开始录制路径成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 停止并保存路径
+    ID: 53f1661
+    Method: GET
+    URL: /cmd/stop_record_path
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"coverageArea": null,
+      		"createAt": "2023-07-12 15:36:47", //录制路径创建时间
+      		"data": [
+      			{
+      				"gridPosition": [],
+      				"length": 0,
+      				"name": "__DEFAULT",
+      				"namedPoints": [
+      					{
+      						"actions": [], //动作点
+      						"angle": 0.03772255133266482, //录制路径起点角度
+      						"gridPosition": { //起点栅格坐标
+      							"x": 245,
+      							"y": 583
+      						},
+      						"index": 0,
+      						"name": "__DEFAULT_0", //录制路径起点名称
+      						"worldPose": { //起点世界坐标
+      							"orientation": {
+      								"w": 0.9998221314132418,
+      								"x
+
+  --- API ---
+    Name: 取消录制路径
+    ID: 53f165a
+    Method: GET
+    URL: /cmd/cancel_record_path
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "取消录制路径成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取录制路径
+    ID: 53f1665
+    Method: GET
+    URL: /data/record_path?map_name=mapa&path_name=a&contains_details=
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "mapa"
+      [query] undefined (string) [REQUIRED]
+        Description: 路径名称
+        Default/Example: "a"
+      [query] undefined (string) [REQUIRED]
+        Description: 包含路径中所有点数据 不需要就可以不传 需要 就传True
+    Response Example:
+      {
+          "data": {
+              "coverageArea": null,
+              "createAt": "2024-10-31 17:55:00",
+              "data": [
+                  {
+                      "gridPosition": [],
+                      "length": 6.457187620252355, //录制路径长度
+                      "name": "__DEFAULT",
+                      "namedPoints": [
+                          {
+                              "actions": [], //动作
+                              "angle": 1.567444871294638, //角度
+                              "gridPosition": { //录制路径起点栅格坐标
+                                  "x": 142,
+         
+
+  --- API ---
+    Name: 编辑录制路径中动作点数据
+    ID: 53f1656
+    Method: PUT
+    URL: cmd/record_path_points
+    Request Body Mode: json
+    Request Body (raw):
+      {
+      	"map_name": "map",//地图名称
+      	"path_name": "a",//录制路径名称
+      	"fileName": "31cfa224-976e-11ef-9db5-c4837210cf9c.csv", //通过接口“获取录制路径”获取
+      	"points": [
+      		{
+      			"actions": [],
+      			"angle": 0.0377617811628419,
+      			"gridPosition": {
+      				"x": 346,
+      				"y": 356
+      			},
+      			"index": 0,	//点的索引
+      			"name": "__DEFAULT_0",
+      			"worldPose": {
+      				"orientation": {
+      					"w": 0.999821761280518,
+      					"x": 0,
+      					"y": 0,
+      					"z": 0.018879768799504242
+      				},
+      				"position": {
+      					"x": 5.15,
+      					"y": -0.14963699999999847,
+      				
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "编辑录制路径动作点成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 删除录制路径
+    ID: 53f165f
+    Method: DELETE
+    URL: /cmd/record_path?map_name=map&path_name=a
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "map"
+      [query] undefined (string) [REQUIRED]
+        Description: 录制路径名称
+        Default/Example: "a"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "删除录制路径成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取录制路径列表
+    ID: 53f1663
+    Method: GET
+    URL: /data/record_list?map_name=map
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "map"
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"coverageArea": null,
+      			"createAt": "2024-11-01 09:23:44",
+      			"data": [
+      				{
+      					"gridPosition": [],
+      					"length": 2.2357131797535126,
+      					"name": "__DEFAULT",
+      					"namedPoints": [
+      						{
+      							"actions": [],
+      							"angle": 0.4566003201740013,
+      							"gridPosition": {
+      								"x": 141,
+      								"y": 336
+      							},
+      							"index": 0,
+      							"moveType": null,
+      							"name": "__DEFAULT_0",
+      							"worldPose": {
+      								"orientation": {
+      									"w": 0.9740525134298906,
+      		
+
+  --- API ---
+    Name: 重命名录制路径名称
+    ID: 53f1666
+    Method: PUT
+    URL: /cmd/update_rec_path_name?map_name=test&origin_path_name=record&new_path_name=new_path1
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Default/Example: "test"
+      [query] undefined (string) [REQUIRED]
+        Description: 原录制路径名称
+        Default/Example: "record"
+      [query] undefined (string) [REQUIRED]
+        Description: 新录制路径名称
+        Default/Example: "new_path1"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "重命名路径成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 验证手绘路径名称
+    ID: 53f1662
+    Method: GET
+    URL: /cmd/graph_check_path_name?map_id=dfc91756-5485-11ef-9c85-c4837210cf83&name=new_path1
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图id
+        Default/Example: "dfc91756-5485-11ef-9c85-c4837210cf83"
+      [query] undefined (string) [REQUIRED]
+        Description: 路径名称
+        Default/Example: "new_path1"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "验证手绘路径名称成功",
+      	"successed": true
+      }
+
+
+----------------------------------------
+MODULE: 任务模块 (ID: 53f1645)
+----------------------------------------
+  --- API ---
+    Name: 开始执行任务
+    ID: 53f1642
+    Method: POST
+    URL: /task_queue/start
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "loop": false, //是否循环执行
+          "loop_count": 0, //循环次数，当loop为false时，loop_count默认为1
+          "map_name": "Room", //地图名称
+          "name": "", //路径组合名称，可选，需要执行该队列名称对应的任务时，传入该值。当对应的队列数据不存在时，则执行tasks中的数据。
+          "tasks": [
+              {
+                  "name": "NavigationPointTask", // 导航点任务
+                  "start_param": {
+                      "map_name": "Room", //地图名称
+                      "position_name": "a" //导航点名称
+                  }
+              },
+              {
+                  "name": "NavigationPointTask", // 导航点任务
+                 
+    Response Example:
+      {
+      	"data": "fb8ae418-981b-11ef-a147-c4837210cf9c",
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 暂停任务
+    ID: 53f1637
+    Method: POST
+    URL: /task_queue/pause
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 恢复任务
+    ID: 53f1639
+    Method: POST
+    URL: /task_queue/resume
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 停止所有任务
+    ID: 53f1644
+    Method: POST
+    URL: /task_queue/stop
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 停止当前任务/跳过当前任务
+    ID: 53f163b
+    Method: POST
+    URL: /task_queue/stop/task
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 查询路径组合是否存在
+    ID: 53f1631
+    Method: GET
+    URL: /task_queue/exist?map_name=in&queue_name=combine
+    Description: 返回数据data：
+ * true： 表示存在
+ * false： 表示不存在
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "in"
+      [query] undefined (string) [REQUIRED]
+        Description: 路径组合名称
+        Default/Example: "combine"
+    Response Example:
+      {
+      	"data": true,
+      	"errCode": -1,
+      	"msg": "error",
+      	"successed": false
+      }
+
+  --- API ---
+    Name: 添加保存路径组合
+    ID: 53f163d
+    Method: POST
+    URL: /task_queue
+    Description: name分类如下
+
+* PlayPathTask： 录制路径任务
+* PlayGraphPathTask： 手绘路径任务
+* NavigationPointTask： 导航到点任务
+* NavigationPositionTask： 导航到具体位置任务
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "name": "combined", //路径组合名称
+          "map_name": "map", //地图名称
+          "loop": false,
+          "tasks": [
+              {
+                  "name": "PlayPathTask", // PlayPathTask：录制路径
+                  "start_param": {
+                      "path_name": "record" //录制路径名称
+                  }
+              },
+              {
+                  "name": "PlayGraphPathTask", // PlayGraphPathTask：手绘路径
+                  "start_param": {
+                      "graph_name": "graph" //手绘路径名
+                  }
+              },
+              {
+                  "name": "Navigat
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 更新路径组合
+    ID: 53f1633
+    Method: PUT
+    URL: /task_queue
+    Description: name分类如下
+
+* PlayPathTask： 录制路径任务
+* PlayGraphPathTask： 手绘路径任务
+* NavigationPointTask： 导航到点任务
+* NavigationPositionTask： 导航到具体位置任务
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "name": "combined",
+          "map_name": "map",
+          "loop": true,
+          "tasks": [
+              {
+                  "name": "PlayPathTask", //任务类型
+                  "start_param": {
+                      "path_name": "record" //录制路径名称
+                  }
+              },
+              {
+                  "name": "PlayGraphPathTask",
+                  "start_param": {
+                      "graph_name": "graph" //手绘路径名
+                  }
+              }
+          ]
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取路径组合列表
+    ID: 53f163f
+    Method: GET
+    URL: /task_queue/list?map_name=in
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "in"
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"createAt": "2024-11-01 17:03:29", //创建时间
+      			"loop": true,
+      			"map_id": "8b0d382e-9755-11ef-9db5-c4837210cf9c", //地图ID
+      			"map_name": "map", //地图名称
+      			"name": "combined", //路径组合名称
+      			"tasks": [
+      				{
+      					"name": "PlayPathTask", //录制路径
+      					"start_param": {
+      						"path_name": "record" //录制路径名称
+      					}
+      				},
+      				{
+      					"name": "PlayGraphPathTask", //手绘路径
+      					"start_param": {
+      						"graph_name": "graph" //手绘路径名称
+      					}
+      				},
+      				{
+      					"name": "Navigatio
+
+  --- API ---
+    Name: 删除任务队列
+    ID: 53f1636
+    Method: DELETE
+    URL: /task_queue?map_name=in&task_queue_name=combine
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "in"
+      [query] undefined (string) [REQUIRED]
+        Description: 任务队列名称
+        Default/Example: "combine"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 当前任务是否完成
+    ID: 53f1634
+    Method: GET
+    URL: /task_queue/task/is_finished
+    Description: 完成/无法到达/取消：
+```
+{
+    "data": true,
+    "errCode": 0,
+    "msg": "success",
+    "successed": true
+}
+```
+未完成：
+```
+{
+    "data": false,
+    "errCode": 0,
+    "msg": "success",
+    "successed": true
+}
+```
+该接口强调, 当前是否有任务处于运行状态
+    Request Body Mode: none
+    Response Example:
+      //完成/无法到达/取消：
+      {
+          "data": true,
+          "errCode": 0,
+          "msg": "success",
+          "successed": true
+      }
+
+  --- API ---
+    Name: 当前队列是否执行完成
+    ID: 53f163e
+    Method: GET
+    URL: /task_queue/is_finished
+    Description: data字段：
+0：未运行
+1：运行中
+2：已暂停
+当data==0的时候，如果msg有值，则显示msg的值
+
+运行中（未完成）：
+```
+{
+    "data": 1,
+    "errCode": 0,
+    "msg": "",
+    "successed": true
+}
+```
+未运行（完成，或者取消）：
+```
+{
+    "data": 0,
+    "errCode": 0,
+    "msg": "",
+    "successed": true
+}
+```
+无法到达：
+```js
+{
+    "data": 0,
+    "errCode": 0,
+    "msg": "不能到达",
+    "successed": true
+}
+```
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": 1,
+          "errCode": 0,
+          "msg": "",
+          "successed": true
+      }
+
+  --- API ---
+    Name: 查询任务队列详情
+    ID: 53f1641
+    Method: GET
+    URL: /task_queue/detail?map_name=in&queue_name=combine
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "in"
+      [query] undefined (string) [REQUIRED]
+        Description: 路径组合名称
+        Default/Example: "combine"
+    Response Example:
+      {
+      	"data": {
+      		"loop": false,
+      		"map_name": "map4",
+      		"name": "group2",
+      		"tasks": [
+      			{
+      				"name": "NavigationPointTask",
+      				"start_param": {
+      					"map_name": "map4",
+      					"position_name": "init1"
+      				}
+      			},
+      			{
+      				"name": "PlayGraphPathTask",
+      				"start_param": {
+      					"graph_name": "path4",
+      					"map_name": "map4"
+      				}
+      			}
+      		]
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取任务日志/报告
+    ID: 53f163a
+    Method: GET
+    URL: /task_queue/log?start_time=2024-08-30 8:30:37&end_time=2024-08-30 16:35:00&map_name=workshop
+    Description: url参数为空的时候传空，不可不传
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 开始时间
+        Default/Example: "2024-08-30 8:30:37"
+      [query] undefined (string) [REQUIRED]
+        Description: 结束时间
+        Default/Example: "2024-08-30 16:35:00"
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+        Default/Example: "workshop"
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"_sa_instance_state": {
+      				"class_": {
+      					"py/type": "database.models.tb_task_log.TaskLog"
+      				},
+      				"committed_state": {},
+      				"expired_attributes": [],
+      				"instance": null,
+      				"key": [
+      					{
+      						"py/type": "database.models.tb_task_log.TaskLog"
+      					},
+      					[
+      						13448
+      					],
+      					null
+      				],
+      				"load_options": [],
+      				"load_path": [
+      					[
+      						{
+      							"py/type": "database.models.tb_task_log.TaskLog"
+      						},
+      						null
+      					]
+      				],
+      				"manager": {
+      					"cl
+
+  --- API ---
+    Name: 获取当前正在执行的路径组合+当前状态
+    ID: 53f1632
+    Method: GET
+    URL: /task_queue/current
+    Description: status字段：
+0：未运行
+1：运行中
+2：已暂停
+    Request Body Mode: none
+    Response Example:
+      { //执行任务中: 
+      	"data": {
+      		"data": {
+      			"group_name": null, //路径组合名称
+      			"loop": false,
+      			"loop_count": 1,
+      			"map_name": "in",
+      			"tasks": [
+      				{
+      					"name": "PlayGraphPathTask",
+      					"start_param": {
+      						"graph_name": "graph"
+      					}
+      				}
+      			],
+      			"type": "show_draw" // show_draw手绘路径,show_group路径组合，show_record录制路径
+      		},
+      		"status": 1 // 1 运行中 2 暂停中	
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 编辑任务队列
+    ID: 53f1643
+    Method: PUT
+    URL: /task_queue
+    Description: 参数数据参考保存任务队列接口
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "name":"combined",
+          "map_name":"in",
+          "loop":true,
+          "tasks":[
+              {
+                  "name":"NavigationPositionTask",
+                  "start_param":{
+                      "destination":{
+                          "angle":0,
+                          "gridPosition":{
+                              "x":265,
+                              "y":371
+                          }
+                      }
+                  }
+              }
+          ]
+      }
+
+  --- API ---
+    Name: 上传任务图片
+    ID: 53f1635
+    Method: POST
+    URL: /task_queue/upload_task_image
+    Description: 将base64的图片上传到后端,base64的输入需要是标准的格式，base64数据要带头::data:image/jpeg;base64,
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "filename":"mainlogo",
+          "file":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAeACgADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJ
+    Response Example:
+      {
+      	"data": "上传成功",
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取任务报告图片
+    ID: 53f1638
+    Method: GET
+    URL: /task_queue/down_task_image?task_id=6b7eca22-666d-11ef-92b0-c4837210cf94
+    Description: URL里的task_id获取方式：接口（获取任务日志/报告--/task_queue/log）返回数据中的remark_2 字段就是task_id
+    Request Body Mode: form-data
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 任务ID
+        Default/Example: "6b7eca22-666d-11ef-92b0-c4837210cf94"
+    Response Example:
+      {
+      	"data": "/9j/4AAQSkZJRgABAQAAAQABAAD/4gIoSUNDX1BST0ZJTEUAAQEAAAIYAAAAAAIQAABtbnRyUkdCIFhZWiAAAAAAAAAAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAAHRyWFlaAAABZAAAABRnWFlaAAABeAAAABRiWFlaAAABjAAAABRyVFJDAAABoAAAAChnVFJDAAABoAAAAChiVFJDAAABoAAAACh3dHB0AAAByAAAABRjcHJ0AAAB3AAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAFgAAAAcAHMAUgBHAEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+  --- API ---
+    Name: 重命名路径组合
+    ID: 53f163c
+    Method: PUT
+    URL: /task_queue/rename
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "map_name": "in",
+          "old_name": "combined",
+          "new_name": "combine"
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+
+----------------------------------------
+MODULE: 自主充电模块 (ID: 53f1654)
+----------------------------------------
+  --- API ---
+    Name: 自主回充
+    ID: 53f164e
+    Method: POST
+    URL: /cmd/recharge
+    Request Body Mode: json
+    Request Body (raw):
+      {
+        "map_name": "a", //地图名称
+        "point_name": "w" //充电点名称
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "开始充电...",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 充电状态反馈
+    ID: 53f164d
+    Method: GET
+    URL: /data/recharge/status
+    Description: NOTHING = 1  # 请先下发充电指令
+STARTED = 2  # 正在去往充电桩
+FAILED = 3  # 失败
+SUCCESSED = 4  # 充电成功	
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": 4,
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 脱离充电桩
+    ID: 53f164f
+    Method: POST
+    URL: /cmd/dis_recharge
+    Description: 脱离充电桩：
+当返回data=1的时候，表示开始脱离，这个需要轮询脱离状态
+当返回data=2的时候，表示不需要脱离，不需要论询
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": 1,
+      	"errCode": 0,
+      	"msg": "开始脱离",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 脱离充电桩结果反馈
+    ID: 53f1653
+    Method: GET
+    URL: /cmd/dis_recharge/status
+    Description: NOTHING = 1  # 请先下发脱离指令	
+STARTED = 2  # 正在脱离		
+FAILED = 3  # 脱离失败
+SUCCESSED = 4  # 脱离成功
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": 4,
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+      // NOTHING = 1  # 请先下发脱离指令
+      // STARTED = 2  # 正在脱离
+      // FAILED = 3  # 脱离失败
+      // SUCCESSED = 4  # 脱离成功
+
+  --- API ---
+    Name: 暂停自主回充
+    ID: 53f1652
+    Method: POST
+    URL: /cmd/recharge/pause
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 恢复自主回充
+    ID: 53f1651
+    Method: POST
+    URL: /cmd/recharge/resume
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 取消自主回充
+    ID: 53f1650
+    Method: POST
+    URL: /cmd/recharge/cancel
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+
+----------------------------------------
+MODULE: 实时数据 (ID: 53f1627)
+----------------------------------------
+  --- API ---
+    Name: 机器人在地图的实时位置
+    ID: 53f1617
+    Method: GET
+    URL: /real_time_data/robot_pos
+    Description: 栅格坐标（grid）与世界坐标（world）转换关系：
+```
+grid_x = int((wx - origin_x) / resolution)
+grid_y = int((wy - origin_y) / resolution)
+```
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"angle": 264.41268743865476, //机器人朝向角（°）
+      		"gridPosition": { //栅格坐标
+      			"x": 225,
+      			"y": 563
+      		},
+      		"mapInfo": null,
+      		"worldPosition": { //世界坐标
+      			"position": {
+      				"x": -0.3090598498382481,
+      				"y": 1.2287962291971526
+      			}
+      		}
+      	},
+      	"errCode": 0,
+      	"msg": "数据获取成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取机器人状态数据
+    ID: 53f161c
+    Method: GET
+    URL: /real_time_data/robot_hardware_status
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"anticollision": 0, //防撞条状态   0：没触发  1：前防撞条触发  2：后防撞条触发  3：前后防撞条触发
+      		"battery_percentage": 66, //电量百分比(bms_flag_fb_soc)
+      		"camera_num": 1, //相机数量
+      		"cameras": 0, //相机状态 cameras_status (未使用)
+      		"cameras_obs": 0, //ros_backend_interface (未使用)
+      		"charge": 0, //充电状态（充电时为1，未充电时为0）charge_status
+      		"current_map_name": "", //建图时，会显示当前正在建图的地图名称
+      		"current_working": 3, //1 未运行, 2 扫地图, 3 导航启动, 4 正在执行导航（刚启动导航时是3，执行导航中是4，执行完导航任务后为1）
+      		"emergency_stop": false, //急停按钮状态 0：没触发  1：触发
+      		"error": 0, /
+
+  --- API ---
+    Name: 获取实时线速度/角速度
+    ID: 53f161a
+    Method: GET
+    URL: /real_time_data/angular_linear
+    Description: ### 数据格式
+
+```
+geometry_msgs/Vector3 linear         //线速度
+  float64 x                          
+  float64 y
+  float64 z
+geometry_msgs/Vector3 angular        //角速度
+  float64 x
+  float64 y
+  float64 z             
+```
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": {
+              "angle": 1.6472212278609724, //机器人朝向角度°
+              "angular": { //角速度
+                  "x": 0,
+                  "y": 0,
+                  "z": 0.0031400001607835293
+              },
+              "linear": { //线速度
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+              }
+          },
+          "errCode": 0,
+          "msg": "success",
+          "successed": true
+      }
+
+  --- API ---
+    Name: 获取里程计数据
+    ID: 53f1613
+    Method: GET
+    URL: /real_time_data/odom
+    Description: ### 数据格式
+
+```
+std_msgs/Header header
+  uint32 seq
+  time stamp                               //时间戳
+  string frame_id
+string child_frame_id
+geometry_msgs/PoseWithCovariance pose
+  geometry_msgs/Pose pose
+    geometry_msgs/Point position
+      float64 x                           //x坐标
+      float64 y                           //y坐标
+      float64 z
+    geometry_msgs/Quaternion orientation  //四元素
+      float64 x
+      float64 y
+      float64 z
+      float64 w
+  float64[36] covariance
+geometry_msgs/TwistWithCovariance twist
+  geometry_msgs/Twist twist
+    geometry_msgs/Vector3 linear         //线速度
+      float64 x                          
+      float64 y
+      float64 z
+    geometry_msgs/Vector3 angular        //角速度
+      float64 x
+      float64 y
+      float64 z                          
+  float64[36] covariance
+```
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"child_frame_id": "base_link",
+      		"header": {
+      			"frame_id": "odom",
+      			"seq": 18249,
+      			"stamp": {
+      				"nsecs": 610916215,
+      				"secs": 1684893272
+      			}
+      		},
+      		"pose": {
+      			"covariance": [
+      				0.1,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0.1,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				10000000000,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				10000000000,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				10000000000,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0,
+      				0.2
+      			],
+      			"p
+
+  --- API ---
+    Name: 获取IMU数据
+    ID: 53f1619
+    Method: GET
+    URL: /real_time_data/imu
+    Description: ### 数据格式
+
+```
+std_msgs/Header header
+  uint32 seq
+  time stamp                           //时间戳 
+  string frame_id
+geometry_msgs/Quaternion orientation   //姿态四元素
+  float64 x
+  float64 y
+  float64 z
+  float64 w
+float64[9] orientation_covariance
+geometry_msgs/Vector3 angular_velocity //角速度
+  float64 x
+  float64 y
+  float64 z
+float64[9] angular_velocity_covariance
+geometry_msgs/Vector3 linear_acceleration //线加速度
+  float64 x
+  float64 y
+  float64 z
+float64[9] linear_acceleration_covariance
+```
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": {
+              "angular_velocity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0.0017453290260074287 //Z轴角速度
+              },
+              "header": {
+                  "frame_id": "imu_link",
+                  "seq": 501486,
+                  "stamp": {
+                      "nsecs": 857216262,
+                      "secs": 1730444438
+                  }
+              },
+              "linear_acceleration": { //线加速度
+                  "x": 0.08819999620318414,
+                  "y": 0.31360001489520073,
+                  "z": 9.809800457954408
+         
+
+  --- API ---
+    Name: 获取机器人定位状态
+    ID: 53f1626
+    Method: GET
+    URL: /real_time_data/robot_local_status
+    Description: "data": false, //true 代表定位成功, 其他都是失败
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": true, //定位成功
+      	"errCode": 0,
+      	"msg": "数据获取成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取2d激光数据scan
+    ID: 53f1622
+    Method: GET
+    URL: /real_time_data/laser2d/scan
+    Description: ### 数据格式
+
+```
+std_msgs/Header header
+  uint32 seq
+  time stamp                  // 时间戳
+  string frame_id
+float32 angle_min             // 数据开始角度，单位弧度 
+float32 angle_max             // 数据结束角度
+float32 angle_increment       // 角度步长
+float32 time_increment        // 时间步长
+float32 scan_time
+float32 range_min             // 激光最小范围，单位米
+float32 range_max             // 激光最大范围
+float32[] ranges              // 每束激光长度
+float32[] intensities         // 每束激光长度对应的强度
+```
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"angle_increment": 42,
+      		"angle_max": 84,
+      		"angle_min": 32,
+      		"header": {
+      			"frame_id": "laser_link",
+      			"seq": 94,
+      			"stamp": {
+      				"nsecs": 65,
+      				"secs": 71
+      			}
+      		},
+      		"intensities": [
+      			{}
+      		],
+      		"range_max": 52,
+      		"range_min": 6,
+      		"ranges": [
+      			null
+      		],
+      		"scan_time": 474294462476,
+      		"time_increment": 0
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取2d激光栅格化数据
+    ID: 53f1624
+    Method: GET
+    URL: /real_time_data/las_gril
+    Description: 栅格化后的2d激光数据
+对应于APP上红色激光点的栅格坐标
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"gridPhits": [
+      			{
+      				"x": 302,
+      				"y": 262
+      			},
+      			{
+      				"x": 302,
+      				"y": 262
+      			},
+      			{
+      				"x": 302,
+      				"y": 262
+      			},
+      			{
+      				"x": 302,
+      				"y": 261
+      			},
+      			{
+      				"x": 302,
+      				"y": 261
+      			}
+      		],
+      		"header": null,
+      		"mapInfo": null,
+      		"worldPhits": null
+      	},
+      	"errCode": 0,
+      	"msg": "数据获取成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取3d激光数据
+    ID: 53f161f
+    Method: GET
+    URL: /real_time_data/laser3d/lidar_cloud
+    Description: 类型为 “geometry_msgs::PoseArray”，只用到x,y,z
+    Request Body Mode: none
+
+  --- API ---
+    Name: 获取GPS数据
+    ID: 53f161e
+    Method: GET
+    URL: /real_time_data/gps
+    Description: ### 数据格式
+
+```
+std_msgs/Header header
+  uint32 seq
+  time stamp
+  string frame_id
+int8 status          #状态
+uint16 service
+float64 latitude     #经度，保留6位小数
+float64 longitude    #纬度，保留6位小数
+float64 altitude     #海拔
+float64 yaw          #航向角度
+```
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"altitude": 77,
+      		"header": {
+      			"frame_id": "",
+      			"seq": 33,
+      			"stamp": {
+      				"nsecs": 34,
+      				"secs": 40
+      			}
+      		},
+      		"latitude": 30,
+      		"longitude": 88,
+      		"service": 59,
+      		"status": 16,
+      		"yaw": 0
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取超声波原始数据
+    ID: 53f1612
+    Method: GET
+    URL: /real_time_data/ultrasonic
+    Description: ### 数据格式
+
+```
+std_msgs/Header header
+  uint32 seq
+  time stamp                 //时间戳
+  string frame_id
+float32 front_left           //前左 单位 m
+float32 front_right          //前右 单位 m 
+float32 rear_left            //后左 单位 m
+float32 rear_right           //后右 单位 m
+float32 left_front           //左前 单位 m
+float32 left_rear            //左后 单位 m
+float32 right_front          //右前 单位 m
+float32 right_rear           //右后 单位 m
+```
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"front_left": 1390,
+      		"front_right": 1040,
+      		"header": {
+      			"frame_id": "",
+      			"seq": 2174,
+      			"stamp": {
+      				"nsecs": 0,
+      				"secs": 0
+      			}
+      		},
+      		"left_front": 1390,
+      		"left_rear": 1470,
+      		"rear_left": 1580,
+      		"rear_right": 1680,
+      		"right_front": 520,
+      		"right_rear": 440
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取超声波封装数据/scan3
+    ID: 6bf38cd7da008
+    Method: GET
+    URL: /real_time_data/laser2d/scan3
+    Description: 类型为 “sensor_msgs::LaserScan”
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"angle_increment": 0.17499999701976776,
+      		"angle_max": 3.140000104904175,
+      		"angle_min": -3.140000104904175,
+      		"header": {
+      			"frame_id": "ul_link",
+      			"seq": 2028,
+      			"stamp": {
+      				"nsecs": 360195903,
+      				"secs": 1734750787
+      			}
+      		},
+      		"intensities": [
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0,
+      			0
+      		],
+      		"range_m
+
+  --- API ---
+    Name: 获取底盘和导航版本信息
+    ID: 53f1625
+    Method: GET
+    URL: /real_time_data/chassis_navigation
+    Description: ### 数据格式
+
+```
+std_msgs/Header header
+  uint32 seq
+  time stamp                           //时间戳
+  string frame_id
+uint8 type                             //底盘类型: 1差速底盘, 2四转四驱底盘, 3阿克曼底盘
+string chassis_version                 //底盘软件版本
+string navigation_version              //导航软件版本
+```
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": {
+              "chassis_version": "1.0.0", //底盘版本
+              "header": {
+                  "frame_id": "",
+                  "seq": 736,
+                  "stamp": {
+                      "nsecs": 0,
+                      "secs": 0
+                  }
+              },
+              "navigation_version": "1.0.1", //导航版本
+              "type": 3
+          },
+          "errCode": 0,
+          "msg": "success",
+          "successed": true
+      }
+
+  --- API ---
+    Name: 获取任务预计执行时间
+    ID: 53f1620
+    Method: GET
+    URL: /real_time_data/task_process_status
+    Description: 注意：该接口只针对手绘路径和录制路径
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"errCode": 0,
+      		"statusCode": 1, //状态，状态只有1和3
+      		// 1 导航中
+      		// 2 导航取消
+      		// 3 到达目标点（未运行）
+      		// 4 不能到达
+      		"statusData": {
+      			"less_second": 1, //剩余时间(s)
+      			"loop_count": 1, //总循环次数
+      			"loop_times": 1, //当前在第几次循环
+      			"process_rate": 0.5584237670971816 //当前进度
+      		},
+      		"statusMsg": "following path"
+      	},
+      	"errCode": 0,
+      	"msg": "数据获取成功", //临时点导航、路径点导航，显示“任务暂未开启”
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取导航局部路径实时路线数据
+    ID: 53f1611
+    Method: GET
+    URL: /real_time_data/local_plan_path
+    Description: 获取局部路径上每个点的坐标
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": {
+              "gridPhits": [ //局部路径上每个点的世界坐标
+                  {
+                      "x": 0.02376289203797821,
+                      "y": -0.298854370275338
+                  },
+                  {
+                      "x": 0.09612715273307905,
+                      "y": -0.2983048704951583
+                  },
+                  {
+                      "x": 0.16058310332728803,
+                      "y": -0.2927794298508405
+                  },
+                  {
+                      "x": 0.229661403397927,
+                      "y": -0.28276703581023355
+                  },
+
+  --- API ---
+    Name: 获取导航全局路径实时路线数据 栅格坐标
+    ID: 53f161d
+    Method: GET
+    URL: /real_time_data/local_grid_plan_path
+    Description: 获取全局路径上每个点的栅格坐标
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": {
+              "gridPhits": [ //获取全局路径上每个点的栅格坐标
+                  {
+                      "x": 141,
+                      "y": 345
+                  },
+                  {
+                      "x": 157,
+                      "y": 345
+                  },
+                  {
+                      "x": 157,
+                      "y": 345
+                  },
+                  {
+                      "x": 158,
+                      "y": 346
+                  },
+                  {
+                      "x": 159,
+                      "y": 347
+                  },
+                  {
+                      "x": 160,
+         
+
+  --- API ---
+    Name: 获取深度相机点云转换数据scan1
+    ID: 53f1610
+    Method: GET
+    URL: /real_time_data/laser2d/scan1
+    Description: ### 数据格式
+
+```
+std_msgs/Header header
+  uint32 seq
+  time stamp                  //时间戳
+  string frame_id
+float32 angle_min             //数据开始角度，单位弧度 
+float32 angle_max             //数据结束角度
+float32 angle_increment       // 角度步长
+float32 time_increment        //时间步长
+float32 scan_time
+float32 range_min             // 激光最小范围，单位米
+float32 range_max             // 激光最大范围
+float32[] ranges              // 每束激光长度
+float32[] intensities         // 每束激光长度对应的强度
+```
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"angle_increment": 0.008700000122189522,
+      		"angle_max": 3.140000104904175,
+      		"angle_min": -3.140000104904175,
+      		"header": {
+      			"frame_id": "ascamera_hp60c_ln_1",
+      			"seq": 232215,
+      			"stamp": {
+      				"nsecs": 522402921,
+      				"secs": 1731392298
+      			}
+      		},
+      		"intensities": [],
+      		"range_max": 2,
+      		"range_min": 0.10000000149011612,
+      		"ranges": [
+      			null,
+      			null
+      		],
+      		"scan_time": 0.33329999446868896,
+      		"time_increment": 0
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取深度相机点云转换数据scan2
+    ID: 53f161b
+    Method: GET
+    URL: /real_time_data/laser2d/scan2
+    Description: ### 数据格式
+
+```
+std_msgs/Header header
+  uint32 seq
+  time stamp                  //时间戳
+  string frame_id
+float32 angle_min             //数据开始角度，单位弧度 
+float32 angle_max             //数据结束角度
+float32 angle_increment       // 角度步长
+float32 time_increment        //时间步长
+float32 scan_time
+float32 range_min             // 激光最小范围，单位米
+float32 range_max             // 激光最大范围
+float32[] ranges              // 每束激光长度
+float32[] intensities         // 每束激光长度对应的强度
+```
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"angle_increment": 0.008700000122189522,
+      		"angle_max": 3.140000104904175,
+      		"angle_min": -3.140000104904175,
+      		"header": {
+      			"frame_id": "ascamera_hp60c_ln_2",
+      			"seq": 232215,
+      			"stamp": {
+      				"nsecs": 522402921,
+      				"secs": 1731392298
+      			}
+      		},
+      		"intensities": [],
+      		"range_max": 2,
+      		"range_min": 0.10000000149011612,
+      		"ranges": [
+      			null,
+      			null
+      		],
+      		"scan_time": 0.33329999446868896,
+      		"time_increment": 0
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 前相机的点云数据
+    ID: 53f1615
+    Method: GET
+    URL: /real_time_data/front_camera
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"header": {
+      			"frame_id": "ascamera_hp60c_ln_1",
+      			"seq": 301,
+      			"stamp": {
+      				"nsecs": 455535706,
+      				"secs": 1731287435
+      			}
+      		},
+      		"poses": [
+      			{
+      				"position": {
+      					"x": 1.246752381324768,
+      					"y": 0.21409708261489868,
+      					"z": -0.9743396639823914
+      				}
+      			},
+      			{
+      				"position": {
+      					"x": 1.24318265914917,
+      					"y": -0.31266897916793823,
+      					"z": -0.9715498685836792
+      				}
+      			},
+      			{
+      				"position": {
+      					"x": 1.2542285919189453,
+      					"y": 0.05231837183237076,
+      		
+
+  --- API ---
+    Name: 后相机的点云数据
+    ID: 53f1621
+    Method: GET
+    URL: /real_time_data/rear_camera
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"header": {
+      			"frame_id": "ascamera_hp60c_ln_2",
+      			"seq": 301,
+      			"stamp": {
+      				"nsecs": 455535706,
+      				"secs": 1731287435
+      			}
+      		},
+      		"poses": [
+      			{
+      				"position": {
+      					"x": 1.246752381324768,
+      					"y": 0.21409708261489868,
+      					"z": -0.9743396639823914
+      				}
+      			},
+      			{
+      				"position": {
+      					"x": 1.24318265914917,
+      					"y": -0.31266897916793823,
+      					"z": -0.9715498685836792
+      				}
+      			},
+      			{
+      				"position": {
+      					"x": 1.2542285919189453,
+      					"y": 0.05231837183237076,
+      		
+
+  --- API ---
+    Name: 前相机捕获的彩色图像Base64格式
+    ID: 53f1614
+    Method: GET
+    URL: /real_time_data/ahl1_rgb_img
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAIBAQEBAQIBAQECAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBwYGCAsICQoKCgoKBggLDAsKDAkKCgr/2wBDAQICAgICAgUDAwUKBwYHCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgr/wAARCAHgAoADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT
+
+  --- API ---
+    Name: 后相机捕获的彩色图像Base64格式
+    ID: 53f1618
+    Method: GET
+    URL: /real_time_data/ahl2_rgb_img
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAIBAQEBAQIBAQECAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBwYGCAsICQoKCgoKBggLDAsKDAkKCgr/2wBDAQICAgICAgUDAwUKBwYHCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgr/wAARCAHgAoADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT
+
+  --- API ---
+    Name: 前相机捕获的深度图像Base64格式
+    ID: 53f160e
+    Method: GET
+    URL: /real_time_data/ahl1d_rgb_img
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAIBAQEBAQIBAQECAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBwYGCAsICQoKCgoKBggLDAsKDAkKCgr/wAALCAHgAoABAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/AP5/6KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+
+  --- API ---
+    Name: 后相机捕获的深度图像Base64格式
+    ID: 53f1616
+    Method: GET
+    URL: /real_time_data/ahl2d_rgb_img
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAIBAQEBAQIBAQECAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBwYGCAsICQoKCgoKBggLDAsKDAkKCgr/wAALCAHgAoABAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/AP5/6KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+
+
+----------------------------------------
+MODULE: 移动控制 (ID: 2714fbe439800c)
+----------------------------------------
+  --- API ---
+    Name: 设置移动控制数据
+    ID: 27155a46f9800e
+    Method: POST
+    URL: /cmd/robot_move
+    Request Body Mode: json
+    Request Body (raw):
+      { //需要循环请求，请求频率大于10hz
+        "speed": {
+          "linearSpeed": 0.2, // x轴线速度 m/s
+          "slip_angle": 1.0, // 侧偏角 rad（范围 -2.14rad到2.14rad）
+          "angularSpeed": 0.0 // 角速度 rad/s
+        }
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "设置移动控制数据成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 设置移动控制数据-关闭
+    ID: 271562fe398010
+    Method: POST
+    URL: /cmd/robot_move_stop
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "设置移动控制数据--关闭成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 定距离定角度移动控制
+    ID: 27157556398012
+    Method: POST
+    URL: /cmd/move_with_params
+    Request Body Mode: json
+    Request Body (raw):
+      {
+        "linear_velocity": 0.2, // x轴线速度（m/s 范围-0.5到0.5）
+        "slip_angle": 0.78, // 侧偏角（rad 范围-2.14到2.14）
+        "angular_velocity": 0.2, // 角速度（rad/s 范围-0.5到0.5）
+        "target_distance": 2, // 目标距离（m）
+        "target_angle": 3.14, // 目标角度（rad 范围0到3.14）
+        "mode": 1 // 模式标志：1=定距离移动，2=定角度移动
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "Fixed distance movement completed",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 取消定距离定角度移动控制
+    ID: 27655e2ff98004
+    Method: POST
+    URL: /cmd/cancel_move_with_params
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "cancel": true
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "取消移动指令发布成功",
+      	"successed": true
+      }
+
+
+----------------------------------------
+MODULE: 机器人系统文件 (ID: 53f16c1)
+----------------------------------------
+  --- API ---
+    Name: 下载robot配置文件
+    ID: 53f16bd
+    Method: GET
+    URL: /file/robot_cfg_down
+    Description: 选择发送并保存响应
+    Request Body Mode: none
+
+  --- API ---
+    Name: 上传robot配置文件
+    ID: 53f16ba
+    Method: POST
+    URL: /file/robot_cfg_upload
+    Request Body Mode: form-data
+    Request Parameters:
+      [body] undefined (string) [REQUIRED]
+
+  --- API ---
+    Name: 更新robot配置文件
+    ID: 53f167d
+    Method: POST
+    URL: /cmd/robot_update_setting
+    Description: 可实现动态配置机器人行驶速度
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "avoid_obstacle": {
+              // "graph_follow": true, // 手绘路径是否避障。重启导航后生效，永久保存
+              // "record_follow": true, // 录制路径是否避障。重启导航后生效，永久保存
+              "lidar_void_obstacle": true //窄道区域是否启用雷达scan true启用，false禁用
+          }
+          // "max_speed": {
+          //     "graph_follow": 0.2, // 手绘路径的最大速度，单位：m/s。立即生效，永久保存
+          //     "record_follow": 0.5, // 录制路径的最大速度，单位：m/s。立即生效，永久保存
+          //     "goal_follow": 0.5 // 自由导航的最大速度，单位：m/s。立即生效，永久保存
+          // }
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "修改yaml配置成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 恢复robot默认配置
+    ID: 53f167b
+    Method: POST
+    URL: /cmd/robot_reset_default
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "恢复默认配置成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 下载地图文件
+    ID: 53f16b2
+    Method: GET
+    URL: /data/download_map?map_name=b
+    Description: 选择发送并保存响应
+
+![2024-11-12_15-02.png](https://img.cdn.apipost.cn/upload/user/1333351/log/7b15a932-8cf3-4066-8b97-a63806271ab4.png "2024-11-12_15-02.png")
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名
+        Default/Example: "b"
+    Response Example:
+      {
+      	"data": true,
+      	"errCode": 0,
+      	"msg": "下载成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 上传地图文件
+    ID: 53f16b4
+    Method: POST
+    URL: /data/upload_map?map_name=
+    Request Body Mode: form-data
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名称
+      [body] undefined (string) [REQUIRED]
+        Default/Example: "/home/dxs/下载/b.zip"
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": -1,
+      	"msg": {},
+      	"successed": false
+      }
+
+  --- API ---
+    Name: APPlogo图片下载
+    ID: 53f16bc
+    Method: GET
+    URL: file/logo
+    Request Body Mode: none
+
+  --- API ---
+    Name: APPlogo图片上传
+    ID: 53f16bf
+    Method: POST
+    URL: /file/logo
+    Request Body Mode: form-data
+    Request Parameters:
+      [body] undefined (string) [REQUIRED]
+        Description: 文件
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取APPlogo的base64数据
+    ID: 53f16c0
+    Method: GET
+    URL: file/logo/base64
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": "/9j/4QCCRXhpZgAATU0AKgAAAAgABAEAAAMAAAABAoAAAAEBAAMAAAABAcUAAIdpAAQAAAABAAAAPgESAAMAAAABAAAAAAAAAAAAAZIIAAMAAAABAAAAAAAAAAAAAwEAAAMAAAABAoAAAAEBAAMAAAABAcUAAAESAAMAAAABAAAAAAAAAAD/4AAQSkZJRgABAQAAAQABAAD/4gIoSUNDX1BST0ZJTEUAAQEAAAIYAAAAAAIQAABtbnRyUkdCIFhZWiAAAAAAAAAAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAAHRyWFlaAAABZAAAABRnWFlaAAABeAAAABRiWFlaAAABjAAAABRyVFJDAAABoAAAAChnVFJ
+
+  --- API ---
+    Name: 下载地图png格式图片
+    ID: 53f16b3
+    Method: GET
+    URL: /data/down_map_png?map_name=map
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 地图名
+        Default/Example: "map"
+    Response Example:
+      {
+      	"data": true,
+      	"errCode": 0,
+      	"msg": "成功后，返回地图文件",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取APP背景图片的base64数据
+    ID: 53f16bb
+    Method: GET
+    URL: file/background/base64
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAeACgADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT
+
+  --- API ---
+    Name: APP背景图片上传
+    ID: 53f16be
+    Method: POST
+    URL: /file/background
+    Request Body Mode: form-data
+    Request Parameters:
+      [body] undefined (string) [REQUIRED]
+        Description: 文件
+
+
+----------------------------------------
+MODULE: 机器人数据 (ID: 53f16b5)
+----------------------------------------
+  --- API ---
+    Name: 恢复默认策略配置（开发中）
+    ID: 53f167c
+    Method: POST
+    URL: /cmd/robot_reset_base_default
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "恢复默认策略配置成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取导航配置
+    ID: 53f1679
+    Method: GET
+    URL: /data/robot_get_setting
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"layer": "obstacle",
+      			"namespace": "/device/avoid_obstacle/camera1_void_obstacle",
+      			"type": "bool",
+      			"value": true
+      		},
+      		{
+      			"layer": "obstacle",
+      			"namespace": "/device/avoid_obstacle/camera2_void_obstacle",
+      			"type": "bool",
+      			"value": true
+      		},
+      		{
+      			"layer": "obstacle",
+      			"namespace": "/device/avoid_obstacle/graph_follow", //手绘路径是否绕障
+      			"type": "bool",
+      			"value": true
+      		},
+      		{
+      			"layer": "obstacle",
+      			"namespace": "/device/avoid_obstacle/lidar_void_obstacl
+
+  --- API ---
+    Name: 获取导航系统状态
+    ID: 53f1681
+    Method: GET
+    URL: /data/sys_status
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": 3,
+          "errCode": 0,
+          "msg": "获取成功",
+          "successed": true
+      }
+      // NOTHING = 1  # 未运行
+      // SCAN_MAP = 2  # 扫地图
+      // NAVIGATION = 3  # 导航状态
+      // MOVE = 4  # 正在执行导航
+
+  --- API ---
+    Name: 获取mac地址
+    ID: 53f167a
+    Method: GET
+    URL: /data/sys_mac
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		"c4:83:72:10:cf:9c",
+      		"c4:83:72:10:cf:9d"
+      	],
+      	"errCode": 0,
+      	"msg": "获取成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取APP主页标题名称
+    ID: 53f1684
+    Method: GET
+    URL: /data/local_sys_info
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": {
+              "sys_info": {
+                  "mian_page": {
+                      "title": "YUHESEN" //APP主页标题名称
+                  },
+                  "test": 9999
+              }
+          },
+          "errCode": 0,
+          "msg": "获取成功",
+          "successed": true
+      }
+
+  --- API ---
+    Name: 修改APP主页标题名称
+    ID: 53f1680
+    Method: POST
+    URL: /cmd/update_local_sys_info
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "mian_page": {
+             "title":"YUHESEN"
+          }
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "修改本地配置成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取关于我们
+    ID: 53f1682
+    Method: GET
+    URL: /data/robot_about_us
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"app": {
+      			"address": "深圳市龙岗区",
+      			"company": "深圳市煜禾森科技有限公司",
+      			"soft_provider": "深圳市煜禾森科技有限公司",
+      			"soft_tel": "0755-23356818",
+      			"tel": "0755-23356818",
+      			"version": "1.4.0" //后端版本
+      		},
+      		"log_config": {
+      			"log_enc_key": "YHS@2023"
+      		},
+      		"map_config": {
+      			"map_free": 45,
+      			"map_occ": 55
+      		},
+      		"navigation": {
+      			"chassis_version": "FW-mid", //底盘版本
+      			"version": "1.0.4" //导航版本
+      		},
+      		"updater": {
+      			"base_dir": "/home/yhs/yhs-robot-updater",
+      			"package_dir": "/home/yhs/y
+
+  --- API ---
+    Name: 获取机器外观长宽
+    ID: 53f1683
+    Method: GET
+    URL: /data/robot_show
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": "[[0.31,0.26],[0.31,-0.26],[-0.31,-0.26],[-0.31,0.26]]", //机器人的四个顶点相对于旋转中心的偏移量m
+      	"errCode": 0,
+      	"msg": "获取成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取日志列表
+    ID: 53f16b0
+    Method: GET
+    URL: /log/get_all_logs?log_type=operation
+    Description: ### 日志类型：
+operation 操作日志
+launch 机器人ros日志
+drive_error 驱动器错误日志
+rosbag 机器人数据日志
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 日志类型：rosbag=机器人数据日志，operation=操作日志，drive_error=驱动器错误日志，launch=机器人ros日志
+        Default/Example: "operation"
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"created_at": "2023-07-13T09:59:50.277895",
+      			"filename": "operation2023-07-13.log",
+      			"md5": "8f9af383d42c8a7cc59c5e3447acf982",
+      			"modified_at": "2023-07-13T17:23:03.394586",
+      			"size": 559949
+      		},
+      		{
+      			"created_at": "2023-07-12T09:39:00.967297",
+      			"filename": "operation2023-07-12.log",
+      			"md5": "bb0fe8372570308cccccd765277e548b",
+      			"modified_at": "2023-07-12T18:00:08.630563",
+      			"size": 7984096
+      		},
+      		{
+      			"created_at": "2023-07-17T08:26:22.706345",
+      			"filename": 
+
+  --- API ---
+    Name: 下载日志
+    ID: 53f16b1
+    Method: GET
+    URL: /log/down_logs?log_type=launch&file_name=operation2024-12-16.log
+    Description: ### 日志类型：
+operation 操作日志
+launch 机器人ros日志
+drive_error 驱动器错误日志
+rosbag 机器人数据日志
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 日志类型：rosbag=机器人数据日志，operation=操作日志，drive_error=驱动器错误日志，launch=机器人ros日志
+        Default/Example: "launch"
+      [query] undefined (string) [REQUIRED]
+        Description: 日志文件名
+        Default/Example: "operation2024-12-16.log"
+
+  --- API ---
+    Name: 删除日志
+    ID: 53f16af
+    Method: GET
+    URL: /log/drop_logs?log_type=operation&file_name=operation2024-11-04.log
+    Description: ### 日志类型：
+operation 操作日志
+launch 机器人ros日志
+drive_error 驱动器错误日志
+rosbag 机器人数据日志
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 日志类型：rosbag=机器人数据日志，operation=操作日志，drive_error=驱动器错误日志，launch=机器人ros日志
+        Default/Example: "operation"
+      [query] undefined (string) [REQUIRED]
+        Description: 日志文件名
+        Default/Example: "operation2024-11-04.log"
+    Response Example:
+      {
+      	"data": "已成功删除日志文件！",
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+
+----------------------------------------
+MODULE: 用户 (ID: 53f1630)
+----------------------------------------
+  --- API ---
+    Name: 新建用户
+    ID: 53f162a
+    Method: POST
+    URL: /user
+    Description: 新增用户
+姓名、账号，保存后不能再修改
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "userName": "煜禾森", //姓名（保存后不能修改）APP主页面右上角显示的用户名称
+          "userCode": "yhs", //账号（保存后不能修改）登录APP的用户名
+          "phone": "15185523018", //电话
+          "remark": "测试", //备注
+          "password": "yhs", //第一次密码	登录APP的密码
+          "secondPassword": "yhs" //第二次密码
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "保存成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 分页查询用户
+    ID: 53f162b
+    Method: POST
+    URL: /user/page?page=1&limit=10&orderField=createTime&orderMethod=asc
+    Description: 用户分页查询，query参数和body参数当为空的时候传递空，不可u不传
+    Request Body Mode: json
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 起始页
+        Default/Example: "1"
+      [query] undefined (string) [REQUIRED]
+        Description: 每页多少条数据
+        Default/Example: "10"
+      [query] undefined (string) [REQUIRED]
+        Description: 排序字段
+        Default/Example: "createTime"
+      [query] undefined (string) [REQUIRED]
+        Description: 排序方式：asc、desc（升序、降序）
+        Default/Example: "asc"
+    Request Body (raw):
+      {
+          "userName": "",
+          "userCode": "",
+          "phone": "",
+          "remark": ""
+      }
+    Response Example:
+      {
+      	"count": 3,
+      	"data": [
+      		{
+      			"createTime": "2023-04-03T13:32:02.578249", //创建时间
+      			"createUserCode": "sys",
+      			"createUserName": "sys",
+      			"id": 6, //用户ID
+      			"modifyTime": null,
+      			"modifyUserCode": null,
+      			"modifyUserName": null,
+      			"password": "0192023a7bbd73250516f069df18b500", //密码
+      			"phone": "",
+      			"remark": "管理员", //备注
+      			"userCode": "admin", 
+      			"userName": "admin"	//用户名（APP右上角）
+      		},
+      		{
+      			"createTime": "2024-08-07T18:04:06.586213",
+      			"createUserCode": "admin",
+      			"createUserName"
+
+  --- API ---
+    Name: 查询用户
+    ID: 53f162f
+    Method: GET
+    URL: /user/9
+    Description: 在路由参数中指定需要查询用户的ID
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 用户ID
+    Response Example:
+      {
+      	"data": {
+      		"createTime": "2023-04-03T13:32:02.578249",
+      		"createUserCode": "sys",
+      		"createUserName": "sys",
+      		"id": 6,
+      		"modifyTime": null,
+      		"modifyUserCode": null,
+      		"modifyUserName": null,
+      		"password": "0192023a7bbd73250516f069df18b500",
+      		"phone": "",
+      		"remark": "管理员",
+      		"userCode": "admin",
+      		"userName": "admin"
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 修改用户
+    ID: 53f162e
+    Method: PUT
+    URL: /user/7
+    Description: 修改用户，只能修改电话或者备注
+在路由参数中指定用户ID
+    Request Body Mode: json
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 用户ID
+    Request Body (raw):
+      {
+          "phone": "66",
+          "remark": "66"
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "更新成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 删除用户
+    ID: 53f162d
+    Method: DELETE
+    URL: /user/9
+    Description: 删除用户接口，在路由参数中指定需要删除的用户ID
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "删除成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 修改密码
+    ID: 53f1628
+    Method: PUT
+    URL: /user/9/password
+    Description: 在路由参数中指定需要修改用户的ID
+    Request Body Mode: json
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 用户ID
+    Request Body (raw):
+      {
+          "oldPassword": "v#lx2591",
+          "firstPassword": "123456",
+          "secondPassword": "123456"
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "修改成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 重置密码
+    ID: 53f1629
+    Method: PUT
+    URL: /user/9/password/reset
+    Request Body Mode: none
+    Response Example:
+      {
+          "data": "v#lx2591",	//这个值可以用于修改密码,将其填入旧密码
+          "errCode": 0,
+          "msg": "重置成功",
+          "successed": true
+      }
+
+  --- API ---
+    Name: 查询用户的角色列表
+    ID: 53f162c
+    Method: GET
+    URL: /user/8/roles
+    Description: 在路由参数中指定需要查询用户的ID
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"createTime": "2023-04-03T13:32:02.578374",
+      			"createUserCode": "sys",
+      			"createUserName": "sys",
+      			"id": 6,
+      			"modifyTime": null,
+      			"modifyUserCode": null,
+      			"modifyUserName": null,
+      			"roleCode": "admin",
+      			"roleName": "admin"
+      		}
+      	],
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+
+----------------------------------------
+MODULE: 角色 (ID: 53f1678)
+----------------------------------------
+  --- API ---
+    Name: 新建角色
+    ID: 53f1670
+    Method: POST
+    URL: /role
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "roleName": "yhs_roleName", //角色名称
+          "roleCode": "yhs_roleCode", //角色编码
+          "remark": "yhs role" //备注
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "保存成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 分页查询角色
+    ID: 53f166f
+    Method: POST
+    URL: /role/page?orderMethod=desc&page=1&limit=10&orderField=roleCode
+    Request Body Mode: json
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 排序方式：asc、desc
+        Default/Example: "desc"
+      [query] undefined (string) [REQUIRED]
+        Description: 起始页
+        Default/Example: "1"
+      [query] undefined (string) [REQUIRED]
+        Description: 每页多少条数据
+        Default/Example: "10"
+      [query] undefined (string) [REQUIRED]
+        Description: 排序字段
+        Default/Example: "roleCode"
+    Request Body (raw):
+      {
+          "roleName": "",
+          "roleCode": "",
+          "remark": ""
+      }
+    Response Example:
+      {
+      	"count": 1,
+      	"data": [
+      		{
+      			"createTime": "2023-03-28T14:44:14.093103",
+      			"createUserCode": "testcode",
+      			"createUserName": "testname",
+      			"id": 1,
+      			"modifyTime": "2023-03-28T14:51:39.448720",
+      			"modifyUserCode": "modifyCode",
+      			"modifyUserName": "modifyName",
+      			"remark": "5555",
+      			"roleCode": "manager",
+      			"roleName": "66"
+      		}
+      	],
+      	"errCode": 0,
+      	"msg": "",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 获取所有角色
+    ID: 53f166c
+    Method: GET
+    URL: /role/all
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"createTime": "2023-03-28T15:58:37.116889",
+      			"createUserCode": "testcode",
+      			"createUserName": "testname",
+      			"id": 1,
+      			"modifyTime": null,
+      			"modifyUserCode": null,
+      			"modifyUserName": null,
+      			"remark": "",
+      			"roleCode": "manager1",
+      			"roleName": "管理员1"
+      		},
+      		{
+      			"createTime": "2023-03-28T15:58:41.921346",
+      			"createUserCode": "testcode",
+      			"createUserName": "testname",
+      			"id": 2,
+      			"modifyTime": null,
+      			"modifyUserCode": null,
+      			"modifyUserName": null,
+      			"
+
+  --- API ---
+    Name: 查询角色
+    ID: 53f166e
+    Method: GET
+    URL: /role/10
+    Description: 在路由参数中指定需要查询角色的ID
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"createTime": "2023-03-28T14:44:14.093103",
+      		"createUserCode": "testcode",
+      		"createUserName": "testname",
+      		"id": 1,
+      		"modifyTime": "2023-03-28T14:46:39.811629",
+      		"modifyUserCode": "modifyCode",
+      		"modifyUserName": "modifyName",
+      		"remark": "66",
+      		"roleCode": "manager",
+      		"roleName": "66"
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 通过角色查询用户
+    ID: 53f1676
+    Method: GET
+    URL: /role/9/users
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"createTime": "2024-11-01T11:40:56.630296",
+      			"createUserCode": "admin",
+      			"createUserName": "admin",
+      			"id": 9,
+      			"modifyTime": null,
+      			"modifyUserCode": null,
+      			"modifyUserName": null,
+      			"password": "00af48a60a4c50add0fe10224b41b904",
+      			"phone": "0755-23356818",
+      			"remark": "测试",
+      			"userCode": "yhs",
+      			"userName": "煜禾森"
+      		}
+      	],
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 修改角色
+    ID: 53f166d
+    Method: PUT
+    URL: /role/8
+    Description: 修改用户，只能修改电话或者备注
+    Request Body Mode: json
+    Request Body (raw):
+      {
+          "roleName": "dxs_manager",
+          "remark": "manager8"
+      }
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "更新成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 删除角色
+    ID: 53f1671
+    Method: DELETE
+    URL: /role/8
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "删除成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 绑定用户-角色关系
+    ID: 53f1677
+    Method: POST
+    URL: /role/user/relation
+    Request Body Mode: json
+    Request Body (raw):
+      [
+          {
+              "roleId": 10,
+              "userId": 9
+          }
+      ]
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "保存成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 绑定角色-菜单关系
+    ID: 53f1672
+    Method: POST
+    URL: /role/7/menu/relation
+    Description: 绑定角色菜单关系
+/role/1/menu/relation
+1: 角色ID
+    Request Body Mode: json
+    Request Body (raw):
+      [
+          {
+              "menuCode": "map", //地图管理 菜单编码
+              "authCodes": "view,edit" //权限编码（view、edit），逗号分隔
+          },
+          {
+              "menuCode": "point", //路径与点管理
+              "authCodes": "view,edit"
+          },
+          {
+              "menuCode": "task", //任务管理
+              "authCodes": "view,edit"
+          },
+          {
+              "menuCode": "setting", //系统设置
+              "authCodes": "view,edit"
+          },
+          {
+              "menuCode": "setting_robotData",
+              "authCodes": "view,edit"
+          }
+      ]
+    Response Example:
+      {
+      	"data": null,
+      	"errCode": 0,
+      	"msg": "成功",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 删除用户-角色关系
+    ID: 53f166b
+    Method: DELETE
+    URL: /role/user?roleid=6&userid=9
+    Request Body Mode: none
+    Request Parameters:
+      [query] undefined (string) [REQUIRED]
+        Description: 用户Id
+        Default/Example: "6"
+      [query] undefined (string) [REQUIRED]
+        Description: 角色ID
+        Default/Example: "9"
+
+
+----------------------------------------
+MODULE: 菜单 (ID: 53f16b9)
+----------------------------------------
+  --- API ---
+    Name: 获取当前用户菜单及权限
+    ID: 53f16b6
+    Method: GET
+    URL: /menu/app/user
+    Description: **获取当前用户菜单及权限**
+/menu/1/app/user
+1: 用户ID
+app: type（app：APP菜单， back：后台菜单）
+
+**获取的是该用户对应的有权限的菜单**
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"child_menus": [],
+      			"is_public": true,
+      			"menu_code": "map",
+      			"menu_name": "地图",
+      			"permission": [
+      				"edit",
+      				"view"
+      			],
+      			"type": "app"
+      		},
+      		{
+      			"child_menus": [],
+      			"is_public": true,
+      			"menu_code": "point",
+      			"menu_name": "路径与点管理",
+      			"permission": [
+      				"view"
+      			],
+      			"type": "app"
+      		},
+      		{
+      			"child_menus": [
+      				{
+      					"child_menus": [],
+      					"is_public": true,
+      					"menu_code": "setting_robotData",
+      					"menu_name": "机器
+
+  --- API ---
+    Name: 通过角色获取菜单及权限
+    ID: 53f16b8
+    Method: GET
+    URL: /menu/10/all/role
+    Description: **通过角色id和菜单类型获取菜单**
+ /menu/1/app/role
+1: 用户ID
+app: type（app：APP菜单， back：后台菜单, all: 所有菜单）
+
+**获取的是所有菜单，不管是否有权限**
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"child_menus": [],
+      			"is_public": true,
+      			"menu_code": "map",
+      			"menu_name": "地图",
+      			"permission": [
+      				"edit",
+      				"view"
+      			],
+      			"type": "app"
+      		},
+      		{
+      			"child_menus": [],
+      			"is_public": true,
+      			"menu_code": "point",
+      			"menu_name": "路径与点管理",
+      			"permission": [
+      				"view"
+      			],
+      			"type": "app"
+      		},
+      		{
+      			"child_menus": [],
+      			"is_public": true,
+      			"menu_code": "task",
+      			"menu_name": "任务管理",
+      			"permission": [],
+      			"type": "app"
+      		}
+
+  --- API ---
+    Name: 获取所有菜单
+    ID: 53f16b7
+    Method: GET
+    URL: /menu/all
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": [
+      		{
+      			"child_menus": [],
+      			"is_public": true,
+      			"menu_code": "map",
+      			"menu_name": "地图",
+      			"permission": [],
+      			"type": "app"
+      		},
+      		{
+      			"child_menus": [],
+      			"is_public": true,
+      			"menu_code": "point",
+      			"menu_name": "路径与点管理",
+      			"permission": [],
+      			"type": "app"
+      		},
+      		{
+      			"child_menus": [],
+      			"is_public": true,
+      			"menu_code": "task",
+      			"menu_name": "任务管理",
+      			"permission": [],
+      			"type": "app"
+      		},
+      		{
+      			"child_menus": [
+      				{
+      					"child_menus": [],
+      					"is_public"
+
+
+----------------------------------------
+MODULE: 更新(用户不可调用） (ID: 53f164c)
+----------------------------------------
+  --- API ---
+    Name: 更新yhs-robot
+    ID: 53f1647
+    Method: POST
+    URL: /update
+    Request Body Mode: form-data
+    Request Parameters:
+      [body] undefined (string) [REQUIRED]
+        Description: 更新包
+
+  --- API ---
+    Name: 获取更新状态
+    ID: 53f164b
+    Method: GET
+    URL: /updater/status
+    Description: status:
+    # 正在更新：1
+    # 更新完成：2
+    # 更新失败：3
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"msg": "更新失败",
+      		"status": 3
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+  --- API ---
+    Name: 上传yhs-robot-updater
+    ID: 53f1646
+    Method: POST
+    URL: /updater/update
+    Request Body Mode: form-data
+    Request Parameters:
+      [body] undefined (string) [REQUIRED]
+
+  --- API ---
+    Name: 检查是否可以更新
+    ID: 53f164a
+    Method: GET
+    URL: /update/check
+    Request Body Mode: none
+
+  --- API ---
+    Name: 更新导航程序
+    ID: 53f1648
+    Method: POST
+    URL: /update_nav
+    Request Body Mode: form-data
+    Request Parameters:
+      [body] undefined (string) [REQUIRED]
+        Description: 更新包
+
+  --- API ---
+    Name: 获取导航更新状态
+    ID: 53f1649
+    Method: GET
+    URL: /updater/status_nav
+    Description: status:
+    # 正在更新：1
+    # 更新完成：2
+    # 更新失败：3
+    Request Body Mode: none
+    Response Example:
+      {
+      	"data": {
+      		"msg": "更新失败",
+      		"status": 3
+      	},
+      	"errCode": 0,
+      	"msg": "success",
+      	"successed": true
+      }
+
+
+----------------------------------------
+MODULE: 示例接口 (ID: cb43577f0000)
+----------------------------------------
+  --- API ---
+    Name: Create a new user
+    ID: cb4357bf0003
+    Method: POST
+    URL: https://rest.apipost.net/users
+    Request Body Mode: json
+    Request Body (raw):
+      {
+      	"id": 0,
+      	"username": "username",
+      	"firstName": "",
+      	"lastName": "",
+      	"email": "",
+      	"password": "",
+      	"phone": "",
+      	"userStatus": 0
+      }
+    Response Example:
+      {
+      	"error": 0,
+      	"msg": "",
+      	"user": {
+      		"id": 0,
+      		"username": "",
+      		"firstName": "",
+      		"lastName": "",
+      		"email": "",
+      		"password": "",
+      		"phone": "",
+      		"userStatus": 0
+      	}
+      }
+
+  --- API ---
+    Name: Get user info
+    ID: cb4357bf0004
+    Method: GET
+    URL: https://rest.apipost.net/users/{username}
+    Request Body Mode: none
+    Request Parameters:
+      [path] undefined (string) [REQUIRED]
+        Default/Example: "username"
+    Response Example:
+      {
+      	"error": 0,
+      	"msg": "",
+      	"user": {
+      		"id": 0,
+      		"username": "",
+      		"firstName": "",
+      		"lastName": "",
+      		"email": "",
+      		"password": "",
+      		"phone": "",
+      		"userStatus": 0
+      	}
+      }
+
+  --- API ---
+    Name: Update user info
+    ID: cb4357bf0005
+    Method: PUT
+    URL: https://rest.apipost.net/users/{username}
+    Request Body Mode: json
+    Request Parameters:
+      [path] undefined (string) [REQUIRED]
+        Default/Example: "username"
+    Request Body (raw):
+      {
+      	"id": 0,
+      	"username": "",
+      	"firstName": "Tom",
+      	"lastName": "",
+      	"email": "",
+      	"password": "",
+      	"phone": "",
+      	"userStatus": 0
+      }
+    Response Example:
+      {
+      	"error": 0,
+      	"msg": "",
+      	"user": {
+      		"id": 0,
+      		"username": "",
+      		"firstName": "",
+      		"lastName": "",
+      		"email": "",
+      		"password": "",
+      		"phone": "",
+      		"userStatus": 0
+      	}
+      }
+
+  --- API ---
+    Name: Delete user
+    ID: cb4357bf0006
+    Method: DELETE
+    URL: https://rest.apipost.net/users/{username}
+    Request Body Mode: none
+    Request Parameters:
+      [path] undefined (string) [REQUIRED]
+        Default/Example: "username"
+    Response Example:
+      {
+      	"error": 0,
+      	"msg": "ok"
+      }
+
+
