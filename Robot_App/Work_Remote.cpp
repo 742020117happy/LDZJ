@@ -1,328 +1,530 @@
 ﻿#pragma execution_character_set("utf-8")
 #include "Work_Remote.h"
-#include "MySql_Remote.h"
-
-// ====================================================================
-//  c_Work_Remote — 轮对质检工作流业务逻辑
-//  通过 QEventLoop 事件等待实现非阻塞步进控制
-//  运行在独立 QThread 中，通过信号槽与各远程模块通信
-// ====================================================================
-
+/*************************************************************************************************************************************************
+**Function:构造函数
+*************************************************************************************************************************************************/
 c_Work_Remote::c_Work_Remote(QObject *parent) : c_Object(parent)
 {
 }
-
+/*************************************************************************************************************************************************
+**Function:析构函数
+*************************************************************************************************************************************************/
 c_Work_Remote::~c_Work_Remote()
 {
-    m_Running = false;
+	qDebug() << "~c_Work_Remote()";
 }
-
+/*************************************************************************************************************************************************
+**Function:初始化
+*************************************************************************************************************************************************/
 void c_Work_Remote::Init()
 {
-    auto &cfg = c_Variable::getInstance().g_Communicate_DB;
-    m_CurrentIP = cfg.value("Camera_IP").toString("192.168.6.35");
-    m_CurrentPort = cfg.value("Camera_Port").toInt(8001);
-    emit Work_Log("Work_Remote 初始化完成");
-}
+	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
+	m_CurrentIP = cfg.value("Camera_IP").toString("192.168.6.35");
+	m_CurrentPort = cfg.value("Camera_Port").toInt(8001);
 
-// ====================================================================
-//  流程控制入口
-// ====================================================================
-void c_Work_Remote::Start_Inspection()
+	QFile File;
+	File.setFileName(QDir::currentPath() + "/Work_DB/InspectionPlan.json");
+	File.open(QFile::ReadOnly | QIODevice::Text);
+	QByteArray Data = File.readAll();
+	QJsonDocument DB_Doc(QJsonDocument::fromJson(Data));
+	m_Work_Program = DB_Doc.object();
+	File.close();
+
+	if (m_Work_Program.isEmpty()) {
+		emit Status("巡检配置文件为空，请检查配置文件后，重新启动程序");
+	}
+	else {
+		emit Status("巡检配置文加载完成，等待巡检任务");
+	}
+
+	emit System_Scan_Done();
+}
+/*************************************************************************************************************************************************
+**Function:开始任务
+*************************************************************************************************************************************************/
+void c_Work_Remote::Start_Cmd(QJsonObject object)
 {
-    if (m_Running) {
-        emit Work_Log("工作流已在运行中，忽略重复开始");
-        return;
-    }
-    m_Running = true;
-    m_Paused = false;
-    m_CancelRequested = false;
+	QString Cmd_Name = object.value("Cmd_Name").toString();
+	if (Cmd_Name == "Work_Start") {
+		m_Checksum = object.value("Checksum").toString();
+		if (!c_Variable::getInstance().g_Work.Connected && !object.value("Value").toBool()) {
+			QJsonObject json;
+			json.insert("Cmd_Name", "Work_Start");
+			json.insert("Value", false);
+			json.insert("Status", "Error");
+			json.insert("Message", "任务不存在");
+			json.insert("Checksum", m_Checksum);
+			emit Write_Json(json);
+			return;
+		}
+		if (c_Variable::getInstance().g_Work.Connected && !object.value("Value").toBool()) {
+			c_Variable::getInstance().g_Work.Connected = false;
+			emit Status("取消任务");
+			emit Reset_CGXi_Start();
+			emit Set_Charge();
+			QJsonObject json;
+			json.insert("Cmd_Name", "Work_Start");
+			json.insert("Value", false);
+			json.insert("Status", "Success");
+			json.insert("Message", "取消任务");
+			json.insert("Checksum", m_Checksum);
+			emit Write_Json(json);
+			return;
+		}
+		if (c_Variable::getInstance().g_Work.Connected && object.value("Value").toBool()) {
+			QJsonObject json;
+			json.insert("Cmd_Name", "Work_Start");
+			json.insert("Value", true);
+			json.insert("Status", "Error");
+			json.insert("Message", "存在执行中任务");
+			json.insert("Checksum", m_Checksum);
+			emit Write_Json(json);
+			return;
+		}
+		if (!c_Variable::getInstance().g_Work.Connected && object.value("Value").toBool()) {
+			c_Variable::getInstance().g_Work.Connected = true;
+		}
 
-    auto &work = c_Variable::getInstance().g_Work_DB;
-    m_CurrentTaskId = work.taskId;
-    work.workState = 1;
-    work.currentWheelset = 0;
-    work.currentPos = 0;
-    emit Work_State_Changed(1, "就绪");
-    emit Work_Log("任务开始: " + m_CurrentTaskId);
+		QStringList required = {"taskId", "axleType", "wheelsetNo", "axleNo", "sendUnit", "startTime", "repairLevel"};
+		for (const QString &key : required) {
+			if (object.value(key) == QJsonValue::Undefined) {
+				emit Status("巡检指令缺少" + key);
+				c_Variable::getInstance().g_Work.Connected = false;
+				QJsonObject json;
+				json.insert("Cmd_Name", "Work_Start");
+				json.insert("Value", true);
+				json.insert("Status", "Error");
+				json.insert("Message", "巡检指令缺少" + key);
+				json.insert("Checksum", m_Checksum);
+				emit Write_Json(json);
+				return;
+			}
+		}
 
-    QTimer::singleShot(0, this, &c_Work_Remote::Run_Inspection);
+		auto &Work = c_Variable::getInstance().g_Work_DB;
+		Work.taskId = object.value("taskId").toString();
+		Work.axleType = object.value("axleType").toString();
+		Work.wheelsetNo = object.value("wheelsetNo").toString();
+		Work.axleNo = object.value("axleNo").toString();
+		Work.sendUnit = object.value("sendUnit").toString();
+		Work.startTime = object.value("startTime").toString();
+		Work.repairLevel = object.value("repairLevel").toString();
+		Work.wheelsetCount = object.value("wheelsetCount").toInt();
+		Work.wheelsetPositions = object.value("wheelsetPositions").toArray();
+
+		if (m_Work_Program.isEmpty()) {
+			emit Status("巡检配置文件为空，请检查配置文件后，重新启动程序");
+			c_Variable::getInstance().g_Work.Connected = false;
+			QJsonObject json;
+			json.insert("Cmd_Name", "Work_Start");
+			json.insert("Value", true);
+			json.insert("Status", "Error");
+			json.insert("Message", "巡检配置文件为空");
+			json.insert("Checksum", m_Checksum);
+			emit Write_Json(json);
+			return;
+		}
+
+		int count = object.value("wheelsetPositions").toArray().size();
+		if (count == 2) {
+			is_Short_Short();
+		}
+		else if (count == 1) {
+			int posId = object.value("wheelsetPositions").toArray().at(0).toObject().value("posId").toInt();
+			if (posId == 1) { is_Short_Null(); }
+			else { is_Null_Short(); }
+		}
+	}
+	emit Status("退出当前任务");
 }
-
-void c_Work_Remote::Pause_Inspection()
+/*************************************************************************************************************************************************
+**Function:两个轮对对应工序
+*************************************************************************************************************************************************/
+void c_Work_Remote::is_Short_Short()
 {
-    m_Paused = true;
-    c_Variable::getInstance().g_Work_DB.workState = 3;
-    emit Work_State_Changed(3, "暂停");
-    emit Work_Log("工作流已暂停");
-}
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
 
-void c_Work_Remote::Resume_Inspection()
+	QJsonObject json;
+	json.insert("Cmd_Name", "Work_Start");
+	json.insert("Value", true);
+	json.insert("Status", "Success");
+	json.insert("Message", "两个轮对工序");
+	json.insert("Checksum", m_Checksum);
+	emit Write_Json(json);
+
+	auto &Work = c_Variable::getInstance().g_Work_DB;
+	Wait_Server_Accepted();
+
+	for (int wi = 0; wi < 2 && c_Variable::getInstance().g_Work.Connected; wi++) {
+		Work.currentWheelset = wi;
+		emit Status(QString("%1号轮对工序开始").arg(wi + 1));
+		Load_Program(wi);
+
+		QString wsPoint = Work.wheelsetPositions[wi].toObject().value("mapPointName").toString();
+		Wait_Navigate(wsPoint);
+
+		QJsonArray positions = m_Current_Work.value("positions").toArray();
+		for (int pi = 0; pi < positions.size() && c_Variable::getInstance().g_Work.Connected; pi++) {
+			Work.currentPos = pi;
+			QJsonObject posObj = positions[pi].toObject();
+			emit Status(QString("工位 %1/%2").arg(pi + 1).arg(positions.size()));
+
+			Wait_Navigate(posObj.value("point").toString());
+			Wait_CGXi_Program(posObj.value("prog").toInt());
+			Wait_CGXi_Start();
+			Wait_Camera_Start(QString("START&%1&%2&%3&%4%5&%6")
+				.arg(Work.sendUnit).arg(Work.startTime.left(8)).arg(Work.startTime.right(4))
+				.arg(Work.wheelsetNo).arg(Work.axleNo).arg(Work.taskId));
+			Wait_CGXi_Finish();
+		}
+	}
+
+	if (c_Variable::getInstance().g_Work.Connected) {
+		emit Status("巡检完成，返回充电位");
+		Wait_Charge();
+		Wait_Server_Completed(Work.totalImages);
+	}
+
+	c_Variable::getInstance().g_Work.Connected = false;
+}
+/*************************************************************************************************************************************************
+**Function:2号轮对对应工序
+*************************************************************************************************************************************************/
+void c_Work_Remote::is_Null_Short()
 {
-    m_Paused = false;
-    c_Variable::getInstance().g_Work_DB.workState = 2;
-    emit Work_State_Changed(2, "采集中");
-    emit Work_Log("工作流已恢复");
-}
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
 
-void c_Work_Remote::Cancel_Inspection()
+	QJsonObject json;
+	json.insert("Cmd_Name", "Work_Start");
+	json.insert("Value", true);
+	json.insert("Status", "Success");
+	json.insert("Message", "2号轮对工序");
+	json.insert("Checksum", m_Checksum);
+	emit Write_Json(json);
+
+	auto &Work = c_Variable::getInstance().g_Work_DB;
+	Wait_Server_Accepted();
+	Work.currentWheelset = 1;
+	Load_Program(1);
+
+	QString wsPoint = Work.wheelsetPositions[0].toObject().value("mapPointName").toString();
+	Wait_Navigate(wsPoint);
+
+	QJsonArray positions = m_Current_Work.value("positions").toArray();
+	for (int pi = 0; pi < positions.size() && c_Variable::getInstance().g_Work.Connected; pi++) {
+		Work.currentPos = pi;
+		QJsonObject posObj = positions[pi].toObject();
+		emit Status(QString("工位 %1/%2").arg(pi + 1).arg(positions.size()));
+
+		Wait_Navigate(posObj.value("point").toString());
+		Wait_CGXi_Program(posObj.value("prog").toInt());
+		Wait_CGXi_Start();
+		Wait_Camera_Start(QString("START&%1&%2&%3&%4%5&%6")
+			.arg(Work.sendUnit).arg(Work.startTime.left(8)).arg(Work.startTime.right(4))
+			.arg(Work.wheelsetNo).arg(Work.axleNo).arg(Work.taskId));
+		Wait_CGXi_Finish();
+	}
+
+	if (c_Variable::getInstance().g_Work.Connected) {
+		emit Status("巡检完成，返回充电位");
+		Wait_Charge();
+		Wait_Server_Completed(Work.totalImages);
+	}
+
+	c_Variable::getInstance().g_Work.Connected = false;
+}
+/*************************************************************************************************************************************************
+**Function:1号轮对对应工序
+*************************************************************************************************************************************************/
+void c_Work_Remote::is_Short_Null()
 {
-    m_CancelRequested = true;
-    m_Running = false;
-    m_Paused = false;
-    c_Variable::getInstance().g_Work_DB.workState = 4;
-    emit Signal_CGXi_Stop();
-    emit Work_State_Changed(4, "已取消");
-    emit Work_Log("工作流已取消");
-}
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
 
-void c_Work_Remote::Emergency_Stop()
+	QJsonObject json;
+	json.insert("Cmd_Name", "Work_Start");
+	json.insert("Value", true);
+	json.insert("Status", "Success");
+	json.insert("Message", "1号轮对工序");
+	json.insert("Checksum", m_Checksum);
+	emit Write_Json(json);
+
+	auto &Work = c_Variable::getInstance().g_Work_DB;
+	Wait_Server_Accepted();
+	Work.currentWheelset = 0;
+	Load_Program(0);
+
+	QString wsPoint = Work.wheelsetPositions[0].toObject().value("mapPointName").toString();
+	Wait_Navigate(wsPoint);
+
+	QJsonArray positions = m_Current_Work.value("positions").toArray();
+	for (int pi = 0; pi < positions.size() && c_Variable::getInstance().g_Work.Connected; pi++) {
+		Work.currentPos = pi;
+		QJsonObject posObj = positions[pi].toObject();
+		emit Status(QString("工位 %1/%2").arg(pi + 1).arg(positions.size()));
+
+		Wait_Navigate(posObj.value("point").toString());
+		Wait_CGXi_Program(posObj.value("prog").toInt());
+		Wait_CGXi_Start();
+		Wait_Camera_Start(QString("START&%1&%2&%3&%4%5&%6")
+			.arg(Work.sendUnit).arg(Work.startTime.left(8)).arg(Work.startTime.right(4))
+			.arg(Work.wheelsetNo).arg(Work.axleNo).arg(Work.taskId));
+		Wait_CGXi_Finish();
+	}
+
+	if (c_Variable::getInstance().g_Work.Connected) {
+		emit Status("巡检完成，返回充电位");
+		Wait_Charge();
+		Wait_Server_Completed(Work.totalImages);
+	}
+
+	c_Variable::getInstance().g_Work.Connected = false;
+}
+/*************************************************************************************************************************************************
+**Function:加载配方
+*************************************************************************************************************************************************/
+void c_Work_Remote::Load_Program(int id)
 {
-    m_Running = false;
-    m_Paused = false;
-    m_CancelRequested = true;
-    c_Variable::getInstance().g_Work_DB.workState = 5;
-    emit Signal_CGXi_Stop();
-    emit Work_State_Changed(5, "急停");
-    emit Work_Log("紧急停止");
-}
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
 
-void c_Work_Remote::Return_Home()
+	auto &Work = c_Variable::getInstance().g_Work_DB;
+	emit Status(QString("%1号轮对加载配方: %2").arg(id + 1).arg(Work.axleType));
+
+	if (m_Work_Program.value(Work.axleType) == QJsonValue::Undefined) {
+		emit Status("巡检配置中轴型不存在: " + Work.axleType);
+		c_Variable::getInstance().g_Work.Connected = false;
+		return;
+	}
+	QJsonObject typeObj = m_Work_Program.value(Work.axleType).toObject();
+	if (typeObj.value(Work.repairLevel) == QJsonValue::Undefined) {
+		emit Status("巡检配置中修程不存在: " + Work.repairLevel);
+		c_Variable::getInstance().g_Work.Connected = false;
+		return;
+	}
+	m_Current_Work = typeObj.value(Work.repairLevel).toObject();
+	emit Status("巡检程序加载完毕");
+}
+/*************************************************************************************************************************************************
+**Function:等待导航到目标点
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Navigate(QString point)
 {
-    Do_NavigateToCharge();
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	if (point.isEmpty()) { return; }
+	emit Status("导航到: " + point);
+	emit Set_Navigate(point);
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_Navigate_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(300000);
+	loop.exec();
 }
-
-// ====================================================================
-//  主工作流 — QEventLoop 步进控制
-// ====================================================================
-void c_Work_Remote::Run_Inspection()
+/*************************************************************************************************************************************************
+**Function:等待回充电位
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Charge()
 {
-    auto &work = c_Variable::getInstance().g_Work_DB;
-
-    // 1. 应答 ACCEPTED
-    Do_SendServerAccepted();
-
-    // 2. 加载配置文件查找 axleType + repairLevel 对应的工位计划
-    QJsonObject plan;
-    {
-        QFile file(QDir::currentPath() + "/Work_DB/InspectionPlan.json");
-        if (file.open(QIODevice::ReadOnly)) {
-            QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-            if (doc.isObject()) plan = doc.object();
-            file.close();
-        }
-    }
-
-    QString axleType = work.axleType;
-    QString repairLevel = work.repairLevel;
-    QJsonArray positions;
-
-    if (!plan.isEmpty() && plan.contains(axleType)) {
-        QJsonObject typeObj = plan[axleType].toObject();
-        if (typeObj.contains(repairLevel)) {
-            QJsonObject levelObj = typeObj[repairLevel].toObject();
-            positions = levelObj["positions"].toArray();
-            emit Work_Log("加载工位计划: " + axleType + "/" + repairLevel);
-        }
-    }
-
-    // 如果配置文件没有，使用 wheelsetPositions 从 WEB 指令
-    if (positions.isEmpty()) {
-        positions = work.wheelsetPositions;
-        emit Work_Log("使用 WEB 下发的工位列表");
-    }
-
-    if (positions.isEmpty()) {
-        emit Step_Failed("无工位配置");
-        return;
-    }
-
-    // 3. 轮对循环
-    for (int wi = 0; wi < work.wheelsetCount && m_Running && !m_CancelRequested; wi++) {
-        work.currentWheelset = wi;
-        emit Work_State_Changed(2, "轮对 " + QString::number(wi + 1) + "/" + QString::number(work.wheelsetCount));
-
-        // 3a. 导航到轮对位置
-        QString wsPointName;
-        if (wi < work.wheelsetPositions.size()) {
-            wsPointName = work.wheelsetPositions[wi].toObject()["mapPointName"].toString();
-        }
-        if (!wsPointName.isEmpty()) {
-            Do_NavigateToPosition(wsPointName);
-            if (m_CancelRequested) break;
-        }
-
-        // 4. 工位循环
-        for (int pi = 0; pi < positions.size() && m_Running && !m_CancelRequested; pi++) {
-            work.currentPos = pi;
-            emit Work_Log("工位 " + QString::number(pi + 1) + "/" + QString::number(positions.size()));
-
-            QJsonObject posObj = positions[pi].toObject();
-
-            // 4a. 导航到工位
-            QString posPointName = posObj["point"].toString();
-            if (!posPointName.isEmpty()) {
-                Do_NavigateToPosition(posPointName);
-                if (m_CancelRequested) break;
-            }
-
-            // 4b. 设置 CGXi 程序索引
-            int progIndex = posObj["prog"].toInt();
-            Do_SetCGXiProgram(progIndex);
-            if (m_CancelRequested) break;
-
-            // 4c. 启动 CGXi
-            Do_StartCGXi();
-            if (m_CancelRequested) break;
-
-            // 4d. 等待 CGXi 发送 START&! （由 Lczh_Remote 处理）
-            //     等待 workState 变为 2（采集中）或回到 0（空闲/完成）
-            {
-                QEventLoop loop;
-                QTimer pollTimer;
-                pollTimer.setInterval(100);
-                int timeoutCount = 0;
-                connect(&pollTimer, &QTimer::timeout, [&]() {
-                    if (m_CancelRequested || !m_Running) { loop.quit(); return; }
-                    int st = c_Variable::getInstance().g_Work_DB.workState;
-                    if (st == 2 || st == 4 || st == 0) { loop.quit(); return; }
-                    timeoutCount++;
-                    if (timeoutCount > 3000) { loop.quit(); emit Step_Failed("等待 CGXi START 超时"); }
-                });
-                pollTimer.start();
-                loop.exec();
-                pollTimer.stop();
-            }
-            if (m_CancelRequested) break;
-
-            // 4e. 发送相机 START (由 Lczh_Remote 处理，等待 workState 回到非采集中)
-            {
-                QEventLoop loop;
-                QTimer pollTimer;
-                pollTimer.setInterval(100);
-                connect(&pollTimer, &QTimer::timeout, [&]() {
-                    if (m_CancelRequested || !m_Running) { loop.quit(); return; }
-                    int st = c_Variable::getInstance().g_Work_DB.workState;
-                    if (st == 4 || st == 0) { loop.quit(); return; }
-                });
-                pollTimer.start();
-                loop.exec();
-                pollTimer.stop();
-            }
-
-            // 4f. 暂停检测
-            if (m_Paused) {
-                QEventLoop pauseLoop;
-                QTimer pauseTimer;
-                pauseTimer.setInterval(200);
-                connect(&pauseTimer, &QTimer::timeout, [&]() {
-                    if (!m_Paused || m_CancelRequested) pauseLoop.quit();
-                });
-                pauseTimer.start();
-                pauseLoop.exec();
-                pauseTimer.stop();
-            }
-        }
-
-        if (m_CancelRequested) break;
-    }
-
-    // 5. 全部完成
-    if (!m_CancelRequested && m_Running) {
-        Do_NavigateToCharge();
-        Do_SendServerCompleted(c_Variable::getInstance().g_Work_DB.totalImages);
-        work.workState = 4;
-        emit Work_State_Changed(4, "完成");
-        emit Work_Log("任务全部完成");
-    }
-
-    m_Running = false;
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("回充电位");
+	emit Set_Charge();
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_Charge_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(300000);
+	loop.exec();
 }
-
-// ====================================================================
-//  步骤函数 — 每个步骤使用 QEventLoop 等待完成
-// ====================================================================
-void c_Work_Remote::Do_NavigateToPosition(QString pointName)
+/*************************************************************************************************************************************************
+**Function:等待设置CGXi程序索引
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_CGXi_Program(int index)
 {
-    if (pointName.isEmpty()) return;
-    emit Work_Log("导航到: " + pointName);
-    emit Signal_Magic_Navigate(pointName);
-
-    QEventLoop loop;
-    QTimer pollTimer;
-    pollTimer.setInterval(200);
-    int timeout = 0;
-    connect(&pollTimer, &QTimer::timeout, [&]() {
-        if (m_CancelRequested || !m_Running) { loop.quit(); return; }
-        int st = c_Variable::getInstance().g_Magic.ReadData.taskStatus;
-        if (st == 0) { loop.quit(); return; }
-        timeout++;
-        if (timeout > 1500) { loop.quit(); emit Step_Failed("导航超时: " + pointName); }
-    });
-    pollTimer.start();
-    loop.exec();
-    pollTimer.stop();
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("设置CGXi程序: " + QString::number(index));
+	emit Set_CGXi_Program(index);
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_CGXi_Program_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(30000);
+	loop.exec();
 }
-
-void c_Work_Remote::Do_NavigateToCharge()
+/*************************************************************************************************************************************************
+**Function:等待CGXi启动
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_CGXi_Start()
 {
-    emit Work_Log("返回充电位");
-    emit Signal_Magic_Charge();
-
-    QEventLoop loop;
-    QTimer pollTimer;
-    pollTimer.setInterval(200);
-    int timeout = 0;
-    connect(&pollTimer, &QTimer::timeout, [&]() {
-        if (m_CancelRequested) { loop.quit(); return; }
-        int st = c_Variable::getInstance().g_Magic.ReadData.taskStatus;
-        if (st == 0) { loop.quit(); return; }
-        timeout++;
-        if (timeout > 1500) { loop.quit(); emit Work_Log("返回充电位超时"); }
-    });
-    pollTimer.start();
-    loop.exec();
-    pollTimer.stop();
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("启动CGXi程序");
+	emit Set_CGXi_Start();
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_CGXi_Start_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(60000);
+	loop.exec();
 }
-
-void c_Work_Remote::Do_SetCGXiProgram(int index)
+/*************************************************************************************************************************************************
+**Function:等待CGXi停止
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_CGXi_Stop()
 {
-    emit Work_Log("设置 CGXi 程序: " + QString::number(index));
-    emit Signal_CGXi_SetProgram(index);
-
-    QEventLoop loop;
-    QTimer::singleShot(200, &loop, &QEventLoop::quit);
-    loop.exec();
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("停止CGXi程序");
+	emit Reset_CGXi_Start();
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Reset_CGXi_Start_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(30000);
+	loop.exec();
 }
-
-void c_Work_Remote::Do_StartCGXi()
+/*************************************************************************************************************************************************
+**Function:等待发送COMPLETE至CGXi
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_CGXi_Complete()
 {
-    emit Work_Log("启动 CGXi 程序");
-    emit Signal_CGXi_Start();
-
-    QEventLoop loop;
-    QTimer::singleShot(200, &loop, &QEventLoop::quit);
-    loop.exec();
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Set_CGXi_Complete();
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_CGXi_Complete_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(10000);
+	loop.exec();
 }
-
-void c_Work_Remote::Do_SendServerAccepted()
+/*************************************************************************************************************************************************
+**Function:等待CGXi工位完成
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_CGXi_Finish()
 {
-    emit Work_Log("发送 ACCEPTED");
-    emit Signal_Server_Accepted();
-
-    QEventLoop loop;
-    QTimer::singleShot(100, &loop, &QEventLoop::quit);
-    loop.exec();
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("等待CGXi工位完成");
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::State_CGXi_Finish, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(600000);
+	loop.exec();
 }
-
-void c_Work_Remote::Do_SendServerCompleted(int totalImages)
+/*************************************************************************************************************************************************
+**Function:等待发送相机START
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Camera_Start(QString cmd)
 {
-    emit Work_Log("发送 COMPLETED, 图像数: " + QString::number(totalImages));
-    emit Signal_Server_Completed(totalImages);
-
-    QEventLoop loop;
-    QTimer::singleShot(100, &loop, &QEventLoop::quit);
-    loop.exec();
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("发送START至相机");
+	emit write_Camera_Start(cmd);
+	c_Object::msleep(500);
 }
-
-
+/*************************************************************************************************************************************************
+**Function:等待相机拍照
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Camera_Photo(QString gain, QString prog, QString part1, QString part2, QString point)
+{
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("发送PHOTO至相机");
+	auto &Work = c_Variable::getInstance().g_Work_DB;
+	emit write_Camera_Photo(QString("PHOTO&%1%2&%3")
+		.arg(Work.wheelsetNo).arg(Work.axleNo)
+		.arg(QString("N-T1-%1-%2-%3-%4-%5-%6-%7-%8-%9")
+			.arg(Work.startTime).arg(Work.repairLevel).arg(Work.sendUnit)
+			.arg(Work.wheelsetNo).arg(Work.axleNo)
+			.arg(prog).arg(part1).arg(part2).arg(point)));
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::State_Camera_Photo, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(60000);
+	loop.exec();
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	Work.totalImages += 4;
+	Wait_CGXi_Complete();
+}
+/*************************************************************************************************************************************************
+**Function:等待发送FINISH至相机
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Camera_Finish()
+{
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("发送FINISH至相机");
+	emit write_Camera_Finish();
+}
+/*************************************************************************************************************************************************
+**Function:等待发送ACCEPTED至服务器
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Server_Accepted()
+{
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("发送ACCEPTED");
+	emit Set_Server_Accepted();
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_Server_Accepted_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(10000);
+	loop.exec();
+}
+/*************************************************************************************************************************************************
+**Function:等待发送READY至服务器
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Server_Ready()
+{
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("发送READY");
+	emit Set_Server_Ready();
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_Server_Ready_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(10000);
+	loop.exec();
+}
+/*************************************************************************************************************************************************
+**Function:等待发送COMPLETED至服务器
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Server_Completed(int totalImages)
+{
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("发送COMPLETED");
+	emit Set_Server_Completed(totalImages);
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_Server_Completed_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(10000);
+	loop.exec();
+}
+/*************************************************************************************************************************************************
+**Function:等待发送ERROR至服务器
+*************************************************************************************************************************************************/
+void c_Work_Remote::Wait_Server_Error(int errorCode, QString desc)
+{
+	if (!c_Variable::getInstance().g_Work.Connected) { return; }
+	emit Status("发送ERROR: " + desc);
+	emit Set_Server_Error(errorCode, desc);
+	QEventLoop loop;
+	QTimer timer;
+	timer.setSingleShot(true);
+	QObject::connect(this, &c_Work_Remote::Set_Server_Error_Done, &loop, &QEventLoop::quit);
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+	timer.start(10000);
+	loop.exec();
+}
+/*************************************************************************************************************************************************
+**Function:系统休眠
+*************************************************************************************************************************************************/
+void c_Work_Remote::System_Sleep()
+{
+}

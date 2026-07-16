@@ -2158,35 +2158,35 @@ void c_Robot_App_Widget::Work_Init()
 	QObject::connect(m_Work_Remote, &c_Work_Remote::Status, this, &c_Robot_App_Widget::Write_Work_List);
 
 	// Magic 导航指令转发
-	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_Magic_Navigate, this, [this](QString pointName) {
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Set_Navigate, this, [this](QString pointName) {
 		auto &write = c_Variable::getInstance().g_Magic.WriteData;
 		QMetaObject::invokeMethod(m_Magic_Remote, "Dynamic_Init_Pose", Qt::QueuedConnection,
 			Q_ARG(QString, write.selectedMapName), Q_ARG(QString, pointName));
 	});
-	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_Magic_Charge, this, [this]() {
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Set_Charge, this, [this]() {
 		auto &write = c_Variable::getInstance().g_Magic.WriteData;
 		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Recharge", Qt::QueuedConnection,
 			Q_ARG(QString, write.selectedMapName), Q_ARG(QString, write.chargePointName));
 	});
 
 	// CGXi 指令转发
-	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_CGXi_SetProgram, this, [this](int progIdx) {
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Set_CGXi_Program, this, [this](int progIdx) {
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_index = (qint16)progIdx;
 	});
-	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_CGXi_Start, this, [this]() {
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Set_CGXi_Start, this, [this]() {
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 1;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
 	});
-	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_CGXi_Stop, this, [this]() {
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Reset_CGXi_Start, this, [this]() {
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 3;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
 	});
 
 	// Server 指令转发
-	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_Server_Accepted, this, [this]() {
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Set_Server_Accepted, this, [this]() {
 		QMetaObject::invokeMethod(m_Server_Remote, "Send_Accepted", Qt::QueuedConnection);
 	});
-	QObject::connect(m_Work_Remote, &c_Work_Remote::Signal_Server_Completed, this, [this](int totalImages) {
+	QObject::connect(m_Work_Remote, &c_Work_Remote::Set_Server_Completed, this, [this](int totalImages) {
 		QMetaObject::invokeMethod(m_Server_Remote, "Send_Completed", Qt::QueuedConnection,
 			Q_ARG(int, totalImages));
 	});
