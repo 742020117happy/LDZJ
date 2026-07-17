@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Variable.h"
 #include "ModeBusTCP_Client.h"
 
@@ -17,6 +17,18 @@ public slots:
 	// 数字量输出（线圈）
 	void Set_Coil(int addr);
 	void Reset_Coil(int addr);
+	// XB6S-3200B Y01 — KA2 → 左前/左后/右前/右后 三色报警灯 红色
+	void Set_Alarm_Red();
+	void Reset_Alarm_Red();
+	// XB6S-3200B Y02 — KA3 → 三色报警灯 黄色
+	void Set_Alarm_Yellow();
+	void Reset_Alarm_Yellow();
+	// XB6S-3200B Y03 — KA4 → 三色报警灯 绿色
+	void Set_Alarm_Green();
+	void Reset_Alarm_Green();
+	// XB6S-3200B Y04 — KA5 → 散热风扇
+	void Set_Fan();
+	void Reset_Fan();
 
 	// 模拟量输出（保持寄存器）
 	void Set_HoldingRegister(int addr, quint16 value);
@@ -25,6 +37,8 @@ public slots:
 signals:
 	void Connect_Device(QString ip, int port);
 	void Disconnect_Device();
+	void Set_Working();                                        // 已连接 → 绿灯
+	void Set_Default();                                        // 已断开 → 红灯
 	void Write_Coils(int addr, int size, s_ModBus_DB reg);
 	void Write_HoldingRegisters(int addr, int size, s_ModBus_DB reg);
 	void Read_Coils(int addr, int size);

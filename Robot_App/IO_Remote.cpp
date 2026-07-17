@@ -1,4 +1,4 @@
-#pragma execution_character_set("utf-8")
+﻿#pragma execution_character_set("utf-8")
 #include "IO_Remote.h"
 /*************************************************************************************************************************************************
 **Function:构造函数
@@ -35,31 +35,43 @@ void c_IO_Remote::Init()
 	QObject::connect(this, &c_IO_Remote::Disconnect_Device, m_IO_Remote, &c_ModeBusTCP_Client::Disconnect_Device);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Connect_Loop, this, &c_IO_Remote::Connect_Loop);
 
+	// 读请求 → 客户端
 	QObject::connect(this, &c_IO_Remote::Read_Coils, m_IO_Remote, &c_ModeBusTCP_Client::Read_Coils);
 	QObject::connect(this, &c_IO_Remote::Read_HoldingRegisters, m_IO_Remote, &c_ModeBusTCP_Client::Read_HoldingRegisters);
 	QObject::connect(this, &c_IO_Remote::Read_DiscreteInputs, m_IO_Remote, &c_ModeBusTCP_Client::Read_DiscreteInputs);
 	QObject::connect(this, &c_IO_Remote::Read_InputRegisters, m_IO_Remote, &c_ModeBusTCP_Client::Read_InputRegisters);
 
+	// 写请求 → 客户端
 	QObject::connect(this, &c_IO_Remote::Write_Coils, m_IO_Remote, &c_ModeBusTCP_Client::Write_Coils);
 	QObject::connect(this, &c_IO_Remote::Write_HoldingRegisters, m_IO_Remote, &c_ModeBusTCP_Client::Write_HoldingRegisters);
 
+	// 设备状态变更 → UI 指示灯
+	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Connect_Done, this, &c_IO_Remote::Set_Working);
+	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Disconnect_Done, this, &c_IO_Remote::Set_Default);
+
+	// 连接/断开 → 内部处理
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Connect_Done, this, &c_IO_Remote::Connect_Done);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Disconnect_Done, this, &c_IO_Remote::Disconnect_Done);
 
+	// 写入完成/错误
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Write_Coils_Done, this, &c_IO_Remote::Write_Coils_Done);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Write_HoldingRegisters_Done, this, &c_IO_Remote::Write_HoldingRegisters_Done);
+	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Write_Coils_Error, this, &c_IO_Remote::Write_Coils_Done);
+	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Write_HoldingRegisters_Error, this, &c_IO_Remote::Write_HoldingRegisters_Done);
+
+	// 读取完成 → 内部处理
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_Coils_Done, this, &c_IO_Remote::Read_Coils_Done);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_HoldingRegisters_Done, this, &c_IO_Remote::Read_HoldingRegisters_Done);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_DiscreteInputs_Done, this, &c_IO_Remote::Read_DiscreteInputs_Done);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_InputRegisters_Done, this, &c_IO_Remote::Read_InputRegisters_Done);
 
-	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Write_Coils_Error, this, &c_IO_Remote::Write_Coils_Done);
-	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Write_HoldingRegisters_Error, this, &c_IO_Remote::Write_HoldingRegisters_Done);
+	// 读取错误 → 继续轮询
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_Coils_Error, this, &c_IO_Remote::Read_Coils_Done);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_HoldingRegisters_Error, this, &c_IO_Remote::Read_HoldingRegisters_Done);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_DiscreteInputs_Error, this, &c_IO_Remote::Read_DiscreteInputs_Done);
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_InputRegisters_Error, this, &c_IO_Remote::Read_InputRegisters_Done);
 
+	// 状态日志
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Status, this, [this](int state) { emit Status("IO模块：" + Modbus_Status(state)); });
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_Coils_Error, this, [this](s_ModBus_DB) { emit Status("IO模块：读线圈失败"); });
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_DiscreteInputs_Error, this, [this](s_ModBus_DB) { emit Status("IO模块：读离散输入失败"); });
@@ -93,7 +105,7 @@ void c_IO_Remote::Connect_Done()
 	emit Status("IO模块：已连接");
 
 	m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
-	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(0);
+	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
 	m_Read_Coils_Count = 1;
 	if (m_Coils_Size > 1000) {
 		emit Read_Coils(m_Coils_Addr, 1000);
@@ -104,10 +116,11 @@ void c_IO_Remote::Connect_Done()
 void c_IO_Remote::Disconnect_Done()
 {
 	c_Variable::getInstance().g_IO.Connected = false;
+	c_Variable::getInstance().g_IO.Ready = false;
 	emit Status("IO模块：已断开");
 }
 /*************************************************************************************************************************************************
-**线圈操作 - 设置/复位标志位，等待轮询写入
+**Function:线圈操作 — XB6S-3200B 数字量输出 (Y01~Y04 → KA2~KA5)
 ************************************************************************************************************************************************/
 void c_IO_Remote::Set_Coil(int addr)
 {
@@ -117,8 +130,16 @@ void c_IO_Remote::Reset_Coil(int addr)
 {
 	m_Reset_Coils[addr] = true;
 }
+void c_IO_Remote::Set_Alarm_Red()   { Set_Coil(0); }   // Y01 — KA2 — 三色报警灯 红色
+void c_IO_Remote::Reset_Alarm_Red()  { Reset_Coil(0); }
+void c_IO_Remote::Set_Alarm_Yellow() { Set_Coil(1); }   // Y02 — KA3 — 三色报警灯 黄色
+void c_IO_Remote::Reset_Alarm_Yellow(){ Reset_Coil(1); }
+void c_IO_Remote::Set_Alarm_Green()  { Set_Coil(2); }   // Y03 — KA4 — 三色报警灯 绿色
+void c_IO_Remote::Reset_Alarm_Green() { Reset_Coil(2); }
+void c_IO_Remote::Set_Fan()          { Set_Coil(3); }   // Y04 — KA5 — 散热风扇
+void c_IO_Remote::Reset_Fan()         { Reset_Coil(3); }
 /*************************************************************************************************************************************************
-**保持寄存器操作 - 写入值到缓存并设置标志，等待轮询写入
+**Function:保持寄存器操作 - 写入值到缓存并设置标志，等待轮询写入
 ************************************************************************************************************************************************/
 void c_IO_Remote::Set_HoldingRegister(int addr, quint16 value)
 {
@@ -131,7 +152,7 @@ void c_IO_Remote::Set_AnalogOutput(int ch, quint16 value)
 	Set_HoldingRegister(ch, value);
 }
 /*************************************************************************************************************************************************
-**轮询: 读线圈完成 → 校验写入 → 写线圈/保持寄存器 → 读保持寄存器 → 读离散输入 → 读输入寄存器 → 循环
+**Function:读线圈完成 → 校验写入 → 写线圈/保持寄存器 → 读保持寄存器
 ************************************************************************************************************************************************/
 void c_IO_Remote::Read_Coils_Done(s_ModBus_DB data)
 {
@@ -163,11 +184,14 @@ void c_IO_Remote::Read_Coils_Done(s_ModBus_DB data)
 	}
 	emit Read_HoldingRegisters(m_HoldingRegisters_Addr, m_HoldingRegisters_Size);
 }
+/*************************************************************************************************************************************************
+**Function:写线圈完成 → 读线圈验证
+************************************************************************************************************************************************/
 void c_IO_Remote::Write_Coils_Done()
 {
 	c_Variable::getInstance().g_IO.Ready = !c_Variable::getInstance().g_IO.Ready;
 	m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
-	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(0);
+	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
 	m_Read_Coils_Count = 1;
 	if (m_Coils_Size > 1000) {
 		emit Read_Coils(m_Coils_Addr, 1000);
@@ -175,6 +199,9 @@ void c_IO_Remote::Write_Coils_Done()
 	}
 	emit Read_Coils(m_Coils_Addr, m_Coils_Size);
 }
+/*************************************************************************************************************************************************
+**Function:读保持寄存器完成 → 校验写入 → 写线圈/保持寄存器 → 读离散输入
+************************************************************************************************************************************************/
 void c_IO_Remote::Read_HoldingRegisters_Done(s_ModBus_DB data)
 {
 	memcpy(c_Variable::getInstance().g_IO.read_HoldingRegisters, data.read_HoldingRegisters, 1000 * 2);
@@ -197,7 +224,7 @@ void c_IO_Remote::Read_HoldingRegisters_Done(s_ModBus_DB data)
 	if (Write_HoldingRegisters_Action()) { return; }
 
 	m_DiscreteInputs_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_DiscreteInputs_Addr").toInt(0);
-	m_DiscreteInputs_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_DiscreteInputs_Size").toInt(32);
+	m_DiscreteInputs_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_DiscreteInputs_Size").toInt(16);
 	m_Read_DiscreteInputs_Count = 1;
 	if (m_DiscreteInputs_Size > 1000) {
 		emit Read_DiscreteInputs(m_DiscreteInputs_Addr, 1000);
@@ -205,6 +232,9 @@ void c_IO_Remote::Read_HoldingRegisters_Done(s_ModBus_DB data)
 	}
 	emit Read_DiscreteInputs(m_DiscreteInputs_Addr, m_DiscreteInputs_Size);
 }
+/*************************************************************************************************************************************************
+**Function:读离散输入完成 → FPS统计 → 校验写入 → 写线圈/保持寄存器 → 读输入寄存器
+************************************************************************************************************************************************/
 void c_IO_Remote::Read_DiscreteInputs_Done(s_ModBus_DB data)
 {
 	if (m_FPS == 100) {
@@ -239,6 +269,9 @@ void c_IO_Remote::Read_DiscreteInputs_Done(s_ModBus_DB data)
 	}
 	emit Read_InputRegisters(m_InputRegisters_Addr, m_InputRegisters_Size);
 }
+/*************************************************************************************************************************************************
+**Function:读输入寄存器完成 → 校验写入 → 写线圈/保持寄存器 → 循环回读线圈
+************************************************************************************************************************************************/
 void c_IO_Remote::Read_InputRegisters_Done(s_ModBus_DB data)
 {
 	memcpy(c_Variable::getInstance().g_IO.InputRegisters, data.InputRegisters, 1000 * 2);
@@ -260,7 +293,7 @@ void c_IO_Remote::Read_InputRegisters_Done(s_ModBus_DB data)
 	if (Write_HoldingRegisters_Action()) { return; }
 
 	m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
-	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(0);
+	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
 	m_Read_Coils_Count = 1;
 	if (m_Coils_Size > 1000) {
 		emit Read_Coils(m_Coils_Addr, 1000);
@@ -268,6 +301,9 @@ void c_IO_Remote::Read_InputRegisters_Done(s_ModBus_DB data)
 	}
 	emit Read_Coils(m_Coils_Addr, m_Coils_Size);
 }
+/*************************************************************************************************************************************************
+**Function:写保持寄存器完成 → 读回验证
+************************************************************************************************************************************************/
 void c_IO_Remote::Write_HoldingRegisters_Done()
 {
 	c_Variable::getInstance().g_IO.Ready = !c_Variable::getInstance().g_IO.Ready;
@@ -281,18 +317,17 @@ void c_IO_Remote::Write_HoldingRegisters_Done()
 	emit Read_HoldingRegisters(m_HoldingRegisters_Addr, m_HoldingRegisters_Size);
 }
 /*************************************************************************************************************************************************
-**数据处理
+**Function:数据处理 — 写线圈 / 写保持寄存器 / 线圈校验 / 保持寄存器校验
 ************************************************************************************************************************************************/
 bool c_IO_Remote::Write_Coils_Action()
 {
-	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(0);
+	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
 	for (int i = 0; i < size; i++) {
 		if (m_Set_Coils[i]) {
 			s_ModBus_DB reg;
 			reg.write_Coils[i] = 1;
 			emit Status("IO模块：线圈置位 " + QString::number(i));
 			emit Write_Coils(i, 1, reg);
-			m_Set_Coils[i] = false;
 			return true;
 		}
 		if (m_Reset_Coils[i]) {
@@ -300,7 +335,6 @@ bool c_IO_Remote::Write_Coils_Action()
 			reg.write_Coils[i] = 0;
 			emit Status("IO模块：线圈复位 " + QString::number(i));
 			emit Write_Coils(i, 1, reg);
-			m_Reset_Coils[i] = false;
 			return true;
 		}
 	}
@@ -315,7 +349,6 @@ bool c_IO_Remote::Write_HoldingRegisters_Action()
 			reg.write_HoldingRegisters[i] = c_Variable::getInstance().g_IO.write_HoldingRegisters[i];
 			emit Status("IO模块：写保持寄存器 " + QString::number(i));
 			emit Write_HoldingRegisters(i, 1, reg);
-			m_Set_HoldingRegisters[i] = false;
 			return true;
 		}
 	}
@@ -323,13 +356,13 @@ bool c_IO_Remote::Write_HoldingRegisters_Action()
 }
 void c_IO_Remote::Read_Coils_Action()
 {
-	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(0);
+	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
 	for (int i = 0; i < size; i++) {
-		if (m_Set_Coils[i]) {
+		if (m_Set_Coils[i] && c_Variable::getInstance().g_IO.Coils[i]) {
 			m_Set_Coils[i] = false;
 			emit Status("IO模块：线圈置位完成 " + QString::number(i));
 		}
-		if (m_Reset_Coils[i]) {
+		if (m_Reset_Coils[i] && !c_Variable::getInstance().g_IO.Coils[i]) {
 			m_Reset_Coils[i] = false;
 			emit Status("IO模块：线圈复位完成 " + QString::number(i));
 		}
@@ -339,8 +372,10 @@ void c_IO_Remote::Read_HoldingRegisters_Action()
 {
 	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Size").toInt(4);
 	for (int i = 0; i < size; i++) {
-		if (c_Variable::getInstance().g_IO.read_HoldingRegisters[i] ==
+		if (m_Set_HoldingRegisters[i] &&
+			c_Variable::getInstance().g_IO.read_HoldingRegisters[i] ==
 			c_Variable::getInstance().g_IO.write_HoldingRegisters[i]) {
+			m_Set_HoldingRegisters[i] = false;
 			emit Status("IO模块：保持寄存器写入确认 " + QString::number(i));
 		}
 	}

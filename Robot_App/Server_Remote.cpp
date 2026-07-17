@@ -193,12 +193,12 @@ QJsonObject c_Server_Remote::Build_System_Status()
     // 2. 任务进度
     QJsonObject task;
     auto &work = all.g_Work_DB;
-    task["taskId"]          = work.taskId;
-    task["workState"]       = work.workState;
-    task["currentWheelset"] = work.currentWheelset;
-    task["currentPos"]      = work.currentPos;
-    task["totalImages"]     = work.totalImages;
-    task["wheelsetCount"]   = work.wheelsetCount;
+	task["taskId"]           = work.taskId;
+	task["workState"]        = work.workState;
+	task["currentTaskIndex"] = work.currentTaskIndex;
+	task["taskCount"]        = work.taskCount;
+	task["currentPos"]       = work.currentPos;
+	task["totalImages"]      = work.totalImages;
     root["task"] = task;
 
     // 3. AMR 底盘
@@ -271,26 +271,37 @@ QJsonObject c_Server_Remote::Build_System_Status()
 *************************************************************************************************************************************************/
 void c_Server_Remote::Parse_Start_Inspection(const QJsonObject &json)
 {
-    auto &w = c_Variable::getInstance().g_Work_DB;
+	auto &w = c_Variable::getInstance().g_Work_DB;
 
-    w.taskId      = json.value("taskId").toString();
-    w.axleType    = json.value("axleType").toString();
-    w.wheelsetNo  = json.value("wheelsetNo").toString();
-    w.axleNo      = json.value("axleNo").toString();
-    w.sendUnit    = json.value("sendUnit").toString();
-    w.startTime   = json.value("startTime").toString();
-    w.repairLevel = json.value("repairLevel").toString();
-    w.wheelsetCount   = json.value("wheelsetCount").toInt(0);
-    w.wheelsetPositions = json.value("wheelsetPositions").toArray();
+	// 解析 tasks[] 数组 (2026-07-16 协商版)
+	QJsonArray tasks = json.value("tasks").toArray();
+	w.taskCount = json.value("wheelsetCount").toInt(0);
+	if (w.taskCount != tasks.size()) {
+		w.taskCount = tasks.size();
+	}
 
-    w.currentWheelset = 0;
-    w.currentPos = 0;
-    w.currentPoint = 0;
-    w.workState = 1;
-    w.errorCode = 0;
-    w.totalImages = 0;
+	w.tasks = tasks;
+	w.currentTaskIndex = 0;
 
-    emit Status(QString::number(m_Port) + "->服务：任务已解析 " + w.taskId);
+	// 载入第一个任务的数据到当前字段
+	if (tasks.size() > 0) {
+		QJsonObject t0 = tasks[0].toObject();
+		w.taskId      = t0.value("taskId").toString();
+		w.axleType    = t0.value("axleType").toString();
+		w.wheelsetNo  = t0.value("wheelsetNo").toString();
+		w.axleNo      = t0.value("axleNo").toString();
+		w.sendUnit    = t0.value("sendUnit").toString();
+		w.startTime   = t0.value("startTime").toString();
+		w.repairLevel = t0.value("repairLevel").toString();
+	}
+
+	w.currentPos = 0;
+	w.currentPoint = 0;
+	w.workState = 1;
+	w.errorCode = 0;
+	w.totalImages = 0;
+
+	emit Status(QString::number(m_Port) + "->服务：任务已解析 tasks=" + QString::number(w.taskCount));
 }
 
 /*************************************************************************************************************************************************
@@ -349,10 +360,14 @@ void c_Server_Remote::Reply_Ok(const QString &cmd)
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Accepted()
 {
-    QJsonObject rsp;
-    rsp["status"] = "ACCEPTED";
-    rsp["taskId"] = c_Variable::getInstance().g_Work_DB.taskId;
-    Write_Json_With_Checksum(rsp);
+	auto &w = c_Variable::getInstance().g_Work_DB;
+	QJsonObject rsp;
+	rsp["status"] = "ACCEPTED";
+	QJsonArray ids;
+	for (int i = 0; i < w.tasks.size(); i++)
+		ids.append(w.tasks[i].toObject().value("taskId").toString());
+	rsp["taskIds"] = ids;
+	Write_Json_With_Checksum(rsp);
 }
 
 /*************************************************************************************************************************************************
@@ -360,10 +375,13 @@ void c_Server_Remote::Send_Accepted()
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Ready()
 {
-    QJsonObject rsp;
-    rsp["status"] = "READY";
-    rsp["taskId"] = c_Variable::getInstance().g_Work_DB.taskId;
-    Write_Json_With_Checksum(rsp);
+	auto &w = c_Variable::getInstance().g_Work_DB;
+	QJsonObject rsp;
+	rsp["status"]            = "READY";
+	rsp["taskId"]            = w.taskId;
+	rsp["currentTaskIndex"]  = w.currentTaskIndex;
+	rsp["taskCount"]         = w.taskCount;
+	Write_Json_With_Checksum(rsp);
 }
 
 /*************************************************************************************************************************************************
@@ -371,11 +389,14 @@ void c_Server_Remote::Send_Ready()
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Completed(int totalImages)
 {
-    QJsonObject rsp;
-    rsp["status"]      = "COMPLETED";
-    rsp["taskId"]      = c_Variable::getInstance().g_Work_DB.taskId;
-    rsp["totalImages"] = totalImages;
-    Write_Json_With_Checksum(rsp);
+	auto &w = c_Variable::getInstance().g_Work_DB;
+	QJsonObject rsp;
+	rsp["status"]            = "COMPLETED";
+	rsp["taskId"]            = w.taskId;
+	rsp["currentTaskIndex"]  = w.currentTaskIndex;
+	rsp["taskCount"]         = w.taskCount;
+	rsp["totalImages"]       = totalImages;
+	Write_Json_With_Checksum(rsp);
 }
 
 /*************************************************************************************************************************************************
@@ -383,10 +404,13 @@ void c_Server_Remote::Send_Completed(int totalImages)
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Error(int errorCode, QString desc)
 {
-    QJsonObject rsp;
-    rsp["status"]    = "ERROR";
-    rsp["taskId"]    = c_Variable::getInstance().g_Work_DB.taskId;
-    rsp["errorCode"] = errorCode;
-    rsp["description"] = desc;
-    Write_Json_With_Checksum(rsp);
+	auto &w = c_Variable::getInstance().g_Work_DB;
+	QJsonObject rsp;
+	rsp["status"]            = "ERROR";
+	rsp["taskId"]            = w.taskId;
+	rsp["currentTaskIndex"]  = w.currentTaskIndex;
+	rsp["taskCount"]         = w.taskCount;
+	rsp["errorCode"]         = errorCode;
+	rsp["Reason"]            = desc;
+	Write_Json_With_Checksum(rsp);
 }

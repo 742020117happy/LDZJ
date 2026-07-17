@@ -236,33 +236,35 @@ struct s_Scan_DB {
 };
 // ==================== 轮对质检工作状态 ====================
 struct s_Work_DB {
-	// ===== WEB 下发的巡检任务指令 =====
-	QString taskId;              // 任务标识 (202404231143RD3A001)
-	QString axleType;            // 轴型 (RD3A/RD4)
-	QString wheelsetNo;          // 轮对号
-	QString axleNo;              // 车轴号
-	QString sendUnit;            // 送轮单位
-	QString startTime;           // 开始时间 (yyyymmddHHMM)
-	QString repairLevel;         // 修程 (三级修)
-	int     wheelsetCount = 0;   // 轮对总数
-	QJsonArray wheelsetPositions; // 工位列表
+	// ===== WEB 下发的巡检任务数组 (2026-07-16 协商版) =====
+	QJsonArray tasks;              // 完整 tasks[] 数组 (每元素含独立 taskId/wheelsetNo/axleNo/wheelsetPosition)
+	int     taskCount = 0;         // 任务总数 (tasks.length)
+
+	// ===== 当前执行任务的数据 (从 tasks[currentTaskIndex] 载入) =====
+	QString taskId;                // 当前任务标识
+	QString axleType;              // 轴型 (RD3A/RD4)
+	QString wheelsetNo;            // 轮对号
+	QString axleNo;                // 车轴号
+	QString sendUnit;              // 送轮单位
+	QString startTime;             // 开始时间 (yyyymmddHHMM)
+	QString repairLevel;           // 修程 (三级修)
 
 	// ===== 当前执行进度 =====
-	int currentWheelset = 0;     // 当前轮对索引 (0-based)
-	int currentPos = 0;          // 当前工位索引 (0-based)
-	int currentPoint = 0;        // 当前采集点序号
+	int currentTaskIndex = 0;      // 当前任务索引 (0-based, 对应 tasks[])
+	int currentPos = 0;            // 当前工位索引 (0-based)
+	int currentPoint = 0;          // 当前采集点序号
 
 	// ===== 当前CGXi传来的采集参数 =====
-	int currentGain = 0;         // 相机增益值
-	int currentProg = 0;         // CGXi 程序索引
-	QString currentPart1;        // 一级部件名称
-	QString currentPart2;        // 二级部件编号
-	QString currentPointStr;     // 巡检点序号(字符串)
+	int currentGain = 0;
+	int currentProg = 0;
+	QString currentPart1;
+	QString currentPart2;
+	QString currentPointStr;
 
 	// ===== 总体状态 =====
-	int workState = 0;           // 0:空闲 1:就绪 2:采集中 3:暂停 4:完成 5:错误
-	int errorCode = 0;           // 错误码
-	int totalImages = 0;         // 已上传图像总数
+	int workState = 0;             // 0:空闲 1:就绪 2:采集中 3:暂停 4:完成 5:错误
+	int errorCode = 0;
+	int totalImages = 0;
 };
 // ==================== WEB 任务基本信息 ====================
 struct s_Work_Info {

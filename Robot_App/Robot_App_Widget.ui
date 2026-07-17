@@ -5789,18 +5789,18 @@
                </widget>
               </item>
               <item row="9" column="2">
-               <widget class="QSpinBox" name="Write_IO_HoldingRegisters_Size">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maximum">
-                 <number>9999</number>
-                </property>
-                <property name="value">
-                 <number>500</number>
+                <widget class="QSpinBox" name="Write_IO_HoldingRegisters_Size">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximum">
+                  <number>9999</number>
+                 </property>
+                 <property name="value">
+                  <number>4</number>
                 </property>
                </widget>
               </item>
@@ -5844,18 +5844,18 @@
                </widget>
               </item>
               <item row="5" column="2">
-               <widget class="QSpinBox" name="Read_IO_DiscreteInputs_Size">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maximum">
-                 <number>9999</number>
-                </property>
-                <property name="value">
-                 <number>500</number>
+                <widget class="QSpinBox" name="Read_IO_DiscreteInputs_Size">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximum">
+                  <number>9999</number>
+                 </property>
+                 <property name="value">
+                  <number>16</number>
                 </property>
                </widget>
               </item>
@@ -5899,34 +5899,34 @@
                </widget>
               </item>
               <item row="3" column="2">
-               <widget class="QSpinBox" name="Write_IO_Coils_Size">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maximum">
-                 <number>9999</number>
-                </property>
-                <property name="value">
-                 <number>500</number>
+                <widget class="QSpinBox" name="Write_IO_Coils_Size">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximum">
+                  <number>9999</number>
+                 </property>
+                 <property name="value">
+                  <number>16</number>
                 </property>
                </widget>
               </item>
               <item row="7" column="2">
-               <widget class="QSpinBox" name="Read_IO_InputRegisters_Size">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maximum">
-                 <number>9999</number>
-                </property>
-                <property name="value">
-                 <number>500</number>
+                <widget class="QSpinBox" name="Read_IO_InputRegisters_Size">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="maximum">
+                  <number>9999</number>
+                 </property>
+                 <property name="value">
+                  <number>0</number>
                 </property>
                </widget>
               </item>
@@ -5966,27 +5966,209 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="2">
-               <widget class="QLineEdit" name="IO_Port">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+               <item row="1" column="2">
+                <widget class="QLineEdit" name="IO_Port">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QGroupBox" name="groupBox_IO_Connect">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>连接控制</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_32">
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_25">
+                 <property name="text">
+                  <string>连接:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="c_Fr_Light" name="IO_Connected" native="true">
+                 <property name="minimumSize">
+                  <size><width>20</width><height>20</height></size>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QLabel" name="label_24">
+                 <property name="text">
+                  <string>就绪:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3">
+                <widget class="c_Fr_Light" name="IO_Ready" native="true">
+                 <property name="minimumSize">
+                  <size><width>20</width><height>20</height></size>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4">
+                <widget class="QPushButton" name="IO_Connect">
+                 <property name="minimumSize">
+                  <size><width>80</width><height>0</height></size>
+                 </property>
+                 <property name="text">
+                  <string>连接</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="5">
+                <widget class="QPushButton" name="IO_Disconnect">
+                 <property name="minimumSize">
+                  <size><width>80</width><height>0</height></size>
+                 </property>
+                 <property name="text">
+                  <string>断开</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="0" column="1" rowspan="6">
+             <widget class="QGroupBox" name="groupBox_IO_DI">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>1</horstretch>
+                <verstretch>1</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>数字量输入监视  XB6S-3200</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_IO_DI">
+               <item>
+                <widget class="QTableWidget" name="tableWidget_IO_DI">
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::NoEditTriggers</set>
+                 </property>
+                 <property name="alternatingRowColors">
+                  <bool>true</bool>
+                 </property>
+                 <property name="selectionMode">
+                  <enum>QAbstractItemView::NoSelection</enum>
+                 </property>
+                 <property name="rowCount">
+                  <number>16</number>
+                 </property>
+                 <property name="columnCount">
+                  <number>3</number>
+                 </property>
+                 <attribute name="horizontalHeaderStretchLastSection">
+                  <bool>true</bool>
+                 </attribute>
+                 <attribute name="verticalHeaderVisible">
+                  <bool>false</bool>
+                 </attribute>
+                 <row/><row/><row/><row/><row/><row/><row/><row/>
+                 <row/><row/><row/><row/><row/><row/><row/><row/>
+                 <column>
+                  <property name="text"><string>通道</string></property>
+                 </column>
+                 <column>
+                  <property name="text"><string>信号名称</string></property>
+                 </column>
+                 <column>
+                  <property name="text"><string>状态</string></property>
+                 </column>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QGroupBox" name="groupBox_IO_AO">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>模拟量输出控制  XB6S-A04</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_IO_AO">
+               <item row="0" column="0"><widget class="QLabel" name="label_IO_AO_1"><property name="text"><string>通道 1:</string></property></widget></item>
+               <item row="0" column="1"><widget class="QSpinBox" name="Spin_IO_AO_1"><property name="maximum"><number>65535</number></property></widget></item>
+               <item row="0" column="2"><widget class="QPushButton" name="btn_IO_AO_Set_1"><property name="minimumSize"><size><width>60</width><height>0</height></size></property><property name="text"><string>设置</string></property></widget></item>
+               <item row="1" column="0"><widget class="QLabel" name="label_IO_AO_2"><property name="text"><string>通道 2:</string></property></widget></item>
+               <item row="1" column="1"><widget class="QSpinBox" name="Spin_IO_AO_2"><property name="maximum"><number>65535</number></property></widget></item>
+               <item row="1" column="2"><widget class="QPushButton" name="btn_IO_AO_Set_2"><property name="minimumSize"><size><width>60</width><height>0</height></size></property><property name="text"><string>设置</string></property></widget></item>
+               <item row="2" column="0"><widget class="QLabel" name="label_IO_AO_3"><property name="text"><string>通道 3:</string></property></widget></item>
+               <item row="2" column="1"><widget class="QSpinBox" name="Spin_IO_AO_3"><property name="maximum"><number>65535</number></property></widget></item>
+               <item row="2" column="2"><widget class="QPushButton" name="btn_IO_AO_Set_3"><property name="minimumSize"><size><width>60</width><height>0</height></size></property><property name="text"><string>设置</string></property></widget></item>
+               <item row="3" column="0"><widget class="QLabel" name="label_IO_AO_4"><property name="text"><string>通道 4:</string></property></widget></item>
+               <item row="3" column="1"><widget class="QSpinBox" name="Spin_IO_AO_4"><property name="maximum"><number>65535</number></property></widget></item>
+               <item row="3" column="2"><widget class="QPushButton" name="btn_IO_AO_Set_4"><property name="minimumSize"><size><width>60</width><height>0</height></size></property><property name="text"><string>设置</string></property></widget></item>
+              </layout>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QGroupBox" name="groupBox_IO_DO">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>数字量输出测试  XB6S-3200B</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_IO_DO">
+               <item><widget class="QPushButton" name="btn_IO_AlarmRed_ON"><property name="text"><string>红开</string></property></widget></item>
+               <item><widget class="QPushButton" name="btn_IO_AlarmRed_OFF"><property name="text"><string>红关</string></property></widget></item>
+               <item><widget class="QPushButton" name="btn_IO_AlarmYellow_ON"><property name="text"><string>黄开</string></property></widget></item>
+               <item><widget class="QPushButton" name="btn_IO_AlarmYellow_OFF"><property name="text"><string>黄关</string></property></widget></item>
+               <item><widget class="QPushButton" name="btn_IO_AlarmGreen_ON"><property name="text"><string>绿开</string></property></widget></item>
+               <item><widget class="QPushButton" name="btn_IO_AlarmGreen_OFF"><property name="text"><string>绿关</string></property></widget></item>
+               <item><widget class="QPushButton" name="btn_IO_Fan_ON"><property name="text"><string>风扇开</string></property></widget></item>
+               <item><widget class="QPushButton" name="btn_IO_Fan_OFF"><property name="text"><string>风扇关</string></property></widget></item>
+              </layout>
+             </widget>
+            </item>
+            <item row="4" column="0" rowspan="2">
+             <widget class="QGroupBox" name="groupBox_10">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>1</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="title">
+               <string>IO日志</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_33">
+               <item row="0" column="0">
+                <widget class="QTextBrowser" name="IO_Log"/>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       <widget class="QWidget" name="Work_Widget">
        <layout class="QGridLayout" name="gridLayout_27">
         <item row="0" column="0">

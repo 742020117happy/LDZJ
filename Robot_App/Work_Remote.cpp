@@ -85,55 +85,104 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			c_Variable::getInstance().g_Work.Connected = true;
 		}
 
-		QStringList required = {"taskId", "axleType", "wheelsetNo", "axleNo", "sendUnit", "startTime", "repairLevel"};
-		for (const QString &key : required) {
-			if (object.value(key) == QJsonValue::Undefined) {
-				emit Status("巡检指令缺少" + key);
-				c_Variable::getInstance().g_Work.Connected = false;
-				QJsonObject json;
-				json.insert("Cmd_Name", "Work_Start");
-				json.insert("Value", true);
-				json.insert("Status", "Error");
-				json.insert("Message", "巡检指令缺少" + key);
-				json.insert("Checksum", m_Checksum);
-				emit Write_Json(json);
-				return;
-			}
-		}
-
-		auto &Work = c_Variable::getInstance().g_Work_DB;
-		Work.taskId = object.value("taskId").toString();
-		Work.axleType = object.value("axleType").toString();
-		Work.wheelsetNo = object.value("wheelsetNo").toString();
-		Work.axleNo = object.value("axleNo").toString();
-		Work.sendUnit = object.value("sendUnit").toString();
-		Work.startTime = object.value("startTime").toString();
-		Work.repairLevel = object.value("repairLevel").toString();
-		Work.wheelsetCount = object.value("wheelsetCount").toInt();
-		Work.wheelsetPositions = object.value("wheelsetPositions").toArray();
-
-		if (m_Work_Program.isEmpty()) {
-			emit Status("巡检配置文件为空，请检查配置文件后，重新启动程序");
+		// 2026-07-16 WEB协商版: 校验 tasks[] 数组
+		QJsonArray tasks = object.value("tasks").toArray();
+		if (tasks.isEmpty()) {
+			emit Status("巡检指令缺少 tasks 数组");
 			c_Variable::getInstance().g_Work.Connected = false;
 			QJsonObject json;
-			json.insert("Cmd_Name", "Work_Start");
-			json.insert("Value", true);
-			json.insert("Status", "Error");
-			json.insert("Message", "巡检配置文件为空");
+			json.insert("Cmd_Name", "Work_Start");  json.insert("Value", true);
+			json.insert("Status", "Error");           json.insert("Message", "缺少 tasks 数组");
 			json.insert("Checksum", m_Checksum);
 			emit Write_Json(json);
 			return;
 		}
 
-		int count = object.value("wheelsetPositions").toArray().size();
-		if (count == 2) {
-			is_Short_Short();
+		QStringList required = {"taskId", "axleType", "wheelsetNo", "axleNo", "sendUnit", "startTime", "repairLevel", "wheelsetPosition"};
+		for (int ti = 0; ti < tasks.size(); ti++) {
+			QJsonObject t = tasks[ti].toObject();
+			for (const QString &key : required) {
+				if (t.value(key) == QJsonValue::Undefined) {
+					emit Status(QString("巡检指令 task[%1]缺少%2").arg(ti).arg(key));
+					c_Variable::getInstance().g_Work.Connected = false;
+					QJsonObject json;
+					json.insert("Cmd_Name", "Work_Start");  json.insert("Value", true);
+					json.insert("Status", "Error");           json.insert("Message", QString("task[%1]缺少%2").arg(ti).arg(key));
+					json.insert("Checksum", m_Checksum);
+					emit Write_Json(json);
+					return;
+				}
+			}
 		}
-		else if (count == 1) {
-			int posId = object.value("wheelsetPositions").toArray().at(0).toObject().value("posId").toInt();
-			if (posId == 1) { is_Short_Null(); }
-			else { is_Null_Short(); }
+
+		if (m_Work_Program.isEmpty()) {
+			emit Status("巡检配置文件为空，请检查配置文件后，重新启动程序");
+			c_Variable::getInstance().g_Work.Connected = false;
+			QJsonObject json;
+			json.insert("Cmd_Name", "Work_Start");  json.insert("Value", true);
+			json.insert("Status", "Error");           json.insert("Message", "巡检配置文件为空");
+			json.insert("Checksum", m_Checksum);
+			emit Write_Json(json);
+			return;
 		}
+
+		auto &Work = c_Variable::getInstance().g_Work_DB;
+		Work.tasks = tasks;
+		Work.taskCount = tasks.size();
+
+		// 载入首个任务
+		QJsonObject t0 = tasks[0].toObject();
+		Work.taskId      = t0.value("taskId").toString();
+		Work.axleType    = t0.value("axleType").toString();
+		Work.wheelsetNo  = t0.value("wheelsetNo").toString();
+		Work.axleNo      = t0.value("axleNo").toString();
+		Work.sendUnit    = t0.value("sendUnit").toString();
+		Work.startTime   = t0.value("startTime").toString();
+		Work.repairLevel = t0.value("repairLevel").toString();
+
+		// 按任务数组顺序逐任务执行
+		for (int ti = 0; ti < tasks.size() && c_Variable::getInstance().g_Work.Connected; ti++) {
+			QJsonObject task = tasks[ti].toObject();
+			Work.currentTaskIndex = ti;
+			Work.taskId      = task.value("taskId").toString();
+			Work.axleType    = task.value("axleType").toString();
+			Work.wheelsetNo  = task.value("wheelsetNo").toString();
+			Work.axleNo      = task.value("axleNo").toString();
+			Work.sendUnit    = task.value("sendUnit").toString();
+			Work.startTime   = task.value("startTime").toString();
+			Work.repairLevel = task.value("repairLevel").toString();
+
+			// 加载配方
+			Load_Program(ti);
+
+			// 导航到此任务的轮对摆放位置
+			QJsonObject pos = task.value("wheelsetPosition").toObject();
+			Wait_Navigate(pos.value("mapPointName").toString());
+
+			// 按 InspectionPlan 配方逐工位巡检
+			QJsonArray positions = m_Current_Work.value("positions").toArray();
+			for (int pi = 0; pi < positions.size() && c_Variable::getInstance().g_Work.Connected; pi++) {
+				Work.currentPos = pi;
+				QJsonObject posObj = positions[pi].toObject();
+
+				Wait_Navigate(posObj.value("point").toString());
+				Wait_CGXi_Program(posObj.value("prog").toInt());
+				Wait_CGXi_Start();
+				Wait_Camera_Start(QString("START&%1&%2&%3&%4%5&%6")
+					.arg(Work.sendUnit).arg(Work.startTime.left(8)).arg(Work.startTime.right(4))
+					.arg(Work.wheelsetNo).arg(Work.axleNo).arg(Work.taskId));
+				Wait_CGXi_Finish();
+			}
+
+			if (c_Variable::getInstance().g_Work.Connected) {
+				Wait_Server_Completed(Work.totalImages);
+			}
+		}
+
+		if (c_Variable::getInstance().g_Work.Connected) {
+			Wait_Charge();
+		}
+		c_Variable::getInstance().g_Work.Connected = false;
 	}
 	emit Status("退出当前任务");
 }
@@ -156,11 +205,11 @@ void c_Work_Remote::is_Short_Short()
 	Wait_Server_Accepted();
 
 	for (int wi = 0; wi < 2 && c_Variable::getInstance().g_Work.Connected; wi++) {
-		Work.currentWheelset = wi;
+		Work.currentTaskIndex = wi;
 		emit Status(QString("%1号轮对工序开始").arg(wi + 1));
 		Load_Program(wi);
 
-		QString wsPoint = Work.wheelsetPositions[wi].toObject().value("mapPointName").toString();
+		QString wsPoint = Work.tasks[wi].toObject().value("wheelsetPosition").toObject().value("mapPointName").toString();
 		Wait_Navigate(wsPoint);
 
 		QJsonArray positions = m_Current_Work.value("positions").toArray();
@@ -204,10 +253,10 @@ void c_Work_Remote::is_Null_Short()
 
 	auto &Work = c_Variable::getInstance().g_Work_DB;
 	Wait_Server_Accepted();
-	Work.currentWheelset = 1;
+	Work.currentTaskIndex = 1;
 	Load_Program(1);
 
-	QString wsPoint = Work.wheelsetPositions[0].toObject().value("mapPointName").toString();
+	QString wsPoint = Work.tasks[0].toObject().value("wheelsetPosition").toObject().value("mapPointName").toString();
 	Wait_Navigate(wsPoint);
 
 	QJsonArray positions = m_Current_Work.value("positions").toArray();
@@ -250,10 +299,10 @@ void c_Work_Remote::is_Short_Null()
 
 	auto &Work = c_Variable::getInstance().g_Work_DB;
 	Wait_Server_Accepted();
-	Work.currentWheelset = 0;
+	Work.currentTaskIndex = 0;
 	Load_Program(0);
 
-	QString wsPoint = Work.wheelsetPositions[0].toObject().value("mapPointName").toString();
+	QString wsPoint = Work.tasks[0].toObject().value("wheelsetPosition").toObject().value("mapPointName").toString();
 	Wait_Navigate(wsPoint);
 
 	QJsonArray positions = m_Current_Work.value("positions").toArray();

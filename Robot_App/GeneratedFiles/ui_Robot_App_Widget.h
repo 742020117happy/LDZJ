@@ -45,13 +45,6 @@ class Ui_Robot_App_Widget
 public:
     QWidget *centralWidget;
     QGridLayout *gridLayout_15;
-    QWidget *widget_10;
-    QGridLayout *gridLayout_94;
-    QGroupBox *groupBox_5;
-    QGridLayout *gridLayout_4;
-    QPushButton *Show_Magic_Widget;
-    QPushButton *Show_CGXi_Widget;
-    QPushButton *Show_Pre_Scan_120_Widget;
     QStackedWidget *stackedWidget;
     QWidget *CGXi_Widget;
     QGridLayout *gridLayout_3;
@@ -343,6 +336,18 @@ public:
     QGroupBox *groupBox_8;
     QGridLayout *gridLayout_24;
     QHBoxLayout *horizontalLayout_50;
+    QLabel *label_120_Remote_Status;
+    c_Fr_Light *Pre_Scan_120_Remote_Light;
+    QLabel *label_120_Monitor_Status;
+    c_Fr_Light *Pre_Scan_120_Monitor_Light;
+    QLabel *label_120_Listen_Status;
+    c_Fr_Light *Pre_Scan_120_Listen_Light;
+    QLabel *label_120_Tran_Status;
+    c_Fr_Light *Pre_Scan_120_Tran_Light;
+    QLabel *label_120_Client_Num;
+    QLineEdit *Pre_Scan_120_Client_Num;
+    QLabel *label_120_Cam_Num;
+    QLineEdit *Pre_Scan_120_Cam_Num;
     QLabel *label_120_IP;
     QLineEdit *Pre_Scan_120_IP;
     QLabel *label_120_Port;
@@ -353,63 +358,6 @@ public:
     QLineEdit *Pre_Scan_120_Tran_Port;
     QPushButton *Pre_Scan_120_Connect;
     QPushButton *Pre_Scan_120_Disconnect;
-    QHBoxLayout *horizontalLayout_51;
-    QLabel *label_120_Remote_Status;
-    c_Fr_Light *Pre_Scan_120_Remote_Light;
-    QLabel *label_120_Monitor_Status;
-    c_Fr_Light *Pre_Scan_120_Monitor_Light;
-    QLabel *label_120_Tran_Status;
-    c_Fr_Light *Pre_Scan_120_Tran_Light;
-    QLabel *label_120_Listen_Status;
-    c_Fr_Light *Pre_Scan_120_Listen_Light;
-    QLabel *label_120_Client_Num;
-    QLineEdit *Pre_Scan_120_Client_Num;
-    QLabel *label_120_Cam_Num;
-    QLineEdit *Pre_Scan_120_Cam_Num;
-    QLabel *label_120_LastUpdate;
-    QLineEdit *Pre_Scan_120_LastUpdate;
-    QSpacerItem *horizontalSpacer_30;
-    QHBoxLayout *horizontalLayout_53;
-    QGroupBox *groupBox_Task_Info;
-    QGridLayout *gridLayout_21;
-    QLabel *label_120_TaskID;
-    QLabel *label_120_Wheelset;
-    QLineEdit *r_Pre_Scan_120_TaskID;
-    QLabel *label_120_StartTime;
-    QLineEdit *r_Pre_Scan_120_Wheelset;
-    QLineEdit *r_Pre_Scan_120_StartTime;
-    QLineEdit *r_Pre_Scan_120_Axle;
-    QLabel *label_120_Axle;
-    QLabel *label_120_Repair;
-    QLineEdit *r_Pre_Scan_120_Repair;
-    QLabel *label_120_SendUnit;
-    QLineEdit *r_Pre_Scan_120_SendUnit;
-    QGroupBox *groupBox_Collect_Status;
-    QGridLayout *gridLayout_26;
-    QLabel *label_120_Prog;
-    QLineEdit *r_Pre_Scan_120_currentWheelset;
-    QLabel *label_120_Gain;
-    QLineEdit *r_Pre_Scan_120_Gain;
-    QLabel *label_120_Part1;
-    QLineEdit *r_Pre_Scan_120_Part1;
-    QLabel *label_120_Part2;
-    QLineEdit *r_Pre_Scan_120_Part2;
-    QLabel *label_120_Point;
-    QLineEdit *r_Pre_Scan_120_Point;
-    QGroupBox *groupBox_Control;
-    QGridLayout *gridLayout_25;
-    QPushButton *Pre_Scan_120_Start_Scan;
-    QPushButton *Pre_Scan_120_Collector;
-    QPushButton *Pre_Scan_120_Finish_Scan;
-    QHBoxLayout *horizontalLayout_54;
-    QSpinBox *Pre_Scan_120_Gain_Spin;
-    QPushButton *Pre_Scan_120_Change_Gain;
-    QHBoxLayout *horizontalLayout_52;
-    QLabel *label_120_TotalImages;
-    QLineEdit *r_Pre_Scan_120_TotalImages;
-    QHBoxLayout *horizontalLayout_56;
-    QLabel *label_120_WorkState;
-    QComboBox *Pre_Scan_120_WorkState;
     QHBoxLayout *horizontalLayout_49;
     QGroupBox *groupBox_Task_Info_2;
     QGridLayout *gridLayout_22;
@@ -451,6 +399,49 @@ public:
     QGroupBox *groupBox_9;
     QGridLayout *gridLayout_23;
     QTextEdit *Prec_Scan_120_Cmd;
+    QHBoxLayout *horizontalLayout_53;
+    QGroupBox *groupBox_Task_Info;
+    QGridLayout *gridLayout_21;
+    QLabel *label_120_TaskID;
+    QLabel *label_120_Wheelset;
+    QLineEdit *r_Pre_Scan_120_TaskID;
+    QLabel *label_120_StartTime;
+    QLineEdit *r_Pre_Scan_120_Wheelset;
+    QLineEdit *r_Pre_Scan_120_StartTime;
+    QLineEdit *r_Pre_Scan_120_Axle;
+    QLabel *label_120_Axle;
+    QLabel *label_120_Repair;
+    QLineEdit *r_Pre_Scan_120_Repair;
+    QLabel *label_120_SendUnit;
+    QLineEdit *r_Pre_Scan_120_SendUnit;
+    QGroupBox *groupBox_Collect_Status;
+    QGridLayout *gridLayout_26;
+    QLineEdit *r_Pre_Scan_120_Part1;
+    QLineEdit *r_Pre_Scan_120_Point;
+    QLineEdit *r_Pre_Scan_120_currentWheelset;
+    QLabel *label_120_Part1;
+    QLabel *label_120_Part2;
+    QLabel *label_120_Gain;
+    QLabel *label_120_Prog;
+    QLineEdit *r_Pre_Scan_120_Part2;
+    QLineEdit *r_Pre_Scan_120_Gain;
+    QLabel *label_120_Point;
+    QLabel *label_120_LastUpdate;
+    QLineEdit *Pre_Scan_120_LastUpdate;
+    QGroupBox *groupBox_Control;
+    QGridLayout *gridLayout_25;
+    QPushButton *Pre_Scan_120_Start_Scan;
+    QPushButton *Pre_Scan_120_Collector;
+    QPushButton *Pre_Scan_120_Finish_Scan;
+    QHBoxLayout *horizontalLayout_54;
+    QSpinBox *Pre_Scan_120_Gain_Spin;
+    QPushButton *Pre_Scan_120_Change_Gain;
+    QHBoxLayout *horizontalLayout_52;
+    QLabel *label_120_TotalImages;
+    QLineEdit *r_Pre_Scan_120_TotalImages;
+    QHBoxLayout *horizontalLayout_56;
+    QLabel *label_120_WorkState;
+    QComboBox *Pre_Scan_120_WorkState;
     QGroupBox *groupBox_MySql;
     QHBoxLayout *horizontalLayout_55;
     QLabel *label_120_MySql_Status;
@@ -465,10 +456,208 @@ public:
     QLabel *label_148;
     QLineEdit *MySql_Database;
     QPushButton *Pre_Scan_120_MySql_Reconnect;
-    QSpacerItem *horizontalSpacer_31;
-    QGroupBox *groupBox_Log;
-    QVBoxLayout *verticalLayout_24;
-    QTextEdit *Pre_Scan_120_Log;
+    QWidget *Voice_Widget;
+    QGridLayout *gridLayout;
+    QGroupBox *groupBox_Voice_Config;
+    QGridLayout *gridLayout_28;
+    QLabel *label_Voice_Com;
+    QComboBox *Voice_Com;
+    QLabel *label_Voice_Baud;
+    QComboBox *Voice_Baud;
+    QLabel *label_Voice_Addr;
+    QSpinBox *Voice_Addr;
+    QLabel *label_Voice_Connected;
+    c_Fr_Light *Voice_Connected;
+    QLabel *label_Voice_Volume;
+    QHBoxLayout *horizontalLayout_46;
+    QPushButton *Voice_Connect;
+    QPushButton *Voice_Disconnect;
+    QLineEdit *Voice_Volume_Display;
+    QGroupBox *groupBox_Voice_Play;
+    QVBoxLayout *verticalLayout_Voice_Play;
+    QGridLayout *gridLayout_Voice_Buttons;
+    QPushButton *btn_Voice_PA001;
+    QPushButton *btn_Voice_PA002;
+    QPushButton *btn_Voice_PA003;
+    QPushButton *btn_Voice_PA004;
+    QPushButton *btn_Voice_PA005;
+    QPushButton *btn_Voice_PA006;
+    QPushButton *btn_Voice_PA007;
+    QPushButton *btn_Voice_PA008;
+    QPushButton *btn_Voice_PA009;
+    QPushButton *btn_Voice_PA010;
+    QPushButton *btn_Voice_PA011;
+    QPushButton *btn_Voice_PA012;
+    QPushButton *btn_Voice_PA013;
+    QPushButton *btn_Voice_PA014;
+    QPushButton *btn_Voice_PA015;
+    QPushButton *btn_Voice_PA016;
+    QPushButton *btn_Voice_PA017;
+    QPushButton *btn_Voice_PA018;
+    QPushButton *btn_Voice_PA019;
+    QPushButton *btn_Voice_PA020;
+    QPushButton *btn_Voice_PA021;
+    QPushButton *btn_Voice_PA022;
+    QPushButton *btn_Voice_PA023;
+    QPushButton *btn_Voice_PA024;
+    QPushButton *btn_Voice_PA025;
+    QHBoxLayout *horizontalLayout_Voice_Ctrl;
+    QPushButton *btn_Voice_Stop;
+    QPushButton *btn_Voice_Vol_Low;
+    QPushButton *btn_Voice_Vol_Med;
+    QPushButton *btn_Voice_Vol_High;
+    QPushButton *btn_Voice_Test;
+    QGroupBox *groupBox_Voice_Info;
+    QGridLayout *gridLayout_Voice_Info;
+    QLabel *label_Voice_Device_Status;
+    QLineEdit *Voice_Device_Status;
+    QLabel *label_Voice_Current_Audio;
+    QLineEdit *Voice_Current_Audio;
+    QLabel *label_Voice_Count;
+    QLineEdit *Voice_Count;
+    QGroupBox *groupBox_Voice_Log;
+    QGridLayout *gridLayout_Voice_Log;
+    QTableWidget *Voice_Log;
+    QWidget *IO_Widget;
+    QGridLayout *gridLayout_29;
+    QGroupBox *groupBox_2;
+    QGridLayout *gridLayout_31;
+    QGroupBox *groupBox_24;
+    QGridLayout *gridLayout_30;
+    QLabel *label_274;
+    QLabel *label_275;
+    QLabel *label_280;
+    QSpinBox *Write_IO_Coils_Addr;
+    QLabel *label_278;
+    QLabel *label_272;
+    QSpinBox *Write_IO_HoldingRegisters_Size;
+    QSpinBox *Write_IO_HoldingRegisters_Addr;
+    QSpinBox *Read_IO_InputRegisters_Addr;
+    QLabel *label_281;
+    QSpinBox *Read_IO_DiscreteInputs_Size;
+    QLabel *label_139;
+    QLabel *label_273;
+    QLabel *label_277;
+    QSpinBox *Write_IO_Coils_Size;
+    QSpinBox *Read_IO_InputRegisters_Size;
+    QSpinBox *Read_IO_DiscreteInputs_Addr;
+    QLabel *label_122;
+    QLineEdit *IO_Ip;
+    QLineEdit *IO_Port;
+    QGroupBox *groupBox_IO_Connect;
+    QGridLayout *gridLayout_32;
+    QLabel *label_25;
+    c_Fr_Light *IO_Connected;
+    QLabel *label_24;
+    c_Fr_Light *IO_Ready;
+    QPushButton *IO_Connect;
+    QPushButton *IO_Disconnect;
+    QGroupBox *groupBox_IO_DI;
+    QVBoxLayout *verticalLayout_IO_DI;
+    QTableWidget *tableWidget_IO_DI;
+    QGroupBox *groupBox_IO_AO;
+    QGridLayout *gridLayout_IO_AO;
+    QLabel *label_IO_AO_1;
+    QSpinBox *Spin_IO_AO_1;
+    QPushButton *btn_IO_AO_Set_1;
+    QLabel *label_IO_AO_2;
+    QSpinBox *Spin_IO_AO_2;
+    QPushButton *btn_IO_AO_Set_2;
+    QLabel *label_IO_AO_3;
+    QSpinBox *Spin_IO_AO_3;
+    QPushButton *btn_IO_AO_Set_3;
+    QLabel *label_IO_AO_4;
+    QSpinBox *Spin_IO_AO_4;
+    QPushButton *btn_IO_AO_Set_4;
+    QGroupBox *groupBox_IO_DO;
+    QHBoxLayout *horizontalLayout_IO_DO;
+    QPushButton *btn_IO_AlarmRed_ON;
+    QPushButton *btn_IO_AlarmRed_OFF;
+    QPushButton *btn_IO_AlarmYellow_ON;
+    QPushButton *btn_IO_AlarmYellow_OFF;
+    QPushButton *btn_IO_AlarmGreen_ON;
+    QPushButton *btn_IO_AlarmGreen_OFF;
+    QPushButton *btn_IO_Fan_ON;
+    QPushButton *btn_IO_Fan_OFF;
+    QGroupBox *groupBox_10;
+    QGridLayout *gridLayout_33;
+    QTextBrowser *IO_Log;
+    QWidget *Work_Widget;
+    QGridLayout *gridLayout_27;
+    QHBoxLayout *Work_TopRow;
+    QGroupBox *Work_ServerGroup;
+    QHBoxLayout *Work_ServerLayout;
+    QLabel *label_Work_Client;
+    c_Fr_Light *Work_Client_Light;
+    QLabel *label_Work_Listen;
+    c_Fr_Light *Work_Listen_Light;
+    QLabel *label_Work_ConnNum;
+    QLineEdit *Work_Client_Num;
+    QLabel *label_Work_Port;
+    QLineEdit *Work_Port;
+    QLabel *label_Work_Checksum;
+    QLineEdit *Work_Checksum;
+    QHBoxLayout *Work_FlowRow;
+    QGroupBox *Work_FlowGroup;
+    QHBoxLayout *Work_FlowLayout;
+    QLabel *label_Work_FlowState;
+    QLineEdit *Work_Flow_State;
+    QLineEdit *Work_Flow_Desc;
+    QPushButton *Work_Btn_Start;
+    QPushButton *Work_Btn_Pause;
+    QPushButton *Work_Btn_Resume;
+    QPushButton *Work_Btn_Cancel;
+    QPushButton *Work_Btn_Stop;
+    QPushButton *Work_Btn_Home;
+    QHBoxLayout *Work_StatusRow;
+    QGroupBox *Work_SubsysGroup;
+    QHBoxLayout *Work_SubsysLayout;
+    QLabel *label_Work_Arm;
+    c_Fr_Light *Work_Arm_Light;
+    QLabel *label_Work_Chassis;
+    c_Fr_Light *Work_Chassis_Light;
+    QLabel *label_Work_Camera;
+    c_Fr_Light *Work_Camera_Light;
+    QLabel *label_Work_Server;
+    c_Fr_Light *Work_Server_Light;
+    QSpacerItem *Work_SubsysSpacer;
+    QGroupBox *Work_TaskGroup;
+    QGridLayout *Work_TaskGrid;
+    QLabel *label_Work_TaskID;
+    QLineEdit *Work_TaskID;
+    QLabel *label_Work_State;
+    QLineEdit *Work_State;
+    QLabel *label_Work_Wheel;
+    QLineEdit *Work_Wheel;
+    QLabel *label_Work_Pos;
+    QLineEdit *Work_Pos;
+    QLabel *label_Work_Images;
+    QLineEdit *Work_Images;
+    QLabel *label_Work_SendUnit;
+    QLineEdit *Work_SendUnit;
+    QLabel *label_Work_Repair;
+    QLineEdit *Work_Repair;
+    QLabel *label_Work_WheelsetNo;
+    QLineEdit *Work_WheelsetNo;
+    QLabel *label_Work_AxleNo;
+    QLineEdit *Work_AxleNo;
+    QLabel *label_Work_Gain;
+    QLineEdit *Work_Gain;
+    QLabel *label_Work_Part1;
+    QLineEdit *Work_Part1;
+    QLabel *label_Work_Part2;
+    QLineEdit *Work_Part2;
+    QLabel *label_Work_Point;
+    QLineEdit *Work_Point;
+    QLabel *label_Work_StartTime;
+    QLineEdit *Work_StartTime;
+    QHBoxLayout *Work_BottomRow;
+    QGroupBox *Work_LogGroup;
+    QVBoxLayout *Work_LogLayout;
+    QTextEdit *Work_List;
+    QGroupBox *Work_AlarmGroup;
+    QVBoxLayout *Work_AlarmLayout;
+    QTextEdit *Work_Alarm;
     QWidget *Magic_Widget;
     QGridLayout *gridLayout_10;
     QGroupBox *groupBox_7;
@@ -791,16 +980,19 @@ public:
     QLineEdit *lineEdit_LogFileName;
     QPushButton *btn_DownLogs;
     QPushButton *btn_DropLogs;
-    QGroupBox *groupBox_Log1;
+    QGroupBox *groupBox_Log;
     QVBoxLayout *verticalLayout_Log;
     QTextEdit *Magic_Log;
-    QHBoxLayout *horizontalLayout_46;
-    QGroupBox *groupBox_11;
-    QGridLayout *gridLayout;
-    QTextEdit *Worry_List;
-    QGroupBox *groupBox_2;
-    QGridLayout *gridLayout_51;
-    QTextEdit *Work_List;
+    QWidget *widget_10;
+    QGridLayout *gridLayout_94;
+    QGroupBox *groupBox_5;
+    QGridLayout *gridLayout_4;
+    QPushButton *Show_Pre_Scan_120_Widget;
+    QPushButton *Show_CGXi_Widget;
+    QPushButton *Show_Voice_Widget;
+    QPushButton *Show_Magic_Widget;
+    QPushButton *Show_Work_Widget;
+    QPushButton *Show_IO_Widget;
     QStatusBar *Status_Bar;
 
     void setupUi(QMainWindow *Robot_App_Widget)
@@ -808,7 +1000,7 @@ public:
         if (Robot_App_Widget->objectName().isEmpty())
             Robot_App_Widget->setObjectName(QString::fromUtf8("Robot_App_Widget"));
         Robot_App_Widget->setWindowModality(Qt::WindowModal);
-        Robot_App_Widget->resize(1689, 1009);
+        Robot_App_Widget->resize(1927, 1077);
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -824,67 +1016,13 @@ public:
         gridLayout_15->setSpacing(6);
         gridLayout_15->setContentsMargins(11, 11, 11, 11);
         gridLayout_15->setObjectName(QString::fromUtf8("gridLayout_15"));
-        widget_10 = new QWidget(centralWidget);
-        widget_10->setObjectName(QString::fromUtf8("widget_10"));
-        QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::Expanding);
-        sizePolicy1.setHorizontalStretch(0);
-        sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(widget_10->sizePolicy().hasHeightForWidth());
-        widget_10->setSizePolicy(sizePolicy1);
-        widget_10->setMinimumSize(QSize(0, 0));
-        widget_10->setMaximumSize(QSize(16777215, 16777215));
-        gridLayout_94 = new QGridLayout(widget_10);
-        gridLayout_94->setSpacing(6);
-        gridLayout_94->setContentsMargins(11, 11, 11, 11);
-        gridLayout_94->setObjectName(QString::fromUtf8("gridLayout_94"));
-        groupBox_5 = new QGroupBox(widget_10);
-        groupBox_5->setObjectName(QString::fromUtf8("groupBox_5"));
-        sizePolicy1.setHeightForWidth(groupBox_5->sizePolicy().hasHeightForWidth());
-        groupBox_5->setSizePolicy(sizePolicy1);
-        gridLayout_4 = new QGridLayout(groupBox_5);
-        gridLayout_4->setSpacing(6);
-        gridLayout_4->setContentsMargins(11, 11, 11, 11);
-        gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
-        Show_Magic_Widget = new QPushButton(groupBox_5);
-        Show_Magic_Widget->setObjectName(QString::fromUtf8("Show_Magic_Widget"));
-        QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Preferred);
-        sizePolicy2.setHorizontalStretch(0);
-        sizePolicy2.setVerticalStretch(0);
-        sizePolicy2.setHeightForWidth(Show_Magic_Widget->sizePolicy().hasHeightForWidth());
-        Show_Magic_Widget->setSizePolicy(sizePolicy2);
-
-        gridLayout_4->addWidget(Show_Magic_Widget, 1, 0, 1, 1);
-
-        Show_CGXi_Widget = new QPushButton(groupBox_5);
-        Show_CGXi_Widget->setObjectName(QString::fromUtf8("Show_CGXi_Widget"));
-        sizePolicy2.setHeightForWidth(Show_CGXi_Widget->sizePolicy().hasHeightForWidth());
-        Show_CGXi_Widget->setSizePolicy(sizePolicy2);
-
-        gridLayout_4->addWidget(Show_CGXi_Widget, 2, 0, 1, 1);
-
-        Show_Pre_Scan_120_Widget = new QPushButton(groupBox_5);
-        Show_Pre_Scan_120_Widget->setObjectName(QString::fromUtf8("Show_Pre_Scan_120_Widget"));
-        QSizePolicy sizePolicy3(QSizePolicy::Maximum, QSizePolicy::Preferred);
-        sizePolicy3.setHorizontalStretch(0);
-        sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(Show_Pre_Scan_120_Widget->sizePolicy().hasHeightForWidth());
-        Show_Pre_Scan_120_Widget->setSizePolicy(sizePolicy3);
-
-        gridLayout_4->addWidget(Show_Pre_Scan_120_Widget, 3, 0, 1, 1);
-
-
-        gridLayout_94->addWidget(groupBox_5, 0, 0, 1, 1);
-
-
-        gridLayout_15->addWidget(widget_10, 0, 0, 1, 1);
-
         stackedWidget = new QStackedWidget(centralWidget);
         stackedWidget->setObjectName(QString::fromUtf8("stackedWidget"));
-        QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        sizePolicy4.setHorizontalStretch(0);
-        sizePolicy4.setVerticalStretch(0);
-        sizePolicy4.setHeightForWidth(stackedWidget->sizePolicy().hasHeightForWidth());
-        stackedWidget->setSizePolicy(sizePolicy4);
+        QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(stackedWidget->sizePolicy().hasHeightForWidth());
+        stackedWidget->setSizePolicy(sizePolicy1);
         stackedWidget->setStyleSheet(QString::fromUtf8(""));
         stackedWidget->setLineWidth(1);
         CGXi_Widget = new QWidget();
@@ -907,11 +1045,11 @@ public:
         horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
         label_ip = new QLabel(groupBox_3);
         label_ip->setObjectName(QString::fromUtf8("label_ip"));
-        QSizePolicy sizePolicy5(QSizePolicy::Maximum, QSizePolicy::Maximum);
-        sizePolicy5.setHorizontalStretch(0);
-        sizePolicy5.setVerticalStretch(0);
-        sizePolicy5.setHeightForWidth(label_ip->sizePolicy().hasHeightForWidth());
-        label_ip->setSizePolicy(sizePolicy5);
+        QSizePolicy sizePolicy2(QSizePolicy::Maximum, QSizePolicy::Maximum);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(label_ip->sizePolicy().hasHeightForWidth());
+        label_ip->setSizePolicy(sizePolicy2);
 
         horizontalLayout_4->addWidget(label_ip);
 
@@ -924,8 +1062,8 @@ public:
 
         label_port = new QLabel(groupBox_3);
         label_port->setObjectName(QString::fromUtf8("label_port"));
-        sizePolicy5.setHeightForWidth(label_port->sizePolicy().hasHeightForWidth());
-        label_port->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_port->sizePolicy().hasHeightForWidth());
+        label_port->setSizePolicy(sizePolicy2);
 
         horizontalLayout_4->addWidget(label_port);
 
@@ -938,62 +1076,62 @@ public:
 
         CGXi_Connect = new QPushButton(groupBox_3);
         CGXi_Connect->setObjectName(QString::fromUtf8("CGXi_Connect"));
-        QSizePolicy sizePolicy6(QSizePolicy::Minimum, QSizePolicy::Maximum);
-        sizePolicy6.setHorizontalStretch(0);
-        sizePolicy6.setVerticalStretch(0);
-        sizePolicy6.setHeightForWidth(CGXi_Connect->sizePolicy().hasHeightForWidth());
-        CGXi_Connect->setSizePolicy(sizePolicy6);
+        QSizePolicy sizePolicy3(QSizePolicy::Minimum, QSizePolicy::Maximum);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(CGXi_Connect->sizePolicy().hasHeightForWidth());
+        CGXi_Connect->setSizePolicy(sizePolicy3);
 
         horizontalLayout_4->addWidget(CGXi_Connect);
 
         CGXi_Disconnect = new QPushButton(groupBox_3);
         CGXi_Disconnect->setObjectName(QString::fromUtf8("CGXi_Disconnect"));
-        sizePolicy6.setHeightForWidth(CGXi_Disconnect->sizePolicy().hasHeightForWidth());
-        CGXi_Disconnect->setSizePolicy(sizePolicy6);
+        sizePolicy3.setHeightForWidth(CGXi_Disconnect->sizePolicy().hasHeightForWidth());
+        CGXi_Disconnect->setSizePolicy(sizePolicy3);
 
         horizontalLayout_4->addWidget(CGXi_Disconnect);
 
         label_3 = new QLabel(groupBox_3);
         label_3->setObjectName(QString::fromUtf8("label_3"));
-        sizePolicy5.setHeightForWidth(label_3->sizePolicy().hasHeightForWidth());
-        label_3->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_3->sizePolicy().hasHeightForWidth());
+        label_3->setSizePolicy(sizePolicy2);
 
         horizontalLayout_4->addWidget(label_3);
 
         CGXi_Connected = new c_Fr_Light(groupBox_3);
         CGXi_Connected->setObjectName(QString::fromUtf8("CGXi_Connected"));
-        sizePolicy5.setHeightForWidth(CGXi_Connected->sizePolicy().hasHeightForWidth());
-        CGXi_Connected->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Connected->sizePolicy().hasHeightForWidth());
+        CGXi_Connected->setSizePolicy(sizePolicy2);
         CGXi_Connected->setMinimumSize(QSize(20, 20));
 
         horizontalLayout_4->addWidget(CGXi_Connected);
 
         label_4 = new QLabel(groupBox_3);
         label_4->setObjectName(QString::fromUtf8("label_4"));
-        sizePolicy5.setHeightForWidth(label_4->sizePolicy().hasHeightForWidth());
-        label_4->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_4->sizePolicy().hasHeightForWidth());
+        label_4->setSizePolicy(sizePolicy2);
 
         horizontalLayout_4->addWidget(label_4);
 
         CGXi_Ready = new c_Fr_Light(groupBox_3);
         CGXi_Ready->setObjectName(QString::fromUtf8("CGXi_Ready"));
-        sizePolicy5.setHeightForWidth(CGXi_Ready->sizePolicy().hasHeightForWidth());
-        CGXi_Ready->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Ready->sizePolicy().hasHeightForWidth());
+        CGXi_Ready->setSizePolicy(sizePolicy2);
         CGXi_Ready->setMinimumSize(QSize(20, 20));
 
         horizontalLayout_4->addWidget(CGXi_Ready);
 
         label_10 = new QLabel(groupBox_3);
         label_10->setObjectName(QString::fromUtf8("label_10"));
-        sizePolicy5.setHeightForWidth(label_10->sizePolicy().hasHeightForWidth());
-        label_10->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_10->sizePolicy().hasHeightForWidth());
+        label_10->setSizePolicy(sizePolicy2);
 
         horizontalLayout_4->addWidget(label_10);
 
         CGXi_auto_indicator = new c_Fr_Light(groupBox_3);
         CGXi_auto_indicator->setObjectName(QString::fromUtf8("CGXi_auto_indicator"));
-        sizePolicy5.setHeightForWidth(CGXi_auto_indicator->sizePolicy().hasHeightForWidth());
-        CGXi_auto_indicator->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_auto_indicator->sizePolicy().hasHeightForWidth());
+        CGXi_auto_indicator->setSizePolicy(sizePolicy2);
         CGXi_auto_indicator->setMinimumSize(QSize(20, 20));
 
         horizontalLayout_4->addWidget(CGXi_auto_indicator);
@@ -1006,8 +1144,8 @@ public:
         horizontalLayout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
         label_5 = new QLabel(groupBox_3);
         label_5->setObjectName(QString::fromUtf8("label_5"));
-        sizePolicy5.setHeightForWidth(label_5->sizePolicy().hasHeightForWidth());
-        label_5->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_5->sizePolicy().hasHeightForWidth());
+        label_5->setSizePolicy(sizePolicy2);
 
         horizontalLayout_5->addWidget(label_5);
 
@@ -1020,8 +1158,8 @@ public:
 
         label_6 = new QLabel(groupBox_3);
         label_6->setObjectName(QString::fromUtf8("label_6"));
-        sizePolicy5.setHeightForWidth(label_6->sizePolicy().hasHeightForWidth());
-        label_6->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_6->sizePolicy().hasHeightForWidth());
+        label_6->setSizePolicy(sizePolicy2);
 
         horizontalLayout_5->addWidget(label_6);
 
@@ -1034,8 +1172,8 @@ public:
 
         label_7 = new QLabel(groupBox_3);
         label_7->setObjectName(QString::fromUtf8("label_7"));
-        sizePolicy5.setHeightForWidth(label_7->sizePolicy().hasHeightForWidth());
-        label_7->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_7->sizePolicy().hasHeightForWidth());
+        label_7->setSizePolicy(sizePolicy2);
 
         horizontalLayout_5->addWidget(label_7);
 
@@ -1049,8 +1187,8 @@ public:
 
         label_speed = new QLabel(groupBox_3);
         label_speed->setObjectName(QString::fromUtf8("label_speed"));
-        sizePolicy5.setHeightForWidth(label_speed->sizePolicy().hasHeightForWidth());
-        label_speed->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_speed->sizePolicy().hasHeightForWidth());
+        label_speed->setSizePolicy(sizePolicy2);
 
         horizontalLayout_5->addWidget(label_speed);
 
@@ -1074,60 +1212,60 @@ public:
         gridLayout_7->setObjectName(QString::fromUtf8("gridLayout_7"));
         Coils_1003 = new QPushButton(groupBox_6);
         Coils_1003->setObjectName(QString::fromUtf8("Coils_1003"));
-        QSizePolicy sizePolicy7(QSizePolicy::Preferred, QSizePolicy::Fixed);
-        sizePolicy7.setHorizontalStretch(0);
-        sizePolicy7.setVerticalStretch(0);
-        sizePolicy7.setHeightForWidth(Coils_1003->sizePolicy().hasHeightForWidth());
-        Coils_1003->setSizePolicy(sizePolicy7);
+        QSizePolicy sizePolicy4(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        sizePolicy4.setHorizontalStretch(0);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(Coils_1003->sizePolicy().hasHeightForWidth());
+        Coils_1003->setSizePolicy(sizePolicy4);
 
         gridLayout_7->addWidget(Coils_1003, 0, 3, 1, 1);
 
         Coils_1007 = new QPushButton(groupBox_6);
         Coils_1007->setObjectName(QString::fromUtf8("Coils_1007"));
-        sizePolicy7.setHeightForWidth(Coils_1007->sizePolicy().hasHeightForWidth());
-        Coils_1007->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Coils_1007->sizePolicy().hasHeightForWidth());
+        Coils_1007->setSizePolicy(sizePolicy4);
 
         gridLayout_7->addWidget(Coils_1007, 1, 3, 1, 1);
 
         Coils_1001 = new QPushButton(groupBox_6);
         Coils_1001->setObjectName(QString::fromUtf8("Coils_1001"));
-        sizePolicy7.setHeightForWidth(Coils_1001->sizePolicy().hasHeightForWidth());
-        Coils_1001->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Coils_1001->sizePolicy().hasHeightForWidth());
+        Coils_1001->setSizePolicy(sizePolicy4);
 
         gridLayout_7->addWidget(Coils_1001, 0, 1, 1, 1);
 
         Coils_1004 = new QPushButton(groupBox_6);
         Coils_1004->setObjectName(QString::fromUtf8("Coils_1004"));
-        sizePolicy7.setHeightForWidth(Coils_1004->sizePolicy().hasHeightForWidth());
-        Coils_1004->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Coils_1004->sizePolicy().hasHeightForWidth());
+        Coils_1004->setSizePolicy(sizePolicy4);
 
         gridLayout_7->addWidget(Coils_1004, 1, 0, 1, 1);
 
         Coils_1005 = new QPushButton(groupBox_6);
         Coils_1005->setObjectName(QString::fromUtf8("Coils_1005"));
-        sizePolicy7.setHeightForWidth(Coils_1005->sizePolicy().hasHeightForWidth());
-        Coils_1005->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Coils_1005->sizePolicy().hasHeightForWidth());
+        Coils_1005->setSizePolicy(sizePolicy4);
 
         gridLayout_7->addWidget(Coils_1005, 1, 1, 1, 1);
 
         Coils_1006 = new QPushButton(groupBox_6);
         Coils_1006->setObjectName(QString::fromUtf8("Coils_1006"));
-        sizePolicy7.setHeightForWidth(Coils_1006->sizePolicy().hasHeightForWidth());
-        Coils_1006->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Coils_1006->sizePolicy().hasHeightForWidth());
+        Coils_1006->setSizePolicy(sizePolicy4);
 
         gridLayout_7->addWidget(Coils_1006, 1, 2, 1, 1);
 
         Coils_1000 = new QPushButton(groupBox_6);
         Coils_1000->setObjectName(QString::fromUtf8("Coils_1000"));
-        sizePolicy7.setHeightForWidth(Coils_1000->sizePolicy().hasHeightForWidth());
-        Coils_1000->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Coils_1000->sizePolicy().hasHeightForWidth());
+        Coils_1000->setSizePolicy(sizePolicy4);
 
         gridLayout_7->addWidget(Coils_1000, 0, 0, 1, 1);
 
         Coils_1002 = new QPushButton(groupBox_6);
         Coils_1002->setObjectName(QString::fromUtf8("Coils_1002"));
-        sizePolicy7.setHeightForWidth(Coils_1002->sizePolicy().hasHeightForWidth());
-        Coils_1002->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Coils_1002->sizePolicy().hasHeightForWidth());
+        Coils_1002->setSizePolicy(sizePolicy4);
 
         gridLayout_7->addWidget(Coils_1002, 0, 2, 1, 1);
 
@@ -1152,8 +1290,11 @@ public:
 
         CGXi_CO0_State = new c_Fr_Light(groupBox_DO_3);
         CGXi_CO0_State->setObjectName(QString::fromUtf8("CGXi_CO0_State"));
-        sizePolicy3.setHeightForWidth(CGXi_CO0_State->sizePolicy().hasHeightForWidth());
-        CGXi_CO0_State->setSizePolicy(sizePolicy3);
+        QSizePolicy sizePolicy5(QSizePolicy::Maximum, QSizePolicy::Preferred);
+        sizePolicy5.setHorizontalStretch(0);
+        sizePolicy5.setVerticalStretch(0);
+        sizePolicy5.setHeightForWidth(CGXi_CO0_State->sizePolicy().hasHeightForWidth());
+        CGXi_CO0_State->setSizePolicy(sizePolicy5);
         CGXi_CO0_State->setMinimumSize(QSize(20, 20));
 
         gridLayout_12->addWidget(CGXi_CO0_State, 1, 1, 1, 1);
@@ -1189,8 +1330,8 @@ public:
 
         CGXi_CO5_State = new c_Fr_Light(groupBox_DO_3);
         CGXi_CO5_State->setObjectName(QString::fromUtf8("CGXi_CO5_State"));
-        sizePolicy3.setHeightForWidth(CGXi_CO5_State->sizePolicy().hasHeightForWidth());
-        CGXi_CO5_State->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(CGXi_CO5_State->sizePolicy().hasHeightForWidth());
+        CGXi_CO5_State->setSizePolicy(sizePolicy5);
         CGXi_CO5_State->setMinimumSize(QSize(20, 20));
 
         gridLayout_12->addWidget(CGXi_CO5_State, 2, 5, 1, 1);
@@ -1213,8 +1354,8 @@ public:
 
         label_DO1_8 = new QLabel(groupBox_DO_3);
         label_DO1_8->setObjectName(QString::fromUtf8("label_DO1_8"));
-        sizePolicy3.setHeightForWidth(label_DO1_8->sizePolicy().hasHeightForWidth());
-        label_DO1_8->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_DO1_8->sizePolicy().hasHeightForWidth());
+        label_DO1_8->setSizePolicy(sizePolicy5);
         label_DO1_8->setAlignment(Qt::AlignCenter);
 
         gridLayout_12->addWidget(label_DO1_8, 2, 4, 1, 1);
@@ -1308,8 +1449,8 @@ public:
 
         label_DO0_3 = new QLabel(groupBox_DO_3);
         label_DO0_3->setObjectName(QString::fromUtf8("label_DO0_3"));
-        sizePolicy3.setHeightForWidth(label_DO0_3->sizePolicy().hasHeightForWidth());
-        label_DO0_3->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_DO0_3->sizePolicy().hasHeightForWidth());
+        label_DO0_3->setSizePolicy(sizePolicy5);
         label_DO0_3->setAlignment(Qt::AlignCenter);
 
         gridLayout_12->addWidget(label_DO0_3, 1, 0, 1, 1);
@@ -1324,16 +1465,16 @@ public:
 
         label_DO1_7 = new QLabel(groupBox_DO_3);
         label_DO1_7->setObjectName(QString::fromUtf8("label_DO1_7"));
-        sizePolicy3.setHeightForWidth(label_DO1_7->sizePolicy().hasHeightForWidth());
-        label_DO1_7->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_DO1_7->sizePolicy().hasHeightForWidth());
+        label_DO1_7->setSizePolicy(sizePolicy5);
         label_DO1_7->setAlignment(Qt::AlignCenter);
 
         gridLayout_12->addWidget(label_DO1_7, 1, 4, 1, 1);
 
         CGXi_CO1_State = new c_Fr_Light(groupBox_DO_3);
         CGXi_CO1_State->setObjectName(QString::fromUtf8("CGXi_CO1_State"));
-        sizePolicy3.setHeightForWidth(CGXi_CO1_State->sizePolicy().hasHeightForWidth());
-        CGXi_CO1_State->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(CGXi_CO1_State->sizePolicy().hasHeightForWidth());
+        CGXi_CO1_State->setSizePolicy(sizePolicy5);
         CGXi_CO1_State->setMinimumSize(QSize(20, 20));
 
         gridLayout_12->addWidget(CGXi_CO1_State, 1, 5, 1, 1);
@@ -1350,16 +1491,16 @@ public:
 
         label_DO1_9 = new QLabel(groupBox_DO_3);
         label_DO1_9->setObjectName(QString::fromUtf8("label_DO1_9"));
-        sizePolicy3.setHeightForWidth(label_DO1_9->sizePolicy().hasHeightForWidth());
-        label_DO1_9->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_DO1_9->sizePolicy().hasHeightForWidth());
+        label_DO1_9->setSizePolicy(sizePolicy5);
         label_DO1_9->setAlignment(Qt::AlignCenter);
 
         gridLayout_12->addWidget(label_DO1_9, 1, 8, 1, 1);
 
         CGXi_CO2_State = new c_Fr_Light(groupBox_DO_3);
         CGXi_CO2_State->setObjectName(QString::fromUtf8("CGXi_CO2_State"));
-        sizePolicy3.setHeightForWidth(CGXi_CO2_State->sizePolicy().hasHeightForWidth());
-        CGXi_CO2_State->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(CGXi_CO2_State->sizePolicy().hasHeightForWidth());
+        CGXi_CO2_State->setSizePolicy(sizePolicy5);
         CGXi_CO2_State->setMinimumSize(QSize(20, 20));
 
         gridLayout_12->addWidget(CGXi_CO2_State, 1, 9, 1, 1);
@@ -1376,16 +1517,16 @@ public:
 
         label_DO0_4 = new QLabel(groupBox_DO_3);
         label_DO0_4->setObjectName(QString::fromUtf8("label_DO0_4"));
-        sizePolicy3.setHeightForWidth(label_DO0_4->sizePolicy().hasHeightForWidth());
-        label_DO0_4->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_DO0_4->sizePolicy().hasHeightForWidth());
+        label_DO0_4->setSizePolicy(sizePolicy5);
         label_DO0_4->setAlignment(Qt::AlignCenter);
 
         gridLayout_12->addWidget(label_DO0_4, 2, 0, 1, 1);
 
         CGXi_CO4_State = new c_Fr_Light(groupBox_DO_3);
         CGXi_CO4_State->setObjectName(QString::fromUtf8("CGXi_CO4_State"));
-        sizePolicy3.setHeightForWidth(CGXi_CO4_State->sizePolicy().hasHeightForWidth());
-        CGXi_CO4_State->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(CGXi_CO4_State->sizePolicy().hasHeightForWidth());
+        CGXi_CO4_State->setSizePolicy(sizePolicy5);
         CGXi_CO4_State->setMinimumSize(QSize(20, 20));
 
         gridLayout_12->addWidget(CGXi_CO4_State, 2, 1, 1, 1);
@@ -1402,8 +1543,8 @@ public:
 
         label_DO1_11 = new QLabel(groupBox_DO_3);
         label_DO1_11->setObjectName(QString::fromUtf8("label_DO1_11"));
-        sizePolicy3.setHeightForWidth(label_DO1_11->sizePolicy().hasHeightForWidth());
-        label_DO1_11->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_DO1_11->sizePolicy().hasHeightForWidth());
+        label_DO1_11->setSizePolicy(sizePolicy5);
         label_DO1_11->setAlignment(Qt::AlignCenter);
 
         gridLayout_12->addWidget(label_DO1_11, 1, 12, 1, 1);
@@ -1420,24 +1561,24 @@ public:
 
         CGXi_CO3_State = new c_Fr_Light(groupBox_DO_3);
         CGXi_CO3_State->setObjectName(QString::fromUtf8("CGXi_CO3_State"));
-        sizePolicy3.setHeightForWidth(CGXi_CO3_State->sizePolicy().hasHeightForWidth());
-        CGXi_CO3_State->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(CGXi_CO3_State->sizePolicy().hasHeightForWidth());
+        CGXi_CO3_State->setSizePolicy(sizePolicy5);
         CGXi_CO3_State->setMinimumSize(QSize(20, 20));
 
         gridLayout_12->addWidget(CGXi_CO3_State, 1, 13, 1, 1);
 
         label_DO1_10 = new QLabel(groupBox_DO_3);
         label_DO1_10->setObjectName(QString::fromUtf8("label_DO1_10"));
-        sizePolicy3.setHeightForWidth(label_DO1_10->sizePolicy().hasHeightForWidth());
-        label_DO1_10->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_DO1_10->sizePolicy().hasHeightForWidth());
+        label_DO1_10->setSizePolicy(sizePolicy5);
         label_DO1_10->setAlignment(Qt::AlignCenter);
 
         gridLayout_12->addWidget(label_DO1_10, 2, 8, 1, 1);
 
         CGXi_CO6_State = new c_Fr_Light(groupBox_DO_3);
         CGXi_CO6_State->setObjectName(QString::fromUtf8("CGXi_CO6_State"));
-        sizePolicy3.setHeightForWidth(CGXi_CO6_State->sizePolicy().hasHeightForWidth());
-        CGXi_CO6_State->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(CGXi_CO6_State->sizePolicy().hasHeightForWidth());
+        CGXi_CO6_State->setSizePolicy(sizePolicy5);
         CGXi_CO6_State->setMinimumSize(QSize(20, 20));
 
         gridLayout_12->addWidget(CGXi_CO6_State, 2, 9, 1, 1);
@@ -1454,8 +1595,8 @@ public:
 
         label_DO1_12 = new QLabel(groupBox_DO_3);
         label_DO1_12->setObjectName(QString::fromUtf8("label_DO1_12"));
-        sizePolicy3.setHeightForWidth(label_DO1_12->sizePolicy().hasHeightForWidth());
-        label_DO1_12->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_DO1_12->sizePolicy().hasHeightForWidth());
+        label_DO1_12->setSizePolicy(sizePolicy5);
         label_DO1_12->setAlignment(Qt::AlignCenter);
 
         gridLayout_12->addWidget(label_DO1_12, 2, 12, 1, 1);
@@ -1472,8 +1613,8 @@ public:
 
         CGXi_CO7_State = new c_Fr_Light(groupBox_DO_3);
         CGXi_CO7_State->setObjectName(QString::fromUtf8("CGXi_CO7_State"));
-        sizePolicy3.setHeightForWidth(CGXi_CO7_State->sizePolicy().hasHeightForWidth());
-        CGXi_CO7_State->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(CGXi_CO7_State->sizePolicy().hasHeightForWidth());
+        CGXi_CO7_State->setSizePolicy(sizePolicy5);
         CGXi_CO7_State->setMinimumSize(QSize(20, 20));
 
         gridLayout_12->addWidget(CGXi_CO7_State, 2, 13, 1, 1);
@@ -1494,18 +1635,18 @@ public:
         horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         label_8 = new QLabel(groupBox_Prog);
         label_8->setObjectName(QString::fromUtf8("label_8"));
-        QSizePolicy sizePolicy8(QSizePolicy::Maximum, QSizePolicy::Fixed);
-        sizePolicy8.setHorizontalStretch(0);
-        sizePolicy8.setVerticalStretch(0);
-        sizePolicy8.setHeightForWidth(label_8->sizePolicy().hasHeightForWidth());
-        label_8->setSizePolicy(sizePolicy8);
+        QSizePolicy sizePolicy6(QSizePolicy::Maximum, QSizePolicy::Fixed);
+        sizePolicy6.setHorizontalStretch(0);
+        sizePolicy6.setVerticalStretch(0);
+        sizePolicy6.setHeightForWidth(label_8->sizePolicy().hasHeightForWidth());
+        label_8->setSizePolicy(sizePolicy6);
 
         horizontalLayout->addWidget(label_8);
 
         CGXi_Target_Prog_Index = new QLineEdit(groupBox_Prog);
         CGXi_Target_Prog_Index->setObjectName(QString::fromUtf8("CGXi_Target_Prog_Index"));
-        sizePolicy7.setHeightForWidth(CGXi_Target_Prog_Index->sizePolicy().hasHeightForWidth());
-        CGXi_Target_Prog_Index->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Target_Prog_Index->sizePolicy().hasHeightForWidth());
+        CGXi_Target_Prog_Index->setSizePolicy(sizePolicy4);
 
         horizontalLayout->addWidget(CGXi_Target_Prog_Index);
 
@@ -1522,16 +1663,16 @@ public:
         horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
         CGXi_Prog_Pause = new QPushButton(groupBox_Prog);
         CGXi_Prog_Pause->setObjectName(QString::fromUtf8("CGXi_Prog_Pause"));
-        sizePolicy7.setHeightForWidth(CGXi_Prog_Pause->sizePolicy().hasHeightForWidth());
-        CGXi_Prog_Pause->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Prog_Pause->sizePolicy().hasHeightForWidth());
+        CGXi_Prog_Pause->setSizePolicy(sizePolicy4);
         CGXi_Prog_Pause->setMinimumSize(QSize(0, 0));
 
         horizontalLayout_2->addWidget(CGXi_Prog_Pause);
 
         CGXi_Prog_Stop = new QPushButton(groupBox_Prog);
         CGXi_Prog_Stop->setObjectName(QString::fromUtf8("CGXi_Prog_Stop"));
-        sizePolicy7.setHeightForWidth(CGXi_Prog_Stop->sizePolicy().hasHeightForWidth());
-        CGXi_Prog_Stop->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Prog_Stop->sizePolicy().hasHeightForWidth());
+        CGXi_Prog_Stop->setSizePolicy(sizePolicy4);
         CGXi_Prog_Stop->setMinimumSize(QSize(0, 0));
 
         horizontalLayout_2->addWidget(CGXi_Prog_Stop);
@@ -1544,23 +1685,23 @@ public:
         horizontalLayout_6->setObjectName(QString::fromUtf8("horizontalLayout_6"));
         label_9 = new QLabel(groupBox_Prog);
         label_9->setObjectName(QString::fromUtf8("label_9"));
-        sizePolicy8.setHeightForWidth(label_9->sizePolicy().hasHeightForWidth());
-        label_9->setSizePolicy(sizePolicy8);
+        sizePolicy6.setHeightForWidth(label_9->sizePolicy().hasHeightForWidth());
+        label_9->setSizePolicy(sizePolicy6);
 
         horizontalLayout_6->addWidget(label_9);
 
         CGXi_Prog_Index = new c_Fr_Light(groupBox_Prog);
         CGXi_Prog_Index->setObjectName(QString::fromUtf8("CGXi_Prog_Index"));
-        sizePolicy5.setHeightForWidth(CGXi_Prog_Index->sizePolicy().hasHeightForWidth());
-        CGXi_Prog_Index->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Prog_Index->sizePolicy().hasHeightForWidth());
+        CGXi_Prog_Index->setSizePolicy(sizePolicy2);
         CGXi_Prog_Index->setMinimumSize(QSize(20, 20));
 
         horizontalLayout_6->addWidget(CGXi_Prog_Index);
 
         CGXi_Current_Prog_Index = new QLineEdit(groupBox_Prog);
         CGXi_Current_Prog_Index->setObjectName(QString::fromUtf8("CGXi_Current_Prog_Index"));
-        sizePolicy7.setHeightForWidth(CGXi_Current_Prog_Index->sizePolicy().hasHeightForWidth());
-        CGXi_Current_Prog_Index->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Current_Prog_Index->sizePolicy().hasHeightForWidth());
+        CGXi_Current_Prog_Index->setSizePolicy(sizePolicy4);
 
         horizontalLayout_6->addWidget(CGXi_Current_Prog_Index);
 
@@ -1572,16 +1713,16 @@ public:
         horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
         CGXi_program_status = new c_Fr_Light(groupBox_Prog);
         CGXi_program_status->setObjectName(QString::fromUtf8("CGXi_program_status"));
-        sizePolicy3.setHeightForWidth(CGXi_program_status->sizePolicy().hasHeightForWidth());
-        CGXi_program_status->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(CGXi_program_status->sizePolicy().hasHeightForWidth());
+        CGXi_program_status->setSizePolicy(sizePolicy5);
         CGXi_program_status->setMinimumSize(QSize(20, 20));
 
         horizontalLayout_7->addWidget(CGXi_program_status);
 
         CGXi_Prog_Start = new QPushButton(groupBox_Prog);
         CGXi_Prog_Start->setObjectName(QString::fromUtf8("CGXi_Prog_Start"));
-        sizePolicy7.setHeightForWidth(CGXi_Prog_Start->sizePolicy().hasHeightForWidth());
-        CGXi_Prog_Start->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Prog_Start->sizePolicy().hasHeightForWidth());
+        CGXi_Prog_Start->setSizePolicy(sizePolicy4);
         CGXi_Prog_Start->setMinimumSize(QSize(0, 0));
 
         horizontalLayout_7->addWidget(CGXi_Prog_Start);
@@ -1594,15 +1735,15 @@ public:
         horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
         CGXi_Clear_Error = new QPushButton(groupBox_Prog);
         CGXi_Clear_Error->setObjectName(QString::fromUtf8("CGXi_Clear_Error"));
-        sizePolicy7.setHeightForWidth(CGXi_Clear_Error->sizePolicy().hasHeightForWidth());
-        CGXi_Clear_Error->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Clear_Error->sizePolicy().hasHeightForWidth());
+        CGXi_Clear_Error->setSizePolicy(sizePolicy4);
 
         horizontalLayout_3->addWidget(CGXi_Clear_Error);
 
         CGXi_Clear_Warning = new QPushButton(groupBox_Prog);
         CGXi_Clear_Warning->setObjectName(QString::fromUtf8("CGXi_Clear_Warning"));
-        sizePolicy7.setHeightForWidth(CGXi_Clear_Warning->sizePolicy().hasHeightForWidth());
-        CGXi_Clear_Warning->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Clear_Warning->sizePolicy().hasHeightForWidth());
+        CGXi_Clear_Warning->setSizePolicy(sizePolicy4);
 
         horizontalLayout_3->addWidget(CGXi_Clear_Warning);
 
@@ -1614,16 +1755,19 @@ public:
 
         groupBox_Jog = new QGroupBox(groupBox_3);
         groupBox_Jog->setObjectName(QString::fromUtf8("groupBox_Jog"));
-        sizePolicy2.setHeightForWidth(groupBox_Jog->sizePolicy().hasHeightForWidth());
-        groupBox_Jog->setSizePolicy(sizePolicy2);
+        QSizePolicy sizePolicy7(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy7.setHorizontalStretch(0);
+        sizePolicy7.setVerticalStretch(0);
+        sizePolicy7.setHeightForWidth(groupBox_Jog->sizePolicy().hasHeightForWidth());
+        groupBox_Jog->setSizePolicy(sizePolicy7);
         gridLayout_17 = new QGridLayout(groupBox_Jog);
         gridLayout_17->setSpacing(6);
         gridLayout_17->setContentsMargins(11, 11, 11, 11);
         gridLayout_17->setObjectName(QString::fromUtf8("gridLayout_17"));
         label_43 = new QLabel(groupBox_Jog);
         label_43->setObjectName(QString::fromUtf8("label_43"));
-        sizePolicy5.setHeightForWidth(label_43->sizePolicy().hasHeightForWidth());
-        label_43->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_43->sizePolicy().hasHeightForWidth());
+        label_43->setSizePolicy(sizePolicy2);
 
         gridLayout_17->addWidget(label_43, 0, 0, 1, 1);
 
@@ -1632,15 +1776,15 @@ public:
         horizontalLayout_13->setObjectName(QString::fromUtf8("horizontalLayout_13"));
         label_14 = new QLabel(groupBox_Jog);
         label_14->setObjectName(QString::fromUtf8("label_14"));
-        sizePolicy5.setHeightForWidth(label_14->sizePolicy().hasHeightForWidth());
-        label_14->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_14->sizePolicy().hasHeightForWidth());
+        label_14->setSizePolicy(sizePolicy2);
 
         horizontalLayout_13->addWidget(label_14);
 
         CGXi_Jog_Type_r = new QLineEdit(groupBox_Jog);
         CGXi_Jog_Type_r->setObjectName(QString::fromUtf8("CGXi_Jog_Type_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Type_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Type_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Type_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Type_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_13->addWidget(CGXi_Jog_Type_r);
 
@@ -1649,8 +1793,8 @@ public:
 
         CGXi_Jog_Type = new c_Fr_Light(groupBox_Jog);
         CGXi_Jog_Type->setObjectName(QString::fromUtf8("CGXi_Jog_Type"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Type->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Type->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Type->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Type->setSizePolicy(sizePolicy2);
         CGXi_Jog_Type->setMinimumSize(QSize(20, 20));
 
         gridLayout_17->addWidget(CGXi_Jog_Type, 0, 2, 1, 1);
@@ -1660,8 +1804,8 @@ public:
         horizontalLayout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
         label_11 = new QLabel(groupBox_Jog);
         label_11->setObjectName(QString::fromUtf8("label_11"));
-        sizePolicy5.setHeightForWidth(label_11->sizePolicy().hasHeightForWidth());
-        label_11->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_11->sizePolicy().hasHeightForWidth());
+        label_11->setSizePolicy(sizePolicy2);
 
         horizontalLayout_10->addWidget(label_11);
 
@@ -1677,8 +1821,8 @@ public:
 
         label_38 = new QLabel(groupBox_Jog);
         label_38->setObjectName(QString::fromUtf8("label_38"));
-        sizePolicy5.setHeightForWidth(label_38->sizePolicy().hasHeightForWidth());
-        label_38->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_38->sizePolicy().hasHeightForWidth());
+        label_38->setSizePolicy(sizePolicy2);
 
         gridLayout_17->addWidget(label_38, 1, 0, 1, 1);
 
@@ -1687,15 +1831,15 @@ public:
         horizontalLayout_12->setObjectName(QString::fromUtf8("horizontalLayout_12"));
         label_13 = new QLabel(groupBox_Jog);
         label_13->setObjectName(QString::fromUtf8("label_13"));
-        sizePolicy5.setHeightForWidth(label_13->sizePolicy().hasHeightForWidth());
-        label_13->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_13->sizePolicy().hasHeightForWidth());
+        label_13->setSizePolicy(sizePolicy2);
 
         horizontalLayout_12->addWidget(label_13);
 
         CGXi_Jog_Coord_r = new QLineEdit(groupBox_Jog);
         CGXi_Jog_Coord_r->setObjectName(QString::fromUtf8("CGXi_Jog_Coord_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Coord_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Coord_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Coord_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Coord_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_12->addWidget(CGXi_Jog_Coord_r);
 
@@ -1704,8 +1848,8 @@ public:
 
         CGXi_Jog_Coord = new c_Fr_Light(groupBox_Jog);
         CGXi_Jog_Coord->setObjectName(QString::fromUtf8("CGXi_Jog_Coord"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Coord->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Coord->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Coord->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Coord->setSizePolicy(sizePolicy2);
         CGXi_Jog_Coord->setMinimumSize(QSize(20, 20));
 
         gridLayout_17->addWidget(CGXi_Jog_Coord, 1, 2, 1, 1);
@@ -1715,8 +1859,8 @@ public:
         horizontalLayout_11->setObjectName(QString::fromUtf8("horizontalLayout_11"));
         label_12 = new QLabel(groupBox_Jog);
         label_12->setObjectName(QString::fromUtf8("label_12"));
-        sizePolicy5.setHeightForWidth(label_12->sizePolicy().hasHeightForWidth());
-        label_12->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_12->sizePolicy().hasHeightForWidth());
+        label_12->setSizePolicy(sizePolicy2);
 
         horizontalLayout_11->addWidget(label_12);
 
@@ -1732,8 +1876,8 @@ public:
 
         label_26 = new QLabel(groupBox_Jog);
         label_26->setObjectName(QString::fromUtf8("label_26"));
-        sizePolicy5.setHeightForWidth(label_26->sizePolicy().hasHeightForWidth());
-        label_26->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_26->sizePolicy().hasHeightForWidth());
+        label_26->setSizePolicy(sizePolicy2);
 
         gridLayout_17->addWidget(label_26, 2, 0, 1, 1);
 
@@ -1742,15 +1886,15 @@ public:
         horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
         label = new QLabel(groupBox_Jog);
         label->setObjectName(QString::fromUtf8("label"));
-        sizePolicy5.setHeightForWidth(label->sizePolicy().hasHeightForWidth());
-        label->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label->sizePolicy().hasHeightForWidth());
+        label->setSizePolicy(sizePolicy2);
 
         horizontalLayout_8->addWidget(label);
 
         CGXi_Jog_Speed_r = new QLineEdit(groupBox_Jog);
         CGXi_Jog_Speed_r->setObjectName(QString::fromUtf8("CGXi_Jog_Speed_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Speed_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Speed_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Speed_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Speed_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_8->addWidget(CGXi_Jog_Speed_r);
 
@@ -1759,8 +1903,8 @@ public:
 
         CGXi_Jog_Speed = new c_Fr_Light(groupBox_Jog);
         CGXi_Jog_Speed->setObjectName(QString::fromUtf8("CGXi_Jog_Speed"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Speed->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Speed->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Speed->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Speed->setSizePolicy(sizePolicy2);
         CGXi_Jog_Speed->setMinimumSize(QSize(20, 20));
 
         gridLayout_17->addWidget(CGXi_Jog_Speed, 2, 2, 1, 1);
@@ -1770,15 +1914,15 @@ public:
         horizontalLayout_9->setObjectName(QString::fromUtf8("horizontalLayout_9"));
         label_2 = new QLabel(groupBox_Jog);
         label_2->setObjectName(QString::fromUtf8("label_2"));
-        sizePolicy5.setHeightForWidth(label_2->sizePolicy().hasHeightForWidth());
-        label_2->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_2->sizePolicy().hasHeightForWidth());
+        label_2->setSizePolicy(sizePolicy2);
 
         horizontalLayout_9->addWidget(label_2);
 
         CGXi_Jog_Speed_w = new QLineEdit(groupBox_Jog);
         CGXi_Jog_Speed_w->setObjectName(QString::fromUtf8("CGXi_Jog_Speed_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Speed_w->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Speed_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Speed_w->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Speed_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_9->addWidget(CGXi_Jog_Speed_w);
 
@@ -1796,22 +1940,22 @@ public:
 
         Set_HoldingRegisters_800 = new QPushButton(groupBox_Jog);
         Set_HoldingRegisters_800->setObjectName(QString::fromUtf8("Set_HoldingRegisters_800"));
-        sizePolicy7.setHeightForWidth(Set_HoldingRegisters_800->sizePolicy().hasHeightForWidth());
-        Set_HoldingRegisters_800->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Set_HoldingRegisters_800->sizePolicy().hasHeightForWidth());
+        Set_HoldingRegisters_800->setSizePolicy(sizePolicy4);
 
         horizontalLayout_47->addWidget(Set_HoldingRegisters_800);
 
         Set_HoldingRegisters_803 = new QPushButton(groupBox_Jog);
         Set_HoldingRegisters_803->setObjectName(QString::fromUtf8("Set_HoldingRegisters_803"));
-        sizePolicy7.setHeightForWidth(Set_HoldingRegisters_803->sizePolicy().hasHeightForWidth());
-        Set_HoldingRegisters_803->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Set_HoldingRegisters_803->sizePolicy().hasHeightForWidth());
+        Set_HoldingRegisters_803->setSizePolicy(sizePolicy4);
 
         horizontalLayout_47->addWidget(Set_HoldingRegisters_803);
 
         Set_HoldingRegisters_801 = new QPushButton(groupBox_Jog);
         Set_HoldingRegisters_801->setObjectName(QString::fromUtf8("Set_HoldingRegisters_801"));
-        sizePolicy7.setHeightForWidth(Set_HoldingRegisters_801->sizePolicy().hasHeightForWidth());
-        Set_HoldingRegisters_801->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Set_HoldingRegisters_801->sizePolicy().hasHeightForWidth());
+        Set_HoldingRegisters_801->setSizePolicy(sizePolicy4);
 
         horizontalLayout_47->addWidget(Set_HoldingRegisters_801);
 
@@ -1829,15 +1973,15 @@ public:
         horizontalLayout_16->setObjectName(QString::fromUtf8("horizontalLayout_16"));
         label_17 = new QLabel(groupBox_JogTarget);
         label_17->setObjectName(QString::fromUtf8("label_17"));
-        sizePolicy5.setHeightForWidth(label_17->sizePolicy().hasHeightForWidth());
-        label_17->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_17->sizePolicy().hasHeightForWidth());
+        label_17->setSizePolicy(sizePolicy2);
 
         horizontalLayout_16->addWidget(label_17);
 
         CGXi_Jog_Tar_4_r = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_4_r->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_4_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_4_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_4_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_4_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_4_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_16->addWidget(CGXi_Jog_Tar_4_r);
 
@@ -1849,15 +1993,15 @@ public:
         horizontalLayout_21->setObjectName(QString::fromUtf8("horizontalLayout_21"));
         label_22 = new QLabel(groupBox_JogTarget);
         label_22->setObjectName(QString::fromUtf8("label_22"));
-        sizePolicy5.setHeightForWidth(label_22->sizePolicy().hasHeightForWidth());
-        label_22->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_22->sizePolicy().hasHeightForWidth());
+        label_22->setSizePolicy(sizePolicy2);
 
         horizontalLayout_21->addWidget(label_22);
 
         CGXi_Jog_Tar_2_w = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_2_w->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_2_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_2_w->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_2_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_2_w->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_2_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_21->addWidget(CGXi_Jog_Tar_2_w);
 
@@ -1866,8 +2010,8 @@ public:
 
         label_32 = new QLabel(groupBox_JogTarget);
         label_32->setObjectName(QString::fromUtf8("label_32"));
-        sizePolicy3.setHeightForWidth(label_32->sizePolicy().hasHeightForWidth());
-        label_32->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_32->sizePolicy().hasHeightForWidth());
+        label_32->setSizePolicy(sizePolicy5);
 
         gridLayout_11->addWidget(label_32, 4, 3, 1, 1);
 
@@ -1876,15 +2020,15 @@ public:
         horizontalLayout_17->setObjectName(QString::fromUtf8("horizontalLayout_17"));
         label_18 = new QLabel(groupBox_JogTarget);
         label_18->setObjectName(QString::fromUtf8("label_18"));
-        sizePolicy5.setHeightForWidth(label_18->sizePolicy().hasHeightForWidth());
-        label_18->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_18->sizePolicy().hasHeightForWidth());
+        label_18->setSizePolicy(sizePolicy2);
 
         horizontalLayout_17->addWidget(label_18);
 
         CGXi_Jog_Tar_1_r = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_1_r->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_1_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_1_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_1_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_1_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_1_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_17->addWidget(CGXi_Jog_Tar_1_r);
 
@@ -1893,15 +2037,15 @@ public:
 
         label_30 = new QLabel(groupBox_JogTarget);
         label_30->setObjectName(QString::fromUtf8("label_30"));
-        sizePolicy3.setHeightForWidth(label_30->sizePolicy().hasHeightForWidth());
-        label_30->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_30->sizePolicy().hasHeightForWidth());
+        label_30->setSizePolicy(sizePolicy5);
 
         gridLayout_11->addWidget(label_30, 2, 3, 1, 1);
 
         label_31 = new QLabel(groupBox_JogTarget);
         label_31->setObjectName(QString::fromUtf8("label_31"));
-        sizePolicy3.setHeightForWidth(label_31->sizePolicy().hasHeightForWidth());
-        label_31->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_31->sizePolicy().hasHeightForWidth());
+        label_31->setSizePolicy(sizePolicy5);
 
         gridLayout_11->addWidget(label_31, 4, 0, 1, 1);
 
@@ -1910,15 +2054,15 @@ public:
         horizontalLayout_20->setObjectName(QString::fromUtf8("horizontalLayout_20"));
         label_21 = new QLabel(groupBox_JogTarget);
         label_21->setObjectName(QString::fromUtf8("label_21"));
-        sizePolicy5.setHeightForWidth(label_21->sizePolicy().hasHeightForWidth());
-        label_21->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_21->sizePolicy().hasHeightForWidth());
+        label_21->setSizePolicy(sizePolicy2);
 
         horizontalLayout_20->addWidget(label_21);
 
         CGXi_Jog_Tar_0_w = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_0_w->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_0_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_0_w->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_0_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_0_w->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_0_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_20->addWidget(CGXi_Jog_Tar_0_w);
 
@@ -1930,15 +2074,15 @@ public:
         horizontalLayout_19->setObjectName(QString::fromUtf8("horizontalLayout_19"));
         label_20 = new QLabel(groupBox_JogTarget);
         label_20->setObjectName(QString::fromUtf8("label_20"));
-        sizePolicy5.setHeightForWidth(label_20->sizePolicy().hasHeightForWidth());
-        label_20->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_20->sizePolicy().hasHeightForWidth());
+        label_20->setSizePolicy(sizePolicy2);
 
         horizontalLayout_19->addWidget(label_20);
 
         CGXi_Jog_Tar_5_r = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_5_r->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_5_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_5_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_5_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_5_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_5_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_19->addWidget(CGXi_Jog_Tar_5_r);
 
@@ -1947,15 +2091,15 @@ public:
 
         label_29 = new QLabel(groupBox_JogTarget);
         label_29->setObjectName(QString::fromUtf8("label_29"));
-        sizePolicy3.setHeightForWidth(label_29->sizePolicy().hasHeightForWidth());
-        label_29->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_29->sizePolicy().hasHeightForWidth());
+        label_29->setSizePolicy(sizePolicy5);
 
         gridLayout_11->addWidget(label_29, 2, 0, 1, 1);
 
         label_28 = new QLabel(groupBox_JogTarget);
         label_28->setObjectName(QString::fromUtf8("label_28"));
-        sizePolicy3.setHeightForWidth(label_28->sizePolicy().hasHeightForWidth());
-        label_28->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_28->sizePolicy().hasHeightForWidth());
+        label_28->setSizePolicy(sizePolicy5);
 
         gridLayout_11->addWidget(label_28, 0, 3, 1, 1);
 
@@ -1964,15 +2108,15 @@ public:
         horizontalLayout_15->setObjectName(QString::fromUtf8("horizontalLayout_15"));
         label_16 = new QLabel(groupBox_JogTarget);
         label_16->setObjectName(QString::fromUtf8("label_16"));
-        sizePolicy5.setHeightForWidth(label_16->sizePolicy().hasHeightForWidth());
-        label_16->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_16->sizePolicy().hasHeightForWidth());
+        label_16->setSizePolicy(sizePolicy2);
 
         horizontalLayout_15->addWidget(label_16);
 
         CGXi_Jog_Tar_2_r = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_2_r->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_2_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_2_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_2_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_2_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_2_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_15->addWidget(CGXi_Jog_Tar_2_r);
 
@@ -1981,8 +2125,8 @@ public:
 
         label_27 = new QLabel(groupBox_JogTarget);
         label_27->setObjectName(QString::fromUtf8("label_27"));
-        sizePolicy3.setHeightForWidth(label_27->sizePolicy().hasHeightForWidth());
-        label_27->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_27->sizePolicy().hasHeightForWidth());
+        label_27->setSizePolicy(sizePolicy5);
 
         gridLayout_11->addWidget(label_27, 0, 0, 1, 1);
 
@@ -1991,15 +2135,15 @@ public:
         horizontalLayout_14->setObjectName(QString::fromUtf8("horizontalLayout_14"));
         label_15 = new QLabel(groupBox_JogTarget);
         label_15->setObjectName(QString::fromUtf8("label_15"));
-        sizePolicy5.setHeightForWidth(label_15->sizePolicy().hasHeightForWidth());
-        label_15->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_15->sizePolicy().hasHeightForWidth());
+        label_15->setSizePolicy(sizePolicy2);
 
         horizontalLayout_14->addWidget(label_15);
 
         CGXi_Jog_Tar_0_r = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_0_r->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_0_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_0_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_0_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_0_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_0_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_14->addWidget(CGXi_Jog_Tar_0_r);
 
@@ -2011,15 +2155,15 @@ public:
         horizontalLayout_18->setObjectName(QString::fromUtf8("horizontalLayout_18"));
         label_19 = new QLabel(groupBox_JogTarget);
         label_19->setObjectName(QString::fromUtf8("label_19"));
-        sizePolicy5.setHeightForWidth(label_19->sizePolicy().hasHeightForWidth());
-        label_19->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_19->sizePolicy().hasHeightForWidth());
+        label_19->setSizePolicy(sizePolicy2);
 
         horizontalLayout_18->addWidget(label_19);
 
         CGXi_Jog_Tar_3_r = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_3_r->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_3_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_3_r->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_3_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_3_r->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_3_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_18->addWidget(CGXi_Jog_Tar_3_r);
 
@@ -2031,15 +2175,15 @@ public:
         horizontalLayout_22->setObjectName(QString::fromUtf8("horizontalLayout_22"));
         label_23 = new QLabel(groupBox_JogTarget);
         label_23->setObjectName(QString::fromUtf8("label_23"));
-        sizePolicy5.setHeightForWidth(label_23->sizePolicy().hasHeightForWidth());
-        label_23->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_23->sizePolicy().hasHeightForWidth());
+        label_23->setSizePolicy(sizePolicy2);
 
         horizontalLayout_22->addWidget(label_23);
 
         CGXi_Jog_Tar_4_w = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_4_w->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_4_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_4_w->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_4_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_4_w->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_4_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_22->addWidget(CGXi_Jog_Tar_4_w);
 
@@ -2051,15 +2195,15 @@ public:
         horizontalLayout_23->setObjectName(QString::fromUtf8("horizontalLayout_23"));
         label_44 = new QLabel(groupBox_JogTarget);
         label_44->setObjectName(QString::fromUtf8("label_44"));
-        sizePolicy5.setHeightForWidth(label_44->sizePolicy().hasHeightForWidth());
-        label_44->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_44->sizePolicy().hasHeightForWidth());
+        label_44->setSizePolicy(sizePolicy2);
 
         horizontalLayout_23->addWidget(label_44);
 
         CGXi_Jog_Tar_1_w = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_1_w->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_1_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_1_w->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_1_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_1_w->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_1_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_23->addWidget(CGXi_Jog_Tar_1_w);
 
@@ -2071,15 +2215,15 @@ public:
         horizontalLayout_24->setObjectName(QString::fromUtf8("horizontalLayout_24"));
         label_45 = new QLabel(groupBox_JogTarget);
         label_45->setObjectName(QString::fromUtf8("label_45"));
-        sizePolicy5.setHeightForWidth(label_45->sizePolicy().hasHeightForWidth());
-        label_45->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_45->sizePolicy().hasHeightForWidth());
+        label_45->setSizePolicy(sizePolicy2);
 
         horizontalLayout_24->addWidget(label_45);
 
         CGXi_Jog_Tar_3_w = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_3_w->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_3_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_3_w->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_3_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_3_w->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_3_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_24->addWidget(CGXi_Jog_Tar_3_w);
 
@@ -2091,15 +2235,15 @@ public:
         horizontalLayout_25->setObjectName(QString::fromUtf8("horizontalLayout_25"));
         label_46 = new QLabel(groupBox_JogTarget);
         label_46->setObjectName(QString::fromUtf8("label_46"));
-        sizePolicy5.setHeightForWidth(label_46->sizePolicy().hasHeightForWidth());
-        label_46->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_46->sizePolicy().hasHeightForWidth());
+        label_46->setSizePolicy(sizePolicy2);
 
         horizontalLayout_25->addWidget(label_46);
 
         CGXi_Jog_Tar_5_w = new QLineEdit(groupBox_JogTarget);
         CGXi_Jog_Tar_5_w->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_5_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Jog_Tar_5_w->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_5_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Jog_Tar_5_w->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_5_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_25->addWidget(CGXi_Jog_Tar_5_w);
 
@@ -2108,48 +2252,48 @@ public:
 
         CGXi_Jog_Tar_0 = new c_Fr_Light(groupBox_JogTarget);
         CGXi_Jog_Tar_0->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_0"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Tar_0->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_0->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Tar_0->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_0->setSizePolicy(sizePolicy2);
         CGXi_Jog_Tar_0->setMinimumSize(QSize(20, 20));
 
         gridLayout_11->addWidget(CGXi_Jog_Tar_0, 1, 0, 1, 1);
 
         CGXi_Jog_Tar_2 = new c_Fr_Light(groupBox_JogTarget);
         CGXi_Jog_Tar_2->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_2"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Tar_2->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_2->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Tar_2->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_2->setSizePolicy(sizePolicy2);
         CGXi_Jog_Tar_2->setMinimumSize(QSize(20, 20));
 
         gridLayout_11->addWidget(CGXi_Jog_Tar_2, 3, 0, 1, 1);
 
         CGXi_Jog_Tar_4 = new c_Fr_Light(groupBox_JogTarget);
         CGXi_Jog_Tar_4->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_4"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Tar_4->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_4->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Tar_4->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_4->setSizePolicy(sizePolicy2);
         CGXi_Jog_Tar_4->setMinimumSize(QSize(20, 20));
 
         gridLayout_11->addWidget(CGXi_Jog_Tar_4, 5, 0, 1, 1);
 
         CGXi_Jog_Tar_1 = new c_Fr_Light(groupBox_JogTarget);
         CGXi_Jog_Tar_1->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_1"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Tar_1->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_1->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Tar_1->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_1->setSizePolicy(sizePolicy2);
         CGXi_Jog_Tar_1->setMinimumSize(QSize(20, 20));
 
         gridLayout_11->addWidget(CGXi_Jog_Tar_1, 1, 3, 1, 1);
 
         CGXi_Jog_Tar_3 = new c_Fr_Light(groupBox_JogTarget);
         CGXi_Jog_Tar_3->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_3"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Tar_3->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_3->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Tar_3->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_3->setSizePolicy(sizePolicy2);
         CGXi_Jog_Tar_3->setMinimumSize(QSize(20, 20));
 
         gridLayout_11->addWidget(CGXi_Jog_Tar_3, 3, 3, 1, 1);
 
         CGXi_Jog_Tar_5 = new c_Fr_Light(groupBox_JogTarget);
         CGXi_Jog_Tar_5->setObjectName(QString::fromUtf8("CGXi_Jog_Tar_5"));
-        sizePolicy5.setHeightForWidth(CGXi_Jog_Tar_5->sizePolicy().hasHeightForWidth());
-        CGXi_Jog_Tar_5->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Jog_Tar_5->sizePolicy().hasHeightForWidth());
+        CGXi_Jog_Tar_5->setSizePolicy(sizePolicy2);
         CGXi_Jog_Tar_5->setMinimumSize(QSize(20, 20));
 
         gridLayout_11->addWidget(CGXi_Jog_Tar_5, 5, 3, 1, 1);
@@ -2162,8 +2306,8 @@ public:
 
         groupBox_Config = new QGroupBox(groupBox_3);
         groupBox_Config->setObjectName(QString::fromUtf8("groupBox_Config"));
-        sizePolicy2.setHeightForWidth(groupBox_Config->sizePolicy().hasHeightForWidth());
-        groupBox_Config->setSizePolicy(sizePolicy2);
+        sizePolicy7.setHeightForWidth(groupBox_Config->sizePolicy().hasHeightForWidth());
+        groupBox_Config->setSizePolicy(sizePolicy7);
         gridLayout_14 = new QGridLayout(groupBox_Config);
         gridLayout_14->setSpacing(6);
         gridLayout_14->setContentsMargins(11, 11, 11, 11);
@@ -2173,15 +2317,15 @@ public:
         horizontalLayout_32->setObjectName(QString::fromUtf8("horizontalLayout_32"));
         label_53 = new QLabel(groupBox_Config);
         label_53->setObjectName(QString::fromUtf8("label_53"));
-        sizePolicy5.setHeightForWidth(label_53->sizePolicy().hasHeightForWidth());
-        label_53->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_53->sizePolicy().hasHeightForWidth());
+        label_53->setSizePolicy(sizePolicy2);
 
         horizontalLayout_32->addWidget(label_53);
 
         CGXi_Payload_CY_r = new QLineEdit(groupBox_Config);
         CGXi_Payload_CY_r->setObjectName(QString::fromUtf8("CGXi_Payload_CY_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Payload_CY_r->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CY_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Payload_CY_r->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CY_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_32->addWidget(CGXi_Payload_CY_r);
 
@@ -2190,8 +2334,8 @@ public:
 
         label_64 = new QLabel(groupBox_Config);
         label_64->setObjectName(QString::fromUtf8("label_64"));
-        sizePolicy5.setHeightForWidth(label_64->sizePolicy().hasHeightForWidth());
-        label_64->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_64->sizePolicy().hasHeightForWidth());
+        label_64->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_64, 6, 0, 1, 1);
 
@@ -2200,15 +2344,15 @@ public:
         horizontalLayout_27->setObjectName(QString::fromUtf8("horizontalLayout_27"));
         label_49 = new QLabel(groupBox_Config);
         label_49->setObjectName(QString::fromUtf8("label_49"));
-        sizePolicy5.setHeightForWidth(label_49->sizePolicy().hasHeightForWidth());
-        label_49->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_49->sizePolicy().hasHeightForWidth());
+        label_49->setSizePolicy(sizePolicy2);
 
         horizontalLayout_27->addWidget(label_49);
 
         CGXi_TCP_Off_Y_r = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Y_r->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Y_r"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Y_r->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Y_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Y_r->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Y_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_27->addWidget(CGXi_TCP_Off_Y_r);
 
@@ -2220,15 +2364,15 @@ public:
         horizontalLayout_33->setObjectName(QString::fromUtf8("horizontalLayout_33"));
         label_54 = new QLabel(groupBox_Config);
         label_54->setObjectName(QString::fromUtf8("label_54"));
-        sizePolicy5.setHeightForWidth(label_54->sizePolicy().hasHeightForWidth());
-        label_54->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_54->sizePolicy().hasHeightForWidth());
+        label_54->setSizePolicy(sizePolicy2);
 
         horizontalLayout_33->addWidget(label_54);
 
         CGXi_Payload_CZ_r = new QLineEdit(groupBox_Config);
         CGXi_Payload_CZ_r->setObjectName(QString::fromUtf8("CGXi_Payload_CZ_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Payload_CZ_r->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CZ_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Payload_CZ_r->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CZ_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_33->addWidget(CGXi_Payload_CZ_r);
 
@@ -2237,8 +2381,8 @@ public:
 
         CGXi_TCP_Off_X = new c_Fr_Light(groupBox_Config);
         CGXi_TCP_Off_X->setObjectName(QString::fromUtf8("CGXi_TCP_Off_X"));
-        sizePolicy5.setHeightForWidth(CGXi_TCP_Off_X->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_X->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_TCP_Off_X->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_X->setSizePolicy(sizePolicy2);
         CGXi_TCP_Off_X->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_TCP_Off_X, 1, 0, 1, 1);
@@ -2248,15 +2392,15 @@ public:
         horizontalLayout_45->setObjectName(QString::fromUtf8("horizontalLayout_45"));
         label_69 = new QLabel(groupBox_Config);
         label_69->setObjectName(QString::fromUtf8("label_69"));
-        sizePolicy5.setHeightForWidth(label_69->sizePolicy().hasHeightForWidth());
-        label_69->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_69->sizePolicy().hasHeightForWidth());
+        label_69->setSizePolicy(sizePolicy2);
 
         horizontalLayout_45->addWidget(label_69);
 
         CGXi_TCP_Off_Rz_w = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Rz_w->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Rz_w"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Rz_w->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Rz_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Rz_w->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Rz_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_45->addWidget(CGXi_TCP_Off_Rz_w);
 
@@ -2265,8 +2409,8 @@ public:
 
         label_35 = new QLabel(groupBox_Config);
         label_35->setObjectName(QString::fromUtf8("label_35"));
-        sizePolicy5.setHeightForWidth(label_35->sizePolicy().hasHeightForWidth());
-        label_35->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_35->sizePolicy().hasHeightForWidth());
+        label_35->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_35, 4, 0, 1, 1);
 
@@ -2275,15 +2419,15 @@ public:
         horizontalLayout_35->setObjectName(QString::fromUtf8("horizontalLayout_35"));
         label_56 = new QLabel(groupBox_Config);
         label_56->setObjectName(QString::fromUtf8("label_56"));
-        sizePolicy5.setHeightForWidth(label_56->sizePolicy().hasHeightForWidth());
-        label_56->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_56->sizePolicy().hasHeightForWidth());
+        label_56->setSizePolicy(sizePolicy2);
 
         horizontalLayout_35->addWidget(label_56);
 
         CGXi_TCP_Off_Y_w = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Y_w->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Y_w"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Y_w->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Y_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Y_w->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Y_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_35->addWidget(CGXi_TCP_Off_Y_w);
 
@@ -2295,15 +2439,15 @@ public:
         horizontalLayout_36->setObjectName(QString::fromUtf8("horizontalLayout_36"));
         label_57 = new QLabel(groupBox_Config);
         label_57->setObjectName(QString::fromUtf8("label_57"));
-        sizePolicy5.setHeightForWidth(label_57->sizePolicy().hasHeightForWidth());
-        label_57->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_57->sizePolicy().hasHeightForWidth());
+        label_57->setSizePolicy(sizePolicy2);
 
         horizontalLayout_36->addWidget(label_57);
 
         CGXi_TCP_Off_Z_w = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Z_w->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Z_w"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Z_w->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Z_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Z_w->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Z_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_36->addWidget(CGXi_TCP_Off_Z_w);
 
@@ -2315,15 +2459,15 @@ public:
         horizontalLayout_31->setObjectName(QString::fromUtf8("horizontalLayout_31"));
         label_52 = new QLabel(groupBox_Config);
         label_52->setObjectName(QString::fromUtf8("label_52"));
-        sizePolicy5.setHeightForWidth(label_52->sizePolicy().hasHeightForWidth());
-        label_52->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_52->sizePolicy().hasHeightForWidth());
+        label_52->setSizePolicy(sizePolicy2);
 
         horizontalLayout_31->addWidget(label_52);
 
         CGXi_Payload_CX_r = new QLineEdit(groupBox_Config);
         CGXi_Payload_CX_r->setObjectName(QString::fromUtf8("CGXi_Payload_CX_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Payload_CX_r->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CX_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Payload_CX_r->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CX_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_31->addWidget(CGXi_Payload_CX_r);
 
@@ -2340,15 +2484,15 @@ public:
         horizontalLayout_44->setObjectName(QString::fromUtf8("horizontalLayout_44"));
         label_68 = new QLabel(groupBox_Config);
         label_68->setObjectName(QString::fromUtf8("label_68"));
-        sizePolicy5.setHeightForWidth(label_68->sizePolicy().hasHeightForWidth());
-        label_68->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_68->sizePolicy().hasHeightForWidth());
+        label_68->setSizePolicy(sizePolicy2);
 
         horizontalLayout_44->addWidget(label_68);
 
         CGXi_TCP_Off_Rz_r = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Rz_r->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Rz_r"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Rz_r->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Rz_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Rz_r->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Rz_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_44->addWidget(CGXi_TCP_Off_Rz_r);
 
@@ -2360,15 +2504,15 @@ public:
         horizontalLayout_40->setObjectName(QString::fromUtf8("horizontalLayout_40"));
         label_63 = new QLabel(groupBox_Config);
         label_63->setObjectName(QString::fromUtf8("label_63"));
-        sizePolicy5.setHeightForWidth(label_63->sizePolicy().hasHeightForWidth());
-        label_63->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_63->sizePolicy().hasHeightForWidth());
+        label_63->setSizePolicy(sizePolicy2);
 
         horizontalLayout_40->addWidget(label_63);
 
         CGXi_Payload_CY_w = new QLineEdit(groupBox_Config);
         CGXi_Payload_CY_w->setObjectName(QString::fromUtf8("CGXi_Payload_CY_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Payload_CY_w->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CY_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Payload_CY_w->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CY_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_40->addWidget(CGXi_Payload_CY_w);
 
@@ -2377,16 +2521,16 @@ public:
 
         CGXi_TCP_Off_Rz = new c_Fr_Light(groupBox_Config);
         CGXi_TCP_Off_Rz->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Rz"));
-        sizePolicy5.setHeightForWidth(CGXi_TCP_Off_Rz->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Rz->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_TCP_Off_Rz->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Rz->setSizePolicy(sizePolicy2);
         CGXi_TCP_Off_Rz->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_TCP_Off_Rz, 7, 2, 1, 1);
 
         label_33 = new QLabel(groupBox_Config);
         label_33->setObjectName(QString::fromUtf8("label_33"));
-        sizePolicy5.setHeightForWidth(label_33->sizePolicy().hasHeightForWidth());
-        label_33->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_33->sizePolicy().hasHeightForWidth());
+        label_33->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_33, 0, 0, 1, 1);
 
@@ -2395,15 +2539,15 @@ public:
         horizontalLayout_38->setObjectName(QString::fromUtf8("horizontalLayout_38"));
         label_59 = new QLabel(groupBox_Config);
         label_59->setObjectName(QString::fromUtf8("label_59"));
-        sizePolicy5.setHeightForWidth(label_59->sizePolicy().hasHeightForWidth());
-        label_59->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_59->sizePolicy().hasHeightForWidth());
+        label_59->setSizePolicy(sizePolicy2);
 
         horizontalLayout_38->addWidget(label_59);
 
         CGXi_Payload_Mass_w = new QLineEdit(groupBox_Config);
         CGXi_Payload_Mass_w->setObjectName(QString::fromUtf8("CGXi_Payload_Mass_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Payload_Mass_w->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_Mass_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Payload_Mass_w->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_Mass_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_38->addWidget(CGXi_Payload_Mass_w);
 
@@ -2412,16 +2556,16 @@ public:
 
         CGXi_Payload_CZ = new c_Fr_Light(groupBox_Config);
         CGXi_Payload_CZ->setObjectName(QString::fromUtf8("CGXi_Payload_CZ"));
-        sizePolicy5.setHeightForWidth(CGXi_Payload_CZ->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CZ->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Payload_CZ->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CZ->setSizePolicy(sizePolicy2);
         CGXi_Payload_CZ->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_Payload_CZ, 12, 2, 1, 1);
 
         label_39 = new QLabel(groupBox_Config);
         label_39->setObjectName(QString::fromUtf8("label_39"));
-        sizePolicy5.setHeightForWidth(label_39->sizePolicy().hasHeightForWidth());
-        label_39->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_39->sizePolicy().hasHeightForWidth());
+        label_39->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_39, 8, 0, 1, 1);
 
@@ -2430,15 +2574,15 @@ public:
         horizontalLayout_37->setObjectName(QString::fromUtf8("horizontalLayout_37"));
         label_58 = new QLabel(groupBox_Config);
         label_58->setObjectName(QString::fromUtf8("label_58"));
-        sizePolicy5.setHeightForWidth(label_58->sizePolicy().hasHeightForWidth());
-        label_58->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_58->sizePolicy().hasHeightForWidth());
+        label_58->setSizePolicy(sizePolicy2);
 
         horizontalLayout_37->addWidget(label_58);
 
         CGXi_TCP_Off_Rx_w = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Rx_w->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Rx_w"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Rx_w->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Rx_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Rx_w->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Rx_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_37->addWidget(CGXi_TCP_Off_Rx_w);
 
@@ -2455,15 +2599,15 @@ public:
         horizontalLayout_34->setObjectName(QString::fromUtf8("horizontalLayout_34"));
         label_55 = new QLabel(groupBox_Config);
         label_55->setObjectName(QString::fromUtf8("label_55"));
-        sizePolicy5.setHeightForWidth(label_55->sizePolicy().hasHeightForWidth());
-        label_55->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_55->sizePolicy().hasHeightForWidth());
+        label_55->setSizePolicy(sizePolicy2);
 
         horizontalLayout_34->addWidget(label_55);
 
         CGXi_TCP_Off_X_w = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_X_w->setObjectName(QString::fromUtf8("CGXi_TCP_Off_X_w"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_X_w->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_X_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_X_w->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_X_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_34->addWidget(CGXi_TCP_Off_X_w);
 
@@ -2472,15 +2616,15 @@ public:
 
         label_41 = new QLabel(groupBox_Config);
         label_41->setObjectName(QString::fromUtf8("label_41"));
-        sizePolicy5.setHeightForWidth(label_41->sizePolicy().hasHeightForWidth());
-        label_41->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_41->sizePolicy().hasHeightForWidth());
+        label_41->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_41, 13, 0, 1, 1);
 
         CGXi_Payload_CY = new c_Fr_Light(groupBox_Config);
         CGXi_Payload_CY->setObjectName(QString::fromUtf8("CGXi_Payload_CY"));
-        sizePolicy5.setHeightForWidth(CGXi_Payload_CY->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CY->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Payload_CY->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CY->setSizePolicy(sizePolicy2);
         CGXi_Payload_CY->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_Payload_CY, 14, 0, 1, 1);
@@ -2490,15 +2634,15 @@ public:
         horizontalLayout_26->setObjectName(QString::fromUtf8("horizontalLayout_26"));
         label_47 = new QLabel(groupBox_Config);
         label_47->setObjectName(QString::fromUtf8("label_47"));
-        sizePolicy5.setHeightForWidth(label_47->sizePolicy().hasHeightForWidth());
-        label_47->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_47->sizePolicy().hasHeightForWidth());
+        label_47->setSizePolicy(sizePolicy2);
 
         horizontalLayout_26->addWidget(label_47);
 
         CGXi_TCP_Off_X_r = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_X_r->setObjectName(QString::fromUtf8("CGXi_TCP_Off_X_r"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_X_r->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_X_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_X_r->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_X_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_26->addWidget(CGXi_TCP_Off_X_r);
 
@@ -2507,16 +2651,16 @@ public:
 
         CGXi_TCP_Off_Z = new c_Fr_Light(groupBox_Config);
         CGXi_TCP_Off_Z->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Z"));
-        sizePolicy5.setHeightForWidth(CGXi_TCP_Off_Z->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Z->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_TCP_Off_Z->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Z->setSizePolicy(sizePolicy2);
         CGXi_TCP_Off_Z->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_TCP_Off_Z, 5, 0, 1, 1);
 
         CGXi_TCP_Off_Ry = new c_Fr_Light(groupBox_Config);
         CGXi_TCP_Off_Ry->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Ry"));
-        sizePolicy5.setHeightForWidth(CGXi_TCP_Off_Ry->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Ry->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_TCP_Off_Ry->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Ry->setSizePolicy(sizePolicy2);
         CGXi_TCP_Off_Ry->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_TCP_Off_Ry, 7, 0, 1, 1);
@@ -2526,15 +2670,15 @@ public:
         horizontalLayout_29->setObjectName(QString::fromUtf8("horizontalLayout_29"));
         label_50 = new QLabel(groupBox_Config);
         label_50->setObjectName(QString::fromUtf8("label_50"));
-        sizePolicy5.setHeightForWidth(label_50->sizePolicy().hasHeightForWidth());
-        label_50->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_50->sizePolicy().hasHeightForWidth());
+        label_50->setSizePolicy(sizePolicy2);
 
         horizontalLayout_29->addWidget(label_50);
 
         CGXi_TCP_Off_Rx_r = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Rx_r->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Rx_r"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Rx_r->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Rx_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Rx_r->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Rx_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_29->addWidget(CGXi_TCP_Off_Rx_r);
 
@@ -2546,15 +2690,15 @@ public:
         horizontalLayout_39->setObjectName(QString::fromUtf8("horizontalLayout_39"));
         label_60 = new QLabel(groupBox_Config);
         label_60->setObjectName(QString::fromUtf8("label_60"));
-        sizePolicy5.setHeightForWidth(label_60->sizePolicy().hasHeightForWidth());
-        label_60->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_60->sizePolicy().hasHeightForWidth());
+        label_60->setSizePolicy(sizePolicy2);
 
         horizontalLayout_39->addWidget(label_60);
 
         CGXi_Payload_CX_w = new QLineEdit(groupBox_Config);
         CGXi_Payload_CX_w->setObjectName(QString::fromUtf8("CGXi_Payload_CX_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Payload_CX_w->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CX_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Payload_CX_w->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CX_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_39->addWidget(CGXi_Payload_CX_w);
 
@@ -2563,8 +2707,8 @@ public:
 
         label_40 = new QLabel(groupBox_Config);
         label_40->setObjectName(QString::fromUtf8("label_40"));
-        sizePolicy5.setHeightForWidth(label_40->sizePolicy().hasHeightForWidth());
-        label_40->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_40->sizePolicy().hasHeightForWidth());
+        label_40->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_40, 13, 2, 1, 1);
 
@@ -2573,15 +2717,15 @@ public:
         horizontalLayout_42->setObjectName(QString::fromUtf8("horizontalLayout_42"));
         label_65 = new QLabel(groupBox_Config);
         label_65->setObjectName(QString::fromUtf8("label_65"));
-        sizePolicy5.setHeightForWidth(label_65->sizePolicy().hasHeightForWidth());
-        label_65->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_65->sizePolicy().hasHeightForWidth());
+        label_65->setSizePolicy(sizePolicy2);
 
         horizontalLayout_42->addWidget(label_65);
 
         CGXi_TCP_Off_Ry_r = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Ry_r->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Ry_r"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Ry_r->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Ry_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Ry_r->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Ry_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_42->addWidget(CGXi_TCP_Off_Ry_r);
 
@@ -2593,15 +2737,15 @@ public:
         horizontalLayout_30->setObjectName(QString::fromUtf8("horizontalLayout_30"));
         label_51 = new QLabel(groupBox_Config);
         label_51->setObjectName(QString::fromUtf8("label_51"));
-        sizePolicy5.setHeightForWidth(label_51->sizePolicy().hasHeightForWidth());
-        label_51->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_51->sizePolicy().hasHeightForWidth());
+        label_51->setSizePolicy(sizePolicy2);
 
         horizontalLayout_30->addWidget(label_51);
 
         CGXi_Payload_Mass_r = new QLineEdit(groupBox_Config);
         CGXi_Payload_Mass_r->setObjectName(QString::fromUtf8("CGXi_Payload_Mass_r"));
-        sizePolicy7.setHeightForWidth(CGXi_Payload_Mass_r->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_Mass_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Payload_Mass_r->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_Mass_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_30->addWidget(CGXi_Payload_Mass_r);
 
@@ -2610,37 +2754,37 @@ public:
 
         CGXi_TCP_Off_Y = new c_Fr_Light(groupBox_Config);
         CGXi_TCP_Off_Y->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Y"));
-        sizePolicy5.setHeightForWidth(CGXi_TCP_Off_Y->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Y->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_TCP_Off_Y->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Y->setSizePolicy(sizePolicy2);
         CGXi_TCP_Off_Y->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_TCP_Off_Y, 1, 2, 1, 1);
 
         label_36 = new QLabel(groupBox_Config);
         label_36->setObjectName(QString::fromUtf8("label_36"));
-        sizePolicy5.setHeightForWidth(label_36->sizePolicy().hasHeightForWidth());
-        label_36->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_36->sizePolicy().hasHeightForWidth());
+        label_36->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_36, 4, 2, 1, 1);
 
         label_34 = new QLabel(groupBox_Config);
         label_34->setObjectName(QString::fromUtf8("label_34"));
-        sizePolicy5.setHeightForWidth(label_34->sizePolicy().hasHeightForWidth());
-        label_34->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_34->sizePolicy().hasHeightForWidth());
+        label_34->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_34, 0, 2, 1, 1);
 
         label_67 = new QLabel(groupBox_Config);
         label_67->setObjectName(QString::fromUtf8("label_67"));
-        sizePolicy5.setHeightForWidth(label_67->sizePolicy().hasHeightForWidth());
-        label_67->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_67->sizePolicy().hasHeightForWidth());
+        label_67->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_67, 6, 2, 1, 1);
 
         CGXi_Payload_Mass = new c_Fr_Light(groupBox_Config);
         CGXi_Payload_Mass->setObjectName(QString::fromUtf8("CGXi_Payload_Mass"));
-        sizePolicy5.setHeightForWidth(CGXi_Payload_Mass->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_Mass->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Payload_Mass->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_Mass->setSizePolicy(sizePolicy2);
         CGXi_Payload_Mass->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_Payload_Mass, 12, 0, 1, 1);
@@ -2650,15 +2794,15 @@ public:
         horizontalLayout_41->setObjectName(QString::fromUtf8("horizontalLayout_41"));
         label_61 = new QLabel(groupBox_Config);
         label_61->setObjectName(QString::fromUtf8("label_61"));
-        sizePolicy5.setHeightForWidth(label_61->sizePolicy().hasHeightForWidth());
-        label_61->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_61->sizePolicy().hasHeightForWidth());
+        label_61->setSizePolicy(sizePolicy2);
 
         horizontalLayout_41->addWidget(label_61);
 
         CGXi_Payload_CZ_w = new QLineEdit(groupBox_Config);
         CGXi_Payload_CZ_w->setObjectName(QString::fromUtf8("CGXi_Payload_CZ_w"));
-        sizePolicy7.setHeightForWidth(CGXi_Payload_CZ_w->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CZ_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_Payload_CZ_w->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CZ_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_41->addWidget(CGXi_Payload_CZ_w);
 
@@ -2667,8 +2811,8 @@ public:
 
         CGXi_TCP_Off_Rx = new c_Fr_Light(groupBox_Config);
         CGXi_TCP_Off_Rx->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Rx"));
-        sizePolicy5.setHeightForWidth(CGXi_TCP_Off_Rx->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Rx->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_TCP_Off_Rx->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Rx->setSizePolicy(sizePolicy2);
         CGXi_TCP_Off_Rx->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_TCP_Off_Rx, 5, 2, 1, 1);
@@ -2678,15 +2822,15 @@ public:
         horizontalLayout_28->setObjectName(QString::fromUtf8("horizontalLayout_28"));
         label_48 = new QLabel(groupBox_Config);
         label_48->setObjectName(QString::fromUtf8("label_48"));
-        sizePolicy5.setHeightForWidth(label_48->sizePolicy().hasHeightForWidth());
-        label_48->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_48->sizePolicy().hasHeightForWidth());
+        label_48->setSizePolicy(sizePolicy2);
 
         horizontalLayout_28->addWidget(label_48);
 
         CGXi_TCP_Off_Z_r = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Z_r->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Z_r"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Z_r->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Z_r->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Z_r->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Z_r->setSizePolicy(sizePolicy4);
 
         horizontalLayout_28->addWidget(CGXi_TCP_Off_Z_r);
 
@@ -2695,8 +2839,8 @@ public:
 
         CGXi_Payload_CX = new c_Fr_Light(groupBox_Config);
         CGXi_Payload_CX->setObjectName(QString::fromUtf8("CGXi_Payload_CX"));
-        sizePolicy5.setHeightForWidth(CGXi_Payload_CX->sizePolicy().hasHeightForWidth());
-        CGXi_Payload_CX->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(CGXi_Payload_CX->sizePolicy().hasHeightForWidth());
+        CGXi_Payload_CX->setSizePolicy(sizePolicy2);
         CGXi_Payload_CX->setMinimumSize(QSize(20, 20));
 
         gridLayout_14->addWidget(CGXi_Payload_CX, 14, 2, 1, 1);
@@ -2706,15 +2850,15 @@ public:
         horizontalLayout_43->setObjectName(QString::fromUtf8("horizontalLayout_43"));
         label_66 = new QLabel(groupBox_Config);
         label_66->setObjectName(QString::fromUtf8("label_66"));
-        sizePolicy5.setHeightForWidth(label_66->sizePolicy().hasHeightForWidth());
-        label_66->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_66->sizePolicy().hasHeightForWidth());
+        label_66->setSizePolicy(sizePolicy2);
 
         horizontalLayout_43->addWidget(label_66);
 
         CGXi_TCP_Off_Ry_w = new QLineEdit(groupBox_Config);
         CGXi_TCP_Off_Ry_w->setObjectName(QString::fromUtf8("CGXi_TCP_Off_Ry_w"));
-        sizePolicy7.setHeightForWidth(CGXi_TCP_Off_Ry_w->sizePolicy().hasHeightForWidth());
-        CGXi_TCP_Off_Ry_w->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(CGXi_TCP_Off_Ry_w->sizePolicy().hasHeightForWidth());
+        CGXi_TCP_Off_Ry_w->setSizePolicy(sizePolicy4);
 
         horizontalLayout_43->addWidget(CGXi_TCP_Off_Ry_w);
 
@@ -2723,8 +2867,8 @@ public:
 
         label_42 = new QLabel(groupBox_Config);
         label_42->setObjectName(QString::fromUtf8("label_42"));
-        sizePolicy5.setHeightForWidth(label_42->sizePolicy().hasHeightForWidth());
-        label_42->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_42->sizePolicy().hasHeightForWidth());
+        label_42->setSizePolicy(sizePolicy2);
 
         gridLayout_14->addWidget(label_42, 8, 2, 1, 1);
 
@@ -2739,8 +2883,8 @@ public:
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         tabWidget_Status = new QTabWidget(groupBox_3);
         tabWidget_Status->setObjectName(QString::fromUtf8("tabWidget_Status"));
-        sizePolicy2.setHeightForWidth(tabWidget_Status->sizePolicy().hasHeightForWidth());
-        tabWidget_Status->setSizePolicy(sizePolicy2);
+        sizePolicy7.setHeightForWidth(tabWidget_Status->sizePolicy().hasHeightForWidth());
+        tabWidget_Status->setSizePolicy(sizePolicy7);
         tab_Joint = new QWidget();
         tab_Joint->setObjectName(QString::fromUtf8("tab_Joint"));
         verticalLayout_Joint = new QVBoxLayout(tab_Joint);
@@ -2786,8 +2930,8 @@ public:
         if (tableWidget_Joint->rowCount() < 6)
             tableWidget_Joint->setRowCount(6);
         tableWidget_Joint->setObjectName(QString::fromUtf8("tableWidget_Joint"));
-        sizePolicy2.setHeightForWidth(tableWidget_Joint->sizePolicy().hasHeightForWidth());
-        tableWidget_Joint->setSizePolicy(sizePolicy2);
+        sizePolicy7.setHeightForWidth(tableWidget_Joint->sizePolicy().hasHeightForWidth());
+        tableWidget_Joint->setSizePolicy(sizePolicy7);
         tableWidget_Joint->setEditTriggers(QAbstractItemView::NoEditTriggers);
         tableWidget_Joint->setAlternatingRowColors(true);
         tableWidget_Joint->setSelectionMode(QAbstractItemView::NoSelection);
@@ -2864,11 +3008,11 @@ public:
         if (tableWidget_Robot->rowCount() < 7)
             tableWidget_Robot->setRowCount(7);
         tableWidget_Robot->setObjectName(QString::fromUtf8("tableWidget_Robot"));
-        QSizePolicy sizePolicy9(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        sizePolicy9.setHorizontalStretch(0);
-        sizePolicy9.setVerticalStretch(0);
-        sizePolicy9.setHeightForWidth(tableWidget_Robot->sizePolicy().hasHeightForWidth());
-        tableWidget_Robot->setSizePolicy(sizePolicy9);
+        QSizePolicy sizePolicy8(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        sizePolicy8.setHorizontalStretch(0);
+        sizePolicy8.setVerticalStretch(0);
+        sizePolicy8.setHeightForWidth(tableWidget_Robot->sizePolicy().hasHeightForWidth());
+        tableWidget_Robot->setSizePolicy(sizePolicy8);
         tableWidget_Robot->setEditTriggers(QAbstractItemView::NoEditTriggers);
         tableWidget_Robot->setAlternatingRowColors(true);
         tableWidget_Robot->setSelectionMode(QAbstractItemView::NoSelection);
@@ -2886,16 +3030,16 @@ public:
 
         groupBox = new QGroupBox(groupBox_3);
         groupBox->setObjectName(QString::fromUtf8("groupBox"));
-        sizePolicy2.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
-        groupBox->setSizePolicy(sizePolicy2);
+        sizePolicy7.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
+        groupBox->setSizePolicy(sizePolicy7);
         gridLayout_5 = new QGridLayout(groupBox);
         gridLayout_5->setSpacing(6);
         gridLayout_5->setContentsMargins(11, 11, 11, 11);
         gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
         CGXi_Log = new QTextBrowser(groupBox);
         CGXi_Log->setObjectName(QString::fromUtf8("CGXi_Log"));
-        sizePolicy2.setHeightForWidth(CGXi_Log->sizePolicy().hasHeightForWidth());
-        CGXi_Log->setSizePolicy(sizePolicy2);
+        sizePolicy7.setHeightForWidth(CGXi_Log->sizePolicy().hasHeightForWidth());
+        CGXi_Log->setSizePolicy(sizePolicy7);
 
         gridLayout_5->addWidget(CGXi_Log, 0, 0, 1, 1);
 
@@ -2924,155 +3068,446 @@ public:
         horizontalLayout_50 = new QHBoxLayout();
         horizontalLayout_50->setSpacing(6);
         horizontalLayout_50->setObjectName(QString::fromUtf8("horizontalLayout_50"));
-        label_120_IP = new QLabel(groupBox_8);
-        label_120_IP->setObjectName(QString::fromUtf8("label_120_IP"));
-
-        horizontalLayout_50->addWidget(label_120_IP);
-
-        Pre_Scan_120_IP = new QLineEdit(groupBox_8);
-        Pre_Scan_120_IP->setObjectName(QString::fromUtf8("Pre_Scan_120_IP"));
-
-        horizontalLayout_50->addWidget(Pre_Scan_120_IP);
-
-        label_120_Port = new QLabel(groupBox_8);
-        label_120_Port->setObjectName(QString::fromUtf8("label_120_Port"));
-
-        horizontalLayout_50->addWidget(label_120_Port);
-
-        Pre_Scan_120_Port = new QLineEdit(groupBox_8);
-        Pre_Scan_120_Port->setObjectName(QString::fromUtf8("Pre_Scan_120_Port"));
-        Pre_Scan_120_Port->setMaximumSize(QSize(60, 16777215));
-
-        horizontalLayout_50->addWidget(Pre_Scan_120_Port);
-
-        label_120_Monitor = new QLabel(groupBox_8);
-        label_120_Monitor->setObjectName(QString::fromUtf8("label_120_Monitor"));
-
-        horizontalLayout_50->addWidget(label_120_Monitor);
-
-        Pre_Scan_120_Monitor_Port = new QLineEdit(groupBox_8);
-        Pre_Scan_120_Monitor_Port->setObjectName(QString::fromUtf8("Pre_Scan_120_Monitor_Port"));
-        Pre_Scan_120_Monitor_Port->setMaximumSize(QSize(60, 16777215));
-
-        horizontalLayout_50->addWidget(Pre_Scan_120_Monitor_Port);
-
-        label_120_Tran = new QLabel(groupBox_8);
-        label_120_Tran->setObjectName(QString::fromUtf8("label_120_Tran"));
-
-        horizontalLayout_50->addWidget(label_120_Tran);
-
-        Pre_Scan_120_Tran_Port = new QLineEdit(groupBox_8);
-        Pre_Scan_120_Tran_Port->setObjectName(QString::fromUtf8("Pre_Scan_120_Tran_Port"));
-        Pre_Scan_120_Tran_Port->setMaximumSize(QSize(60, 16777215));
-
-        horizontalLayout_50->addWidget(Pre_Scan_120_Tran_Port);
-
-        Pre_Scan_120_Connect = new QPushButton(groupBox_8);
-        Pre_Scan_120_Connect->setObjectName(QString::fromUtf8("Pre_Scan_120_Connect"));
-
-        horizontalLayout_50->addWidget(Pre_Scan_120_Connect);
-
-        Pre_Scan_120_Disconnect = new QPushButton(groupBox_8);
-        Pre_Scan_120_Disconnect->setObjectName(QString::fromUtf8("Pre_Scan_120_Disconnect"));
-
-        horizontalLayout_50->addWidget(Pre_Scan_120_Disconnect);
-
-
-        gridLayout_24->addLayout(horizontalLayout_50, 0, 0, 1, 1);
-
-        horizontalLayout_51 = new QHBoxLayout();
-        horizontalLayout_51->setSpacing(6);
-        horizontalLayout_51->setObjectName(QString::fromUtf8("horizontalLayout_51"));
         label_120_Remote_Status = new QLabel(groupBox_8);
         label_120_Remote_Status->setObjectName(QString::fromUtf8("label_120_Remote_Status"));
+        sizePolicy5.setHeightForWidth(label_120_Remote_Status->sizePolicy().hasHeightForWidth());
+        label_120_Remote_Status->setSizePolicy(sizePolicy5);
 
-        horizontalLayout_51->addWidget(label_120_Remote_Status);
+        horizontalLayout_50->addWidget(label_120_Remote_Status);
 
         Pre_Scan_120_Remote_Light = new c_Fr_Light(groupBox_8);
         Pre_Scan_120_Remote_Light->setObjectName(QString::fromUtf8("Pre_Scan_120_Remote_Light"));
         Pre_Scan_120_Remote_Light->setMinimumSize(QSize(16, 16));
         Pre_Scan_120_Remote_Light->setMaximumSize(QSize(16, 16));
 
-        horizontalLayout_51->addWidget(Pre_Scan_120_Remote_Light);
+        horizontalLayout_50->addWidget(Pre_Scan_120_Remote_Light);
 
         label_120_Monitor_Status = new QLabel(groupBox_8);
         label_120_Monitor_Status->setObjectName(QString::fromUtf8("label_120_Monitor_Status"));
+        sizePolicy5.setHeightForWidth(label_120_Monitor_Status->sizePolicy().hasHeightForWidth());
+        label_120_Monitor_Status->setSizePolicy(sizePolicy5);
 
-        horizontalLayout_51->addWidget(label_120_Monitor_Status);
+        horizontalLayout_50->addWidget(label_120_Monitor_Status);
 
         Pre_Scan_120_Monitor_Light = new c_Fr_Light(groupBox_8);
         Pre_Scan_120_Monitor_Light->setObjectName(QString::fromUtf8("Pre_Scan_120_Monitor_Light"));
         Pre_Scan_120_Monitor_Light->setMinimumSize(QSize(16, 16));
         Pre_Scan_120_Monitor_Light->setMaximumSize(QSize(16, 16));
 
-        horizontalLayout_51->addWidget(Pre_Scan_120_Monitor_Light);
-
-        label_120_Tran_Status = new QLabel(groupBox_8);
-        label_120_Tran_Status->setObjectName(QString::fromUtf8("label_120_Tran_Status"));
-
-        horizontalLayout_51->addWidget(label_120_Tran_Status);
-
-        Pre_Scan_120_Tran_Light = new c_Fr_Light(groupBox_8);
-        Pre_Scan_120_Tran_Light->setObjectName(QString::fromUtf8("Pre_Scan_120_Tran_Light"));
-        Pre_Scan_120_Tran_Light->setMinimumSize(QSize(16, 16));
-        Pre_Scan_120_Tran_Light->setMaximumSize(QSize(16, 16));
-
-        horizontalLayout_51->addWidget(Pre_Scan_120_Tran_Light);
+        horizontalLayout_50->addWidget(Pre_Scan_120_Monitor_Light);
 
         label_120_Listen_Status = new QLabel(groupBox_8);
         label_120_Listen_Status->setObjectName(QString::fromUtf8("label_120_Listen_Status"));
+        sizePolicy5.setHeightForWidth(label_120_Listen_Status->sizePolicy().hasHeightForWidth());
+        label_120_Listen_Status->setSizePolicy(sizePolicy5);
 
-        horizontalLayout_51->addWidget(label_120_Listen_Status);
+        horizontalLayout_50->addWidget(label_120_Listen_Status);
 
         Pre_Scan_120_Listen_Light = new c_Fr_Light(groupBox_8);
         Pre_Scan_120_Listen_Light->setObjectName(QString::fromUtf8("Pre_Scan_120_Listen_Light"));
         Pre_Scan_120_Listen_Light->setMinimumSize(QSize(16, 16));
         Pre_Scan_120_Listen_Light->setMaximumSize(QSize(16, 16));
 
-        horizontalLayout_51->addWidget(Pre_Scan_120_Listen_Light);
+        horizontalLayout_50->addWidget(Pre_Scan_120_Listen_Light);
+
+        label_120_Tran_Status = new QLabel(groupBox_8);
+        label_120_Tran_Status->setObjectName(QString::fromUtf8("label_120_Tran_Status"));
+        sizePolicy5.setHeightForWidth(label_120_Tran_Status->sizePolicy().hasHeightForWidth());
+        label_120_Tran_Status->setSizePolicy(sizePolicy5);
+
+        horizontalLayout_50->addWidget(label_120_Tran_Status);
+
+        Pre_Scan_120_Tran_Light = new c_Fr_Light(groupBox_8);
+        Pre_Scan_120_Tran_Light->setObjectName(QString::fromUtf8("Pre_Scan_120_Tran_Light"));
+        Pre_Scan_120_Tran_Light->setMinimumSize(QSize(16, 16));
+        Pre_Scan_120_Tran_Light->setMaximumSize(QSize(16, 16));
+
+        horizontalLayout_50->addWidget(Pre_Scan_120_Tran_Light);
 
         label_120_Client_Num = new QLabel(groupBox_8);
         label_120_Client_Num->setObjectName(QString::fromUtf8("label_120_Client_Num"));
+        sizePolicy5.setHeightForWidth(label_120_Client_Num->sizePolicy().hasHeightForWidth());
+        label_120_Client_Num->setSizePolicy(sizePolicy5);
 
-        horizontalLayout_51->addWidget(label_120_Client_Num);
+        horizontalLayout_50->addWidget(label_120_Client_Num);
 
         Pre_Scan_120_Client_Num = new QLineEdit(groupBox_8);
         Pre_Scan_120_Client_Num->setObjectName(QString::fromUtf8("Pre_Scan_120_Client_Num"));
-        Pre_Scan_120_Client_Num->setMaximumSize(QSize(40, 16777215));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Client_Num->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Client_Num->setSizePolicy(sizePolicy4);
+        Pre_Scan_120_Client_Num->setMaximumSize(QSize(16777215, 16777215));
         Pre_Scan_120_Client_Num->setReadOnly(true);
 
-        horizontalLayout_51->addWidget(Pre_Scan_120_Client_Num);
+        horizontalLayout_50->addWidget(Pre_Scan_120_Client_Num);
 
         label_120_Cam_Num = new QLabel(groupBox_8);
         label_120_Cam_Num->setObjectName(QString::fromUtf8("label_120_Cam_Num"));
+        sizePolicy5.setHeightForWidth(label_120_Cam_Num->sizePolicy().hasHeightForWidth());
+        label_120_Cam_Num->setSizePolicy(sizePolicy5);
 
-        horizontalLayout_51->addWidget(label_120_Cam_Num);
+        horizontalLayout_50->addWidget(label_120_Cam_Num);
 
         Pre_Scan_120_Cam_Num = new QLineEdit(groupBox_8);
         Pre_Scan_120_Cam_Num->setObjectName(QString::fromUtf8("Pre_Scan_120_Cam_Num"));
-        Pre_Scan_120_Cam_Num->setMaximumSize(QSize(40, 16777215));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Cam_Num->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Cam_Num->setSizePolicy(sizePolicy4);
+        Pre_Scan_120_Cam_Num->setMaximumSize(QSize(16777215, 16777215));
         Pre_Scan_120_Cam_Num->setReadOnly(true);
 
-        horizontalLayout_51->addWidget(Pre_Scan_120_Cam_Num);
+        horizontalLayout_50->addWidget(Pre_Scan_120_Cam_Num);
 
-        label_120_LastUpdate = new QLabel(groupBox_8);
-        label_120_LastUpdate->setObjectName(QString::fromUtf8("label_120_LastUpdate"));
+        label_120_IP = new QLabel(groupBox_8);
+        label_120_IP->setObjectName(QString::fromUtf8("label_120_IP"));
+        sizePolicy5.setHeightForWidth(label_120_IP->sizePolicy().hasHeightForWidth());
+        label_120_IP->setSizePolicy(sizePolicy5);
 
-        horizontalLayout_51->addWidget(label_120_LastUpdate);
+        horizontalLayout_50->addWidget(label_120_IP);
 
-        Pre_Scan_120_LastUpdate = new QLineEdit(groupBox_8);
-        Pre_Scan_120_LastUpdate->setObjectName(QString::fromUtf8("Pre_Scan_120_LastUpdate"));
-        Pre_Scan_120_LastUpdate->setMaximumSize(QSize(140, 16777215));
-        Pre_Scan_120_LastUpdate->setReadOnly(true);
+        Pre_Scan_120_IP = new QLineEdit(groupBox_8);
+        Pre_Scan_120_IP->setObjectName(QString::fromUtf8("Pre_Scan_120_IP"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_IP->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_IP->setSizePolicy(sizePolicy4);
 
-        horizontalLayout_51->addWidget(Pre_Scan_120_LastUpdate);
+        horizontalLayout_50->addWidget(Pre_Scan_120_IP);
 
-        horizontalSpacer_30 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        label_120_Port = new QLabel(groupBox_8);
+        label_120_Port->setObjectName(QString::fromUtf8("label_120_Port"));
+        sizePolicy5.setHeightForWidth(label_120_Port->sizePolicy().hasHeightForWidth());
+        label_120_Port->setSizePolicy(sizePolicy5);
 
-        horizontalLayout_51->addItem(horizontalSpacer_30);
+        horizontalLayout_50->addWidget(label_120_Port);
+
+        Pre_Scan_120_Port = new QLineEdit(groupBox_8);
+        Pre_Scan_120_Port->setObjectName(QString::fromUtf8("Pre_Scan_120_Port"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Port->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Port->setSizePolicy(sizePolicy4);
+        Pre_Scan_120_Port->setMaximumSize(QSize(16777215, 16777215));
+
+        horizontalLayout_50->addWidget(Pre_Scan_120_Port);
+
+        label_120_Monitor = new QLabel(groupBox_8);
+        label_120_Monitor->setObjectName(QString::fromUtf8("label_120_Monitor"));
+        sizePolicy5.setHeightForWidth(label_120_Monitor->sizePolicy().hasHeightForWidth());
+        label_120_Monitor->setSizePolicy(sizePolicy5);
+
+        horizontalLayout_50->addWidget(label_120_Monitor);
+
+        Pre_Scan_120_Monitor_Port = new QLineEdit(groupBox_8);
+        Pre_Scan_120_Monitor_Port->setObjectName(QString::fromUtf8("Pre_Scan_120_Monitor_Port"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Monitor_Port->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Monitor_Port->setSizePolicy(sizePolicy4);
+        Pre_Scan_120_Monitor_Port->setMaximumSize(QSize(16777215, 16777215));
+
+        horizontalLayout_50->addWidget(Pre_Scan_120_Monitor_Port);
+
+        label_120_Tran = new QLabel(groupBox_8);
+        label_120_Tran->setObjectName(QString::fromUtf8("label_120_Tran"));
+        sizePolicy5.setHeightForWidth(label_120_Tran->sizePolicy().hasHeightForWidth());
+        label_120_Tran->setSizePolicy(sizePolicy5);
+
+        horizontalLayout_50->addWidget(label_120_Tran);
+
+        Pre_Scan_120_Tran_Port = new QLineEdit(groupBox_8);
+        Pre_Scan_120_Tran_Port->setObjectName(QString::fromUtf8("Pre_Scan_120_Tran_Port"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Tran_Port->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Tran_Port->setSizePolicy(sizePolicy4);
+        Pre_Scan_120_Tran_Port->setMaximumSize(QSize(16777215, 16777215));
+
+        horizontalLayout_50->addWidget(Pre_Scan_120_Tran_Port);
+
+        Pre_Scan_120_Connect = new QPushButton(groupBox_8);
+        Pre_Scan_120_Connect->setObjectName(QString::fromUtf8("Pre_Scan_120_Connect"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Connect->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Connect->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_50->addWidget(Pre_Scan_120_Connect);
+
+        Pre_Scan_120_Disconnect = new QPushButton(groupBox_8);
+        Pre_Scan_120_Disconnect->setObjectName(QString::fromUtf8("Pre_Scan_120_Disconnect"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Disconnect->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Disconnect->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_50->addWidget(Pre_Scan_120_Disconnect);
 
 
-        gridLayout_24->addLayout(horizontalLayout_51, 1, 0, 1, 1);
+        gridLayout_24->addLayout(horizontalLayout_50, 0, 0, 1, 1);
+
+        horizontalLayout_49 = new QHBoxLayout();
+        horizontalLayout_49->setSpacing(6);
+        horizontalLayout_49->setObjectName(QString::fromUtf8("horizontalLayout_49"));
+        groupBox_Task_Info_2 = new QGroupBox(groupBox_8);
+        groupBox_Task_Info_2->setObjectName(QString::fromUtf8("groupBox_Task_Info_2"));
+        gridLayout_22 = new QGridLayout(groupBox_Task_Info_2);
+        gridLayout_22->setSpacing(6);
+        gridLayout_22->setContentsMargins(11, 11, 11, 11);
+        gridLayout_22->setObjectName(QString::fromUtf8("gridLayout_22"));
+        w_Pre_Scan_120_TaskID = new QLineEdit(groupBox_Task_Info_2);
+        w_Pre_Scan_120_TaskID->setObjectName(QString::fromUtf8("w_Pre_Scan_120_TaskID"));
+        QSizePolicy sizePolicy9(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        sizePolicy9.setHorizontalStretch(0);
+        sizePolicy9.setVerticalStretch(0);
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_TaskID->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_TaskID->setSizePolicy(sizePolicy9);
+
+        gridLayout_22->addWidget(w_Pre_Scan_120_TaskID, 0, 2, 2, 1);
+
+        w_Pre_Scan_120_SendUnit = new QLineEdit(groupBox_Task_Info_2);
+        w_Pre_Scan_120_SendUnit->setObjectName(QString::fromUtf8("w_Pre_Scan_120_SendUnit"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_SendUnit->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_SendUnit->setSizePolicy(sizePolicy9);
+        w_Pre_Scan_120_SendUnit->setMaximumSize(QSize(16777215, 16777215));
+
+        gridLayout_22->addWidget(w_Pre_Scan_120_SendUnit, 3, 2, 1, 1);
+
+        label_120_Wheelset_2 = new QLabel(groupBox_Task_Info_2);
+        label_120_Wheelset_2->setObjectName(QString::fromUtf8("label_120_Wheelset_2"));
+        sizePolicy5.setHeightForWidth(label_120_Wheelset_2->sizePolicy().hasHeightForWidth());
+        label_120_Wheelset_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_22->addWidget(label_120_Wheelset_2, 0, 4, 1, 1);
+
+        w_Pre_Scan_120_StartTime = new QLineEdit(groupBox_Task_Info_2);
+        w_Pre_Scan_120_StartTime->setObjectName(QString::fromUtf8("w_Pre_Scan_120_StartTime"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_StartTime->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_StartTime->setSizePolicy(sizePolicy9);
+
+        gridLayout_22->addWidget(w_Pre_Scan_120_StartTime, 4, 5, 1, 1);
+
+        w_Pre_Scan_120_Repair = new QLineEdit(groupBox_Task_Info_2);
+        w_Pre_Scan_120_Repair->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Repair"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_Repair->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_Repair->setSizePolicy(sizePolicy9);
+        w_Pre_Scan_120_Repair->setMaximumSize(QSize(16777215, 16777215));
+
+        gridLayout_22->addWidget(w_Pre_Scan_120_Repair, 4, 2, 1, 1);
+
+        label_120_Repair_2 = new QLabel(groupBox_Task_Info_2);
+        label_120_Repair_2->setObjectName(QString::fromUtf8("label_120_Repair_2"));
+        sizePolicy5.setHeightForWidth(label_120_Repair_2->sizePolicy().hasHeightForWidth());
+        label_120_Repair_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_22->addWidget(label_120_Repair_2, 4, 0, 1, 1);
+
+        label_120_SendUnit_2 = new QLabel(groupBox_Task_Info_2);
+        label_120_SendUnit_2->setObjectName(QString::fromUtf8("label_120_SendUnit_2"));
+        sizePolicy5.setHeightForWidth(label_120_SendUnit_2->sizePolicy().hasHeightForWidth());
+        label_120_SendUnit_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_22->addWidget(label_120_SendUnit_2, 4, 4, 1, 1);
+
+        label_120_StartTime_2 = new QLabel(groupBox_Task_Info_2);
+        label_120_StartTime_2->setObjectName(QString::fromUtf8("label_120_StartTime_2"));
+        sizePolicy5.setHeightForWidth(label_120_StartTime_2->sizePolicy().hasHeightForWidth());
+        label_120_StartTime_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_22->addWidget(label_120_StartTime_2, 3, 0, 1, 1);
+
+        label_120_Axle_2 = new QLabel(groupBox_Task_Info_2);
+        label_120_Axle_2->setObjectName(QString::fromUtf8("label_120_Axle_2"));
+        sizePolicy5.setHeightForWidth(label_120_Axle_2->sizePolicy().hasHeightForWidth());
+        label_120_Axle_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_22->addWidget(label_120_Axle_2, 3, 4, 1, 1);
+
+        label_120_TaskID_2 = new QLabel(groupBox_Task_Info_2);
+        label_120_TaskID_2->setObjectName(QString::fromUtf8("label_120_TaskID_2"));
+        sizePolicy5.setHeightForWidth(label_120_TaskID_2->sizePolicy().hasHeightForWidth());
+        label_120_TaskID_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_22->addWidget(label_120_TaskID_2, 0, 0, 2, 1);
+
+        w_Pre_Scan_120_Wheelset = new QLineEdit(groupBox_Task_Info_2);
+        w_Pre_Scan_120_Wheelset->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Wheelset"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_Wheelset->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_Wheelset->setSizePolicy(sizePolicy9);
+        w_Pre_Scan_120_Wheelset->setMaximumSize(QSize(16777215, 16777215));
+
+        gridLayout_22->addWidget(w_Pre_Scan_120_Wheelset, 0, 5, 1, 1);
+
+        w_Pre_Scan_120_Axle = new QLineEdit(groupBox_Task_Info_2);
+        w_Pre_Scan_120_Axle->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Axle"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_Axle->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_Axle->setSizePolicy(sizePolicy9);
+        w_Pre_Scan_120_Axle->setMaximumSize(QSize(16777215, 16777215));
+
+        gridLayout_22->addWidget(w_Pre_Scan_120_Axle, 3, 5, 1, 1);
+
+        set_Pre_Scan_120_TaskID = new QPushButton(groupBox_Task_Info_2);
+        set_Pre_Scan_120_TaskID->setObjectName(QString::fromUtf8("set_Pre_Scan_120_TaskID"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_TaskID->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_TaskID->setSizePolicy(sizePolicy6);
+
+        gridLayout_22->addWidget(set_Pre_Scan_120_TaskID, 0, 3, 1, 1);
+
+        set_Pre_Scan_120_SendUnit = new QPushButton(groupBox_Task_Info_2);
+        set_Pre_Scan_120_SendUnit->setObjectName(QString::fromUtf8("set_Pre_Scan_120_SendUnit"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_SendUnit->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_SendUnit->setSizePolicy(sizePolicy6);
+
+        gridLayout_22->addWidget(set_Pre_Scan_120_SendUnit, 3, 3, 1, 1);
+
+        set_Pre_Scan_120_Repair = new QPushButton(groupBox_Task_Info_2);
+        set_Pre_Scan_120_Repair->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Repair"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_Repair->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_Repair->setSizePolicy(sizePolicy6);
+
+        gridLayout_22->addWidget(set_Pre_Scan_120_Repair, 4, 3, 1, 1);
+
+        set_Pre_Scan_120_Wheelset = new QPushButton(groupBox_Task_Info_2);
+        set_Pre_Scan_120_Wheelset->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Wheelset"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_Wheelset->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_Wheelset->setSizePolicy(sizePolicy6);
+
+        gridLayout_22->addWidget(set_Pre_Scan_120_Wheelset, 0, 6, 1, 1);
+
+        set_Pre_Scan_120_Axle = new QPushButton(groupBox_Task_Info_2);
+        set_Pre_Scan_120_Axle->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Axle"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_Axle->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_Axle->setSizePolicy(sizePolicy6);
+
+        gridLayout_22->addWidget(set_Pre_Scan_120_Axle, 3, 6, 1, 1);
+
+        set_Pre_Scan_120_StartTime = new QPushButton(groupBox_Task_Info_2);
+        set_Pre_Scan_120_StartTime->setObjectName(QString::fromUtf8("set_Pre_Scan_120_StartTime"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_StartTime->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_StartTime->setSizePolicy(sizePolicy6);
+
+        gridLayout_22->addWidget(set_Pre_Scan_120_StartTime, 4, 6, 1, 1);
+
+
+        horizontalLayout_49->addWidget(groupBox_Task_Info_2);
+
+        groupBox_Collect_Status_2 = new QGroupBox(groupBox_8);
+        groupBox_Collect_Status_2->setObjectName(QString::fromUtf8("groupBox_Collect_Status_2"));
+        gridLayout_102 = new QGridLayout(groupBox_Collect_Status_2);
+        gridLayout_102->setSpacing(6);
+        gridLayout_102->setContentsMargins(11, 11, 11, 11);
+        gridLayout_102->setObjectName(QString::fromUtf8("gridLayout_102"));
+        label_120_Gain_2 = new QLabel(groupBox_Collect_Status_2);
+        label_120_Gain_2->setObjectName(QString::fromUtf8("label_120_Gain_2"));
+        sizePolicy5.setHeightForWidth(label_120_Gain_2->sizePolicy().hasHeightForWidth());
+        label_120_Gain_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_102->addWidget(label_120_Gain_2, 0, 3, 1, 1);
+
+        w_Pre_Scan_120_Point = new QLineEdit(groupBox_Collect_Status_2);
+        w_Pre_Scan_120_Point->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Point"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_Point->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_Point->setSizePolicy(sizePolicy9);
+
+        gridLayout_102->addWidget(w_Pre_Scan_120_Point, 2, 1, 1, 1);
+
+        set_Pre_Scan_120_Part1 = new QPushButton(groupBox_Collect_Status_2);
+        set_Pre_Scan_120_Part1->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Part1"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_Part1->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_Part1->setSizePolicy(sizePolicy6);
+
+        gridLayout_102->addWidget(set_Pre_Scan_120_Part1, 1, 2, 1, 1);
+
+        set_Pre_Scan_120_Point = new QPushButton(groupBox_Collect_Status_2);
+        set_Pre_Scan_120_Point->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Point"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_Point->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_Point->setSizePolicy(sizePolicy6);
+
+        gridLayout_102->addWidget(set_Pre_Scan_120_Point, 2, 2, 1, 1);
+
+        w_Pre_Scan_120_Part1 = new QLineEdit(groupBox_Collect_Status_2);
+        w_Pre_Scan_120_Part1->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Part1"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_Part1->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_Part1->setSizePolicy(sizePolicy9);
+
+        gridLayout_102->addWidget(w_Pre_Scan_120_Part1, 1, 1, 1, 1);
+
+        label_120_Part2_2 = new QLabel(groupBox_Collect_Status_2);
+        label_120_Part2_2->setObjectName(QString::fromUtf8("label_120_Part2_2"));
+        sizePolicy5.setHeightForWidth(label_120_Part2_2->sizePolicy().hasHeightForWidth());
+        label_120_Part2_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_102->addWidget(label_120_Part2_2, 1, 3, 1, 1);
+
+        w_Pre_Scan_120_currentWheelset = new QLineEdit(groupBox_Collect_Status_2);
+        w_Pre_Scan_120_currentWheelset->setObjectName(QString::fromUtf8("w_Pre_Scan_120_currentWheelset"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_currentWheelset->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_currentWheelset->setSizePolicy(sizePolicy9);
+
+        gridLayout_102->addWidget(w_Pre_Scan_120_currentWheelset, 0, 1, 1, 1);
+
+        w_Pre_Scan_120_Part2 = new QLineEdit(groupBox_Collect_Status_2);
+        w_Pre_Scan_120_Part2->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Part2"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_Part2->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_Part2->setSizePolicy(sizePolicy9);
+
+        gridLayout_102->addWidget(w_Pre_Scan_120_Part2, 1, 4, 1, 1);
+
+        label_120_Point_2 = new QLabel(groupBox_Collect_Status_2);
+        label_120_Point_2->setObjectName(QString::fromUtf8("label_120_Point_2"));
+        sizePolicy5.setHeightForWidth(label_120_Point_2->sizePolicy().hasHeightForWidth());
+        label_120_Point_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_102->addWidget(label_120_Point_2, 2, 0, 1, 1);
+
+        w_Pre_Scan_120_Gain = new QLineEdit(groupBox_Collect_Status_2);
+        w_Pre_Scan_120_Gain->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Gain"));
+        sizePolicy9.setHeightForWidth(w_Pre_Scan_120_Gain->sizePolicy().hasHeightForWidth());
+        w_Pre_Scan_120_Gain->setSizePolicy(sizePolicy9);
+
+        gridLayout_102->addWidget(w_Pre_Scan_120_Gain, 0, 4, 1, 1);
+
+        set_Pre_Scan_120_Gain = new QPushButton(groupBox_Collect_Status_2);
+        set_Pre_Scan_120_Gain->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Gain"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_Gain->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_Gain->setSizePolicy(sizePolicy6);
+
+        gridLayout_102->addWidget(set_Pre_Scan_120_Gain, 0, 5, 1, 1);
+
+        label_120_Prog_2 = new QLabel(groupBox_Collect_Status_2);
+        label_120_Prog_2->setObjectName(QString::fromUtf8("label_120_Prog_2"));
+        sizePolicy5.setHeightForWidth(label_120_Prog_2->sizePolicy().hasHeightForWidth());
+        label_120_Prog_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_102->addWidget(label_120_Prog_2, 0, 0, 1, 1);
+
+        set_Pre_Scan_120_currentWheelset = new QPushButton(groupBox_Collect_Status_2);
+        set_Pre_Scan_120_currentWheelset->setObjectName(QString::fromUtf8("set_Pre_Scan_120_currentWheelset"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_currentWheelset->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_currentWheelset->setSizePolicy(sizePolicy6);
+
+        gridLayout_102->addWidget(set_Pre_Scan_120_currentWheelset, 0, 2, 1, 1);
+
+        set_Pre_Scan_120_Part2 = new QPushButton(groupBox_Collect_Status_2);
+        set_Pre_Scan_120_Part2->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Part2"));
+        sizePolicy6.setHeightForWidth(set_Pre_Scan_120_Part2->sizePolicy().hasHeightForWidth());
+        set_Pre_Scan_120_Part2->setSizePolicy(sizePolicy6);
+
+        gridLayout_102->addWidget(set_Pre_Scan_120_Part2, 1, 5, 1, 1);
+
+        label_120_Part1_2 = new QLabel(groupBox_Collect_Status_2);
+        label_120_Part1_2->setObjectName(QString::fromUtf8("label_120_Part1_2"));
+        sizePolicy5.setHeightForWidth(label_120_Part1_2->sizePolicy().hasHeightForWidth());
+        label_120_Part1_2->setSizePolicy(sizePolicy5);
+
+        gridLayout_102->addWidget(label_120_Part1_2, 1, 0, 1, 1);
+
+
+        horizontalLayout_49->addWidget(groupBox_Collect_Status_2);
+
+
+        gridLayout_24->addLayout(horizontalLayout_49, 2, 0, 1, 1);
+
+        groupBox_9 = new QGroupBox(groupBox_8);
+        groupBox_9->setObjectName(QString::fromUtf8("groupBox_9"));
+        gridLayout_23 = new QGridLayout(groupBox_9);
+        gridLayout_23->setSpacing(6);
+        gridLayout_23->setContentsMargins(11, 11, 11, 11);
+        gridLayout_23->setObjectName(QString::fromUtf8("gridLayout_23"));
+        Prec_Scan_120_Cmd = new QTextEdit(groupBox_9);
+        Prec_Scan_120_Cmd->setObjectName(QString::fromUtf8("Prec_Scan_120_Cmd"));
+        Prec_Scan_120_Cmd->setReadOnly(true);
+
+        gridLayout_23->addWidget(Prec_Scan_120_Cmd, 0, 0, 1, 1);
+
+
+        gridLayout_24->addWidget(groupBox_9, 4, 0, 1, 1);
 
         horizontalLayout_53 = new QHBoxLayout();
         horizontalLayout_53->setSpacing(6);
@@ -3085,94 +3520,97 @@ public:
         gridLayout_21->setObjectName(QString::fromUtf8("gridLayout_21"));
         label_120_TaskID = new QLabel(groupBox_Task_Info);
         label_120_TaskID->setObjectName(QString::fromUtf8("label_120_TaskID"));
-        QSizePolicy sizePolicy10(QSizePolicy::Minimum, QSizePolicy::Preferred);
-        sizePolicy10.setHorizontalStretch(0);
-        sizePolicy10.setVerticalStretch(0);
-        sizePolicy10.setHeightForWidth(label_120_TaskID->sizePolicy().hasHeightForWidth());
-        label_120_TaskID->setSizePolicy(sizePolicy10);
+        sizePolicy5.setHeightForWidth(label_120_TaskID->sizePolicy().hasHeightForWidth());
+        label_120_TaskID->setSizePolicy(sizePolicy5);
 
         gridLayout_21->addWidget(label_120_TaskID, 0, 0, 1, 1);
 
         label_120_Wheelset = new QLabel(groupBox_Task_Info);
         label_120_Wheelset->setObjectName(QString::fromUtf8("label_120_Wheelset"));
-        sizePolicy10.setHeightForWidth(label_120_Wheelset->sizePolicy().hasHeightForWidth());
-        label_120_Wheelset->setSizePolicy(sizePolicy10);
+        sizePolicy5.setHeightForWidth(label_120_Wheelset->sizePolicy().hasHeightForWidth());
+        label_120_Wheelset->setSizePolicy(sizePolicy5);
 
         gridLayout_21->addWidget(label_120_Wheelset, 0, 11, 1, 1);
 
         r_Pre_Scan_120_TaskID = new QLineEdit(groupBox_Task_Info);
         r_Pre_Scan_120_TaskID->setObjectName(QString::fromUtf8("r_Pre_Scan_120_TaskID"));
-        sizePolicy7.setHeightForWidth(r_Pre_Scan_120_TaskID->sizePolicy().hasHeightForWidth());
-        r_Pre_Scan_120_TaskID->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_TaskID->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_TaskID->setSizePolicy(sizePolicy4);
         r_Pre_Scan_120_TaskID->setMaximumSize(QSize(16777215, 16777215));
+        r_Pre_Scan_120_TaskID->setReadOnly(true);
 
         gridLayout_21->addWidget(r_Pre_Scan_120_TaskID, 0, 1, 1, 1);
 
         label_120_StartTime = new QLabel(groupBox_Task_Info);
         label_120_StartTime->setObjectName(QString::fromUtf8("label_120_StartTime"));
-        sizePolicy10.setHeightForWidth(label_120_StartTime->sizePolicy().hasHeightForWidth());
-        label_120_StartTime->setSizePolicy(sizePolicy10);
+        sizePolicy5.setHeightForWidth(label_120_StartTime->sizePolicy().hasHeightForWidth());
+        label_120_StartTime->setSizePolicy(sizePolicy5);
 
         gridLayout_21->addWidget(label_120_StartTime, 1, 0, 1, 1);
 
         r_Pre_Scan_120_Wheelset = new QLineEdit(groupBox_Task_Info);
         r_Pre_Scan_120_Wheelset->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Wheelset"));
-        sizePolicy7.setHeightForWidth(r_Pre_Scan_120_Wheelset->sizePolicy().hasHeightForWidth());
-        r_Pre_Scan_120_Wheelset->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_Wheelset->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_Wheelset->setSizePolicy(sizePolicy4);
         r_Pre_Scan_120_Wheelset->setMaximumSize(QSize(16777215, 16777215));
+        r_Pre_Scan_120_Wheelset->setReadOnly(true);
 
         gridLayout_21->addWidget(r_Pre_Scan_120_Wheelset, 0, 12, 1, 1);
 
         r_Pre_Scan_120_StartTime = new QLineEdit(groupBox_Task_Info);
         r_Pre_Scan_120_StartTime->setObjectName(QString::fromUtf8("r_Pre_Scan_120_StartTime"));
-        sizePolicy7.setHeightForWidth(r_Pre_Scan_120_StartTime->sizePolicy().hasHeightForWidth());
-        r_Pre_Scan_120_StartTime->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_StartTime->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_StartTime->setSizePolicy(sizePolicy4);
         r_Pre_Scan_120_StartTime->setMaximumSize(QSize(16777215, 16777215));
+        r_Pre_Scan_120_StartTime->setReadOnly(true);
 
         gridLayout_21->addWidget(r_Pre_Scan_120_StartTime, 1, 1, 1, 1);
 
         r_Pre_Scan_120_Axle = new QLineEdit(groupBox_Task_Info);
         r_Pre_Scan_120_Axle->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Axle"));
-        sizePolicy7.setHeightForWidth(r_Pre_Scan_120_Axle->sizePolicy().hasHeightForWidth());
-        r_Pre_Scan_120_Axle->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_Axle->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_Axle->setSizePolicy(sizePolicy4);
         r_Pre_Scan_120_Axle->setMaximumSize(QSize(16777215, 16777215));
+        r_Pre_Scan_120_Axle->setReadOnly(true);
 
         gridLayout_21->addWidget(r_Pre_Scan_120_Axle, 1, 12, 1, 1);
 
         label_120_Axle = new QLabel(groupBox_Task_Info);
         label_120_Axle->setObjectName(QString::fromUtf8("label_120_Axle"));
-        sizePolicy10.setHeightForWidth(label_120_Axle->sizePolicy().hasHeightForWidth());
-        label_120_Axle->setSizePolicy(sizePolicy10);
+        sizePolicy5.setHeightForWidth(label_120_Axle->sizePolicy().hasHeightForWidth());
+        label_120_Axle->setSizePolicy(sizePolicy5);
 
         gridLayout_21->addWidget(label_120_Axle, 1, 11, 1, 1);
 
         label_120_Repair = new QLabel(groupBox_Task_Info);
         label_120_Repair->setObjectName(QString::fromUtf8("label_120_Repair"));
-        sizePolicy10.setHeightForWidth(label_120_Repair->sizePolicy().hasHeightForWidth());
-        label_120_Repair->setSizePolicy(sizePolicy10);
+        sizePolicy5.setHeightForWidth(label_120_Repair->sizePolicy().hasHeightForWidth());
+        label_120_Repair->setSizePolicy(sizePolicy5);
 
         gridLayout_21->addWidget(label_120_Repair, 2, 0, 1, 1);
 
         r_Pre_Scan_120_Repair = new QLineEdit(groupBox_Task_Info);
         r_Pre_Scan_120_Repair->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Repair"));
-        sizePolicy7.setHeightForWidth(r_Pre_Scan_120_Repair->sizePolicy().hasHeightForWidth());
-        r_Pre_Scan_120_Repair->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_Repair->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_Repair->setSizePolicy(sizePolicy4);
         r_Pre_Scan_120_Repair->setMaximumSize(QSize(16777215, 16777215));
+        r_Pre_Scan_120_Repair->setReadOnly(true);
 
         gridLayout_21->addWidget(r_Pre_Scan_120_Repair, 2, 1, 1, 1);
 
         label_120_SendUnit = new QLabel(groupBox_Task_Info);
         label_120_SendUnit->setObjectName(QString::fromUtf8("label_120_SendUnit"));
-        sizePolicy10.setHeightForWidth(label_120_SendUnit->sizePolicy().hasHeightForWidth());
-        label_120_SendUnit->setSizePolicy(sizePolicy10);
+        sizePolicy5.setHeightForWidth(label_120_SendUnit->sizePolicy().hasHeightForWidth());
+        label_120_SendUnit->setSizePolicy(sizePolicy5);
 
         gridLayout_21->addWidget(label_120_SendUnit, 2, 11, 1, 1);
 
         r_Pre_Scan_120_SendUnit = new QLineEdit(groupBox_Task_Info);
         r_Pre_Scan_120_SendUnit->setObjectName(QString::fromUtf8("r_Pre_Scan_120_SendUnit"));
-        sizePolicy7.setHeightForWidth(r_Pre_Scan_120_SendUnit->sizePolicy().hasHeightForWidth());
-        r_Pre_Scan_120_SendUnit->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_SendUnit->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_SendUnit->setSizePolicy(sizePolicy4);
         r_Pre_Scan_120_SendUnit->setMaximumSize(QSize(16777215, 16777215));
+        r_Pre_Scan_120_SendUnit->setReadOnly(true);
 
         gridLayout_21->addWidget(r_Pre_Scan_120_SendUnit, 2, 12, 1, 1);
 
@@ -3185,71 +3623,97 @@ public:
         gridLayout_26->setSpacing(6);
         gridLayout_26->setContentsMargins(11, 11, 11, 11);
         gridLayout_26->setObjectName(QString::fromUtf8("gridLayout_26"));
-        label_120_Prog = new QLabel(groupBox_Collect_Status);
-        label_120_Prog->setObjectName(QString::fromUtf8("label_120_Prog"));
-        sizePolicy10.setHeightForWidth(label_120_Prog->sizePolicy().hasHeightForWidth());
-        label_120_Prog->setSizePolicy(sizePolicy10);
-
-        gridLayout_26->addWidget(label_120_Prog, 0, 0, 1, 1);
-
-        r_Pre_Scan_120_currentWheelset = new QLineEdit(groupBox_Collect_Status);
-        r_Pre_Scan_120_currentWheelset->setObjectName(QString::fromUtf8("r_Pre_Scan_120_currentWheelset"));
-
-        gridLayout_26->addWidget(r_Pre_Scan_120_currentWheelset, 0, 1, 1, 1);
-
-        label_120_Gain = new QLabel(groupBox_Collect_Status);
-        label_120_Gain->setObjectName(QString::fromUtf8("label_120_Gain"));
-        sizePolicy10.setHeightForWidth(label_120_Gain->sizePolicy().hasHeightForWidth());
-        label_120_Gain->setSizePolicy(sizePolicy10);
-
-        gridLayout_26->addWidget(label_120_Gain, 0, 2, 1, 1);
-
-        r_Pre_Scan_120_Gain = new QLineEdit(groupBox_Collect_Status);
-        r_Pre_Scan_120_Gain->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Gain"));
-        QSizePolicy sizePolicy11(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        sizePolicy11.setHorizontalStretch(0);
-        sizePolicy11.setVerticalStretch(0);
-        sizePolicy11.setHeightForWidth(r_Pre_Scan_120_Gain->sizePolicy().hasHeightForWidth());
-        r_Pre_Scan_120_Gain->setSizePolicy(sizePolicy11);
-        r_Pre_Scan_120_Gain->setMaximumSize(QSize(16777215, 16777215));
-
-        gridLayout_26->addWidget(r_Pre_Scan_120_Gain, 0, 3, 1, 1);
-
-        label_120_Part1 = new QLabel(groupBox_Collect_Status);
-        label_120_Part1->setObjectName(QString::fromUtf8("label_120_Part1"));
-        sizePolicy10.setHeightForWidth(label_120_Part1->sizePolicy().hasHeightForWidth());
-        label_120_Part1->setSizePolicy(sizePolicy10);
-
-        gridLayout_26->addWidget(label_120_Part1, 1, 0, 1, 1);
-
         r_Pre_Scan_120_Part1 = new QLineEdit(groupBox_Collect_Status);
         r_Pre_Scan_120_Part1->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Part1"));
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_Part1->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_Part1->setSizePolicy(sizePolicy4);
+        r_Pre_Scan_120_Part1->setReadOnly(true);
 
-        gridLayout_26->addWidget(r_Pre_Scan_120_Part1, 1, 1, 1, 1);
-
-        label_120_Part2 = new QLabel(groupBox_Collect_Status);
-        label_120_Part2->setObjectName(QString::fromUtf8("label_120_Part2"));
-        sizePolicy10.setHeightForWidth(label_120_Part2->sizePolicy().hasHeightForWidth());
-        label_120_Part2->setSizePolicy(sizePolicy10);
-
-        gridLayout_26->addWidget(label_120_Part2, 1, 2, 1, 1);
-
-        r_Pre_Scan_120_Part2 = new QLineEdit(groupBox_Collect_Status);
-        r_Pre_Scan_120_Part2->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Part2"));
-
-        gridLayout_26->addWidget(r_Pre_Scan_120_Part2, 1, 3, 1, 1);
-
-        label_120_Point = new QLabel(groupBox_Collect_Status);
-        label_120_Point->setObjectName(QString::fromUtf8("label_120_Point"));
-        sizePolicy10.setHeightForWidth(label_120_Point->sizePolicy().hasHeightForWidth());
-        label_120_Point->setSizePolicy(sizePolicy10);
-
-        gridLayout_26->addWidget(label_120_Point, 2, 0, 1, 1);
+        gridLayout_26->addWidget(r_Pre_Scan_120_Part1, 1, 3, 1, 1);
 
         r_Pre_Scan_120_Point = new QLineEdit(groupBox_Collect_Status);
         r_Pre_Scan_120_Point->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Point"));
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_Point->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_Point->setSizePolicy(sizePolicy4);
+        r_Pre_Scan_120_Point->setReadOnly(true);
 
-        gridLayout_26->addWidget(r_Pre_Scan_120_Point, 2, 1, 1, 1);
+        gridLayout_26->addWidget(r_Pre_Scan_120_Point, 2, 3, 1, 1);
+
+        r_Pre_Scan_120_currentWheelset = new QLineEdit(groupBox_Collect_Status);
+        r_Pre_Scan_120_currentWheelset->setObjectName(QString::fromUtf8("r_Pre_Scan_120_currentWheelset"));
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_currentWheelset->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_currentWheelset->setSizePolicy(sizePolicy4);
+        r_Pre_Scan_120_currentWheelset->setReadOnly(true);
+
+        gridLayout_26->addWidget(r_Pre_Scan_120_currentWheelset, 0, 3, 1, 1);
+
+        label_120_Part1 = new QLabel(groupBox_Collect_Status);
+        label_120_Part1->setObjectName(QString::fromUtf8("label_120_Part1"));
+        sizePolicy5.setHeightForWidth(label_120_Part1->sizePolicy().hasHeightForWidth());
+        label_120_Part1->setSizePolicy(sizePolicy5);
+
+        gridLayout_26->addWidget(label_120_Part1, 1, 0, 1, 1);
+
+        label_120_Part2 = new QLabel(groupBox_Collect_Status);
+        label_120_Part2->setObjectName(QString::fromUtf8("label_120_Part2"));
+        sizePolicy5.setHeightForWidth(label_120_Part2->sizePolicy().hasHeightForWidth());
+        label_120_Part2->setSizePolicy(sizePolicy5);
+
+        gridLayout_26->addWidget(label_120_Part2, 1, 4, 1, 1);
+
+        label_120_Gain = new QLabel(groupBox_Collect_Status);
+        label_120_Gain->setObjectName(QString::fromUtf8("label_120_Gain"));
+        sizePolicy5.setHeightForWidth(label_120_Gain->sizePolicy().hasHeightForWidth());
+        label_120_Gain->setSizePolicy(sizePolicy5);
+
+        gridLayout_26->addWidget(label_120_Gain, 0, 4, 1, 1);
+
+        label_120_Prog = new QLabel(groupBox_Collect_Status);
+        label_120_Prog->setObjectName(QString::fromUtf8("label_120_Prog"));
+        sizePolicy5.setHeightForWidth(label_120_Prog->sizePolicy().hasHeightForWidth());
+        label_120_Prog->setSizePolicy(sizePolicy5);
+
+        gridLayout_26->addWidget(label_120_Prog, 0, 0, 1, 1);
+
+        r_Pre_Scan_120_Part2 = new QLineEdit(groupBox_Collect_Status);
+        r_Pre_Scan_120_Part2->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Part2"));
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_Part2->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_Part2->setSizePolicy(sizePolicy4);
+        r_Pre_Scan_120_Part2->setReadOnly(true);
+
+        gridLayout_26->addWidget(r_Pre_Scan_120_Part2, 1, 5, 1, 1);
+
+        r_Pre_Scan_120_Gain = new QLineEdit(groupBox_Collect_Status);
+        r_Pre_Scan_120_Gain->setObjectName(QString::fromUtf8("r_Pre_Scan_120_Gain"));
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_Gain->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_Gain->setSizePolicy(sizePolicy4);
+        r_Pre_Scan_120_Gain->setMaximumSize(QSize(16777215, 16777215));
+        r_Pre_Scan_120_Gain->setReadOnly(true);
+
+        gridLayout_26->addWidget(r_Pre_Scan_120_Gain, 0, 5, 1, 1);
+
+        label_120_Point = new QLabel(groupBox_Collect_Status);
+        label_120_Point->setObjectName(QString::fromUtf8("label_120_Point"));
+        sizePolicy5.setHeightForWidth(label_120_Point->sizePolicy().hasHeightForWidth());
+        label_120_Point->setSizePolicy(sizePolicy5);
+
+        gridLayout_26->addWidget(label_120_Point, 2, 0, 1, 1);
+
+        label_120_LastUpdate = new QLabel(groupBox_Collect_Status);
+        label_120_LastUpdate->setObjectName(QString::fromUtf8("label_120_LastUpdate"));
+        sizePolicy5.setHeightForWidth(label_120_LastUpdate->sizePolicy().hasHeightForWidth());
+        label_120_LastUpdate->setSizePolicy(sizePolicy5);
+
+        gridLayout_26->addWidget(label_120_LastUpdate, 2, 4, 1, 1);
+
+        Pre_Scan_120_LastUpdate = new QLineEdit(groupBox_Collect_Status);
+        Pre_Scan_120_LastUpdate->setObjectName(QString::fromUtf8("Pre_Scan_120_LastUpdate"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_LastUpdate->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_LastUpdate->setSizePolicy(sizePolicy4);
+        Pre_Scan_120_LastUpdate->setMaximumSize(QSize(16777215, 16777215));
+        Pre_Scan_120_LastUpdate->setReadOnly(true);
+
+        gridLayout_26->addWidget(Pre_Scan_120_LastUpdate, 2, 5, 1, 1);
 
 
         horizontalLayout_53->addWidget(groupBox_Collect_Status);
@@ -3262,18 +3726,24 @@ public:
         gridLayout_25->setObjectName(QString::fromUtf8("gridLayout_25"));
         Pre_Scan_120_Start_Scan = new QPushButton(groupBox_Control);
         Pre_Scan_120_Start_Scan->setObjectName(QString::fromUtf8("Pre_Scan_120_Start_Scan"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Start_Scan->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Start_Scan->setSizePolicy(sizePolicy4);
         Pre_Scan_120_Start_Scan->setMinimumSize(QSize(100, 32));
 
         gridLayout_25->addWidget(Pre_Scan_120_Start_Scan, 0, 0, 1, 1);
 
         Pre_Scan_120_Collector = new QPushButton(groupBox_Control);
         Pre_Scan_120_Collector->setObjectName(QString::fromUtf8("Pre_Scan_120_Collector"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Collector->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Collector->setSizePolicy(sizePolicy4);
         Pre_Scan_120_Collector->setMinimumSize(QSize(100, 32));
 
         gridLayout_25->addWidget(Pre_Scan_120_Collector, 0, 1, 1, 1);
 
         Pre_Scan_120_Finish_Scan = new QPushButton(groupBox_Control);
         Pre_Scan_120_Finish_Scan->setObjectName(QString::fromUtf8("Pre_Scan_120_Finish_Scan"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Finish_Scan->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Finish_Scan->setSizePolicy(sizePolicy4);
         Pre_Scan_120_Finish_Scan->setMinimumSize(QSize(100, 32));
 
         gridLayout_25->addWidget(Pre_Scan_120_Finish_Scan, 1, 0, 1, 1);
@@ -3283,6 +3753,8 @@ public:
         horizontalLayout_54->setObjectName(QString::fromUtf8("horizontalLayout_54"));
         Pre_Scan_120_Gain_Spin = new QSpinBox(groupBox_Control);
         Pre_Scan_120_Gain_Spin->setObjectName(QString::fromUtf8("Pre_Scan_120_Gain_Spin"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Gain_Spin->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Gain_Spin->setSizePolicy(sizePolicy4);
         Pre_Scan_120_Gain_Spin->setMinimum(0);
         Pre_Scan_120_Gain_Spin->setMaximum(100);
         Pre_Scan_120_Gain_Spin->setValue(20);
@@ -3291,6 +3763,8 @@ public:
 
         Pre_Scan_120_Change_Gain = new QPushButton(groupBox_Control);
         Pre_Scan_120_Change_Gain->setObjectName(QString::fromUtf8("Pre_Scan_120_Change_Gain"));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_Change_Gain->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_Change_Gain->setSizePolicy(sizePolicy4);
 
         horizontalLayout_54->addWidget(Pre_Scan_120_Change_Gain);
 
@@ -3302,15 +3776,16 @@ public:
         horizontalLayout_52->setObjectName(QString::fromUtf8("horizontalLayout_52"));
         label_120_TotalImages = new QLabel(groupBox_Control);
         label_120_TotalImages->setObjectName(QString::fromUtf8("label_120_TotalImages"));
-        sizePolicy3.setHeightForWidth(label_120_TotalImages->sizePolicy().hasHeightForWidth());
-        label_120_TotalImages->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_120_TotalImages->sizePolicy().hasHeightForWidth());
+        label_120_TotalImages->setSizePolicy(sizePolicy5);
 
         horizontalLayout_52->addWidget(label_120_TotalImages);
 
         r_Pre_Scan_120_TotalImages = new QLineEdit(groupBox_Control);
         r_Pre_Scan_120_TotalImages->setObjectName(QString::fromUtf8("r_Pre_Scan_120_TotalImages"));
-        sizePolicy7.setHeightForWidth(r_Pre_Scan_120_TotalImages->sizePolicy().hasHeightForWidth());
-        r_Pre_Scan_120_TotalImages->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(r_Pre_Scan_120_TotalImages->sizePolicy().hasHeightForWidth());
+        r_Pre_Scan_120_TotalImages->setSizePolicy(sizePolicy4);
+        r_Pre_Scan_120_TotalImages->setReadOnly(true);
 
         horizontalLayout_52->addWidget(r_Pre_Scan_120_TotalImages);
 
@@ -3322,8 +3797,8 @@ public:
         horizontalLayout_56->setObjectName(QString::fromUtf8("horizontalLayout_56"));
         label_120_WorkState = new QLabel(groupBox_Control);
         label_120_WorkState->setObjectName(QString::fromUtf8("label_120_WorkState"));
-        sizePolicy3.setHeightForWidth(label_120_WorkState->sizePolicy().hasHeightForWidth());
-        label_120_WorkState->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_120_WorkState->sizePolicy().hasHeightForWidth());
+        label_120_WorkState->setSizePolicy(sizePolicy5);
 
         horizontalLayout_56->addWidget(label_120_WorkState);
 
@@ -3345,281 +3820,7 @@ public:
         horizontalLayout_53->addWidget(groupBox_Control);
 
 
-        gridLayout_24->addLayout(horizontalLayout_53, 2, 0, 1, 1);
-
-        horizontalLayout_49 = new QHBoxLayout();
-        horizontalLayout_49->setSpacing(6);
-        horizontalLayout_49->setObjectName(QString::fromUtf8("horizontalLayout_49"));
-        groupBox_Task_Info_2 = new QGroupBox(groupBox_8);
-        groupBox_Task_Info_2->setObjectName(QString::fromUtf8("groupBox_Task_Info_2"));
-        gridLayout_22 = new QGridLayout(groupBox_Task_Info_2);
-        gridLayout_22->setSpacing(6);
-        gridLayout_22->setContentsMargins(11, 11, 11, 11);
-        gridLayout_22->setObjectName(QString::fromUtf8("gridLayout_22"));
-        w_Pre_Scan_120_TaskID = new QLineEdit(groupBox_Task_Info_2);
-        w_Pre_Scan_120_TaskID->setObjectName(QString::fromUtf8("w_Pre_Scan_120_TaskID"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_TaskID->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_TaskID->setSizePolicy(sizePolicy11);
-
-        gridLayout_22->addWidget(w_Pre_Scan_120_TaskID, 0, 2, 2, 1);
-
-        w_Pre_Scan_120_SendUnit = new QLineEdit(groupBox_Task_Info_2);
-        w_Pre_Scan_120_SendUnit->setObjectName(QString::fromUtf8("w_Pre_Scan_120_SendUnit"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_SendUnit->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_SendUnit->setSizePolicy(sizePolicy11);
-        w_Pre_Scan_120_SendUnit->setMaximumSize(QSize(16777215, 16777215));
-
-        gridLayout_22->addWidget(w_Pre_Scan_120_SendUnit, 3, 2, 1, 1);
-
-        label_120_Wheelset_2 = new QLabel(groupBox_Task_Info_2);
-        label_120_Wheelset_2->setObjectName(QString::fromUtf8("label_120_Wheelset_2"));
-        sizePolicy3.setHeightForWidth(label_120_Wheelset_2->sizePolicy().hasHeightForWidth());
-        label_120_Wheelset_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_22->addWidget(label_120_Wheelset_2, 0, 4, 1, 1);
-
-        w_Pre_Scan_120_StartTime = new QLineEdit(groupBox_Task_Info_2);
-        w_Pre_Scan_120_StartTime->setObjectName(QString::fromUtf8("w_Pre_Scan_120_StartTime"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_StartTime->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_StartTime->setSizePolicy(sizePolicy11);
-
-        gridLayout_22->addWidget(w_Pre_Scan_120_StartTime, 4, 5, 1, 1);
-
-        w_Pre_Scan_120_Repair = new QLineEdit(groupBox_Task_Info_2);
-        w_Pre_Scan_120_Repair->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Repair"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_Repair->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_Repair->setSizePolicy(sizePolicy11);
-        w_Pre_Scan_120_Repair->setMaximumSize(QSize(16777215, 16777215));
-
-        gridLayout_22->addWidget(w_Pre_Scan_120_Repair, 4, 2, 1, 1);
-
-        label_120_Repair_2 = new QLabel(groupBox_Task_Info_2);
-        label_120_Repair_2->setObjectName(QString::fromUtf8("label_120_Repair_2"));
-        sizePolicy3.setHeightForWidth(label_120_Repair_2->sizePolicy().hasHeightForWidth());
-        label_120_Repair_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_22->addWidget(label_120_Repair_2, 4, 0, 1, 1);
-
-        label_120_SendUnit_2 = new QLabel(groupBox_Task_Info_2);
-        label_120_SendUnit_2->setObjectName(QString::fromUtf8("label_120_SendUnit_2"));
-        sizePolicy3.setHeightForWidth(label_120_SendUnit_2->sizePolicy().hasHeightForWidth());
-        label_120_SendUnit_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_22->addWidget(label_120_SendUnit_2, 4, 4, 1, 1);
-
-        label_120_StartTime_2 = new QLabel(groupBox_Task_Info_2);
-        label_120_StartTime_2->setObjectName(QString::fromUtf8("label_120_StartTime_2"));
-        sizePolicy3.setHeightForWidth(label_120_StartTime_2->sizePolicy().hasHeightForWidth());
-        label_120_StartTime_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_22->addWidget(label_120_StartTime_2, 3, 0, 1, 1);
-
-        label_120_Axle_2 = new QLabel(groupBox_Task_Info_2);
-        label_120_Axle_2->setObjectName(QString::fromUtf8("label_120_Axle_2"));
-        sizePolicy3.setHeightForWidth(label_120_Axle_2->sizePolicy().hasHeightForWidth());
-        label_120_Axle_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_22->addWidget(label_120_Axle_2, 3, 4, 1, 1);
-
-        label_120_TaskID_2 = new QLabel(groupBox_Task_Info_2);
-        label_120_TaskID_2->setObjectName(QString::fromUtf8("label_120_TaskID_2"));
-        sizePolicy3.setHeightForWidth(label_120_TaskID_2->sizePolicy().hasHeightForWidth());
-        label_120_TaskID_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_22->addWidget(label_120_TaskID_2, 0, 0, 2, 1);
-
-        w_Pre_Scan_120_Wheelset = new QLineEdit(groupBox_Task_Info_2);
-        w_Pre_Scan_120_Wheelset->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Wheelset"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_Wheelset->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_Wheelset->setSizePolicy(sizePolicy11);
-        w_Pre_Scan_120_Wheelset->setMaximumSize(QSize(16777215, 16777215));
-
-        gridLayout_22->addWidget(w_Pre_Scan_120_Wheelset, 0, 5, 1, 1);
-
-        w_Pre_Scan_120_Axle = new QLineEdit(groupBox_Task_Info_2);
-        w_Pre_Scan_120_Axle->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Axle"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_Axle->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_Axle->setSizePolicy(sizePolicy11);
-        w_Pre_Scan_120_Axle->setMaximumSize(QSize(16777215, 16777215));
-
-        gridLayout_22->addWidget(w_Pre_Scan_120_Axle, 3, 5, 1, 1);
-
-        set_Pre_Scan_120_TaskID = new QPushButton(groupBox_Task_Info_2);
-        set_Pre_Scan_120_TaskID->setObjectName(QString::fromUtf8("set_Pre_Scan_120_TaskID"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_TaskID->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_TaskID->setSizePolicy(sizePolicy8);
-
-        gridLayout_22->addWidget(set_Pre_Scan_120_TaskID, 0, 3, 1, 1);
-
-        set_Pre_Scan_120_SendUnit = new QPushButton(groupBox_Task_Info_2);
-        set_Pre_Scan_120_SendUnit->setObjectName(QString::fromUtf8("set_Pre_Scan_120_SendUnit"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_SendUnit->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_SendUnit->setSizePolicy(sizePolicy8);
-
-        gridLayout_22->addWidget(set_Pre_Scan_120_SendUnit, 3, 3, 1, 1);
-
-        set_Pre_Scan_120_Repair = new QPushButton(groupBox_Task_Info_2);
-        set_Pre_Scan_120_Repair->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Repair"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_Repair->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_Repair->setSizePolicy(sizePolicy8);
-
-        gridLayout_22->addWidget(set_Pre_Scan_120_Repair, 4, 3, 1, 1);
-
-        set_Pre_Scan_120_Wheelset = new QPushButton(groupBox_Task_Info_2);
-        set_Pre_Scan_120_Wheelset->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Wheelset"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_Wheelset->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_Wheelset->setSizePolicy(sizePolicy8);
-
-        gridLayout_22->addWidget(set_Pre_Scan_120_Wheelset, 0, 6, 1, 1);
-
-        set_Pre_Scan_120_Axle = new QPushButton(groupBox_Task_Info_2);
-        set_Pre_Scan_120_Axle->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Axle"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_Axle->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_Axle->setSizePolicy(sizePolicy8);
-
-        gridLayout_22->addWidget(set_Pre_Scan_120_Axle, 3, 6, 1, 1);
-
-        set_Pre_Scan_120_StartTime = new QPushButton(groupBox_Task_Info_2);
-        set_Pre_Scan_120_StartTime->setObjectName(QString::fromUtf8("set_Pre_Scan_120_StartTime"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_StartTime->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_StartTime->setSizePolicy(sizePolicy8);
-
-        gridLayout_22->addWidget(set_Pre_Scan_120_StartTime, 4, 6, 1, 1);
-
-
-        horizontalLayout_49->addWidget(groupBox_Task_Info_2);
-
-        groupBox_Collect_Status_2 = new QGroupBox(groupBox_8);
-        groupBox_Collect_Status_2->setObjectName(QString::fromUtf8("groupBox_Collect_Status_2"));
-        gridLayout_102 = new QGridLayout(groupBox_Collect_Status_2);
-        gridLayout_102->setSpacing(6);
-        gridLayout_102->setContentsMargins(11, 11, 11, 11);
-        gridLayout_102->setObjectName(QString::fromUtf8("gridLayout_102"));
-        label_120_Gain_2 = new QLabel(groupBox_Collect_Status_2);
-        label_120_Gain_2->setObjectName(QString::fromUtf8("label_120_Gain_2"));
-        sizePolicy3.setHeightForWidth(label_120_Gain_2->sizePolicy().hasHeightForWidth());
-        label_120_Gain_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_102->addWidget(label_120_Gain_2, 0, 3, 1, 1);
-
-        w_Pre_Scan_120_Point = new QLineEdit(groupBox_Collect_Status_2);
-        w_Pre_Scan_120_Point->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Point"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_Point->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_Point->setSizePolicy(sizePolicy11);
-
-        gridLayout_102->addWidget(w_Pre_Scan_120_Point, 2, 1, 1, 1);
-
-        set_Pre_Scan_120_Part1 = new QPushButton(groupBox_Collect_Status_2);
-        set_Pre_Scan_120_Part1->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Part1"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_Part1->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_Part1->setSizePolicy(sizePolicy8);
-
-        gridLayout_102->addWidget(set_Pre_Scan_120_Part1, 1, 2, 1, 1);
-
-        set_Pre_Scan_120_Point = new QPushButton(groupBox_Collect_Status_2);
-        set_Pre_Scan_120_Point->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Point"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_Point->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_Point->setSizePolicy(sizePolicy8);
-
-        gridLayout_102->addWidget(set_Pre_Scan_120_Point, 2, 2, 1, 1);
-
-        w_Pre_Scan_120_Part1 = new QLineEdit(groupBox_Collect_Status_2);
-        w_Pre_Scan_120_Part1->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Part1"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_Part1->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_Part1->setSizePolicy(sizePolicy11);
-
-        gridLayout_102->addWidget(w_Pre_Scan_120_Part1, 1, 1, 1, 1);
-
-        label_120_Part2_2 = new QLabel(groupBox_Collect_Status_2);
-        label_120_Part2_2->setObjectName(QString::fromUtf8("label_120_Part2_2"));
-        sizePolicy3.setHeightForWidth(label_120_Part2_2->sizePolicy().hasHeightForWidth());
-        label_120_Part2_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_102->addWidget(label_120_Part2_2, 1, 3, 1, 1);
-
-        w_Pre_Scan_120_currentWheelset = new QLineEdit(groupBox_Collect_Status_2);
-        w_Pre_Scan_120_currentWheelset->setObjectName(QString::fromUtf8("w_Pre_Scan_120_currentWheelset"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_currentWheelset->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_currentWheelset->setSizePolicy(sizePolicy11);
-
-        gridLayout_102->addWidget(w_Pre_Scan_120_currentWheelset, 0, 1, 1, 1);
-
-        w_Pre_Scan_120_Part2 = new QLineEdit(groupBox_Collect_Status_2);
-        w_Pre_Scan_120_Part2->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Part2"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_Part2->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_Part2->setSizePolicy(sizePolicy11);
-
-        gridLayout_102->addWidget(w_Pre_Scan_120_Part2, 1, 4, 1, 1);
-
-        label_120_Point_2 = new QLabel(groupBox_Collect_Status_2);
-        label_120_Point_2->setObjectName(QString::fromUtf8("label_120_Point_2"));
-        sizePolicy3.setHeightForWidth(label_120_Point_2->sizePolicy().hasHeightForWidth());
-        label_120_Point_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_102->addWidget(label_120_Point_2, 2, 0, 1, 1);
-
-        w_Pre_Scan_120_Gain = new QLineEdit(groupBox_Collect_Status_2);
-        w_Pre_Scan_120_Gain->setObjectName(QString::fromUtf8("w_Pre_Scan_120_Gain"));
-        sizePolicy11.setHeightForWidth(w_Pre_Scan_120_Gain->sizePolicy().hasHeightForWidth());
-        w_Pre_Scan_120_Gain->setSizePolicy(sizePolicy11);
-
-        gridLayout_102->addWidget(w_Pre_Scan_120_Gain, 0, 4, 1, 1);
-
-        set_Pre_Scan_120_Gain = new QPushButton(groupBox_Collect_Status_2);
-        set_Pre_Scan_120_Gain->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Gain"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_Gain->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_Gain->setSizePolicy(sizePolicy8);
-
-        gridLayout_102->addWidget(set_Pre_Scan_120_Gain, 0, 5, 1, 1);
-
-        label_120_Prog_2 = new QLabel(groupBox_Collect_Status_2);
-        label_120_Prog_2->setObjectName(QString::fromUtf8("label_120_Prog_2"));
-        sizePolicy3.setHeightForWidth(label_120_Prog_2->sizePolicy().hasHeightForWidth());
-        label_120_Prog_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_102->addWidget(label_120_Prog_2, 0, 0, 1, 1);
-
-        set_Pre_Scan_120_currentWheelset = new QPushButton(groupBox_Collect_Status_2);
-        set_Pre_Scan_120_currentWheelset->setObjectName(QString::fromUtf8("set_Pre_Scan_120_currentWheelset"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_currentWheelset->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_currentWheelset->setSizePolicy(sizePolicy8);
-
-        gridLayout_102->addWidget(set_Pre_Scan_120_currentWheelset, 0, 2, 1, 1);
-
-        set_Pre_Scan_120_Part2 = new QPushButton(groupBox_Collect_Status_2);
-        set_Pre_Scan_120_Part2->setObjectName(QString::fromUtf8("set_Pre_Scan_120_Part2"));
-        sizePolicy8.setHeightForWidth(set_Pre_Scan_120_Part2->sizePolicy().hasHeightForWidth());
-        set_Pre_Scan_120_Part2->setSizePolicy(sizePolicy8);
-
-        gridLayout_102->addWidget(set_Pre_Scan_120_Part2, 1, 5, 1, 1);
-
-        label_120_Part1_2 = new QLabel(groupBox_Collect_Status_2);
-        label_120_Part1_2->setObjectName(QString::fromUtf8("label_120_Part1_2"));
-        sizePolicy3.setHeightForWidth(label_120_Part1_2->sizePolicy().hasHeightForWidth());
-        label_120_Part1_2->setSizePolicy(sizePolicy3);
-
-        gridLayout_102->addWidget(label_120_Part1_2, 1, 0, 1, 1);
-
-
-        horizontalLayout_49->addWidget(groupBox_Collect_Status_2);
-
-
-        gridLayout_24->addLayout(horizontalLayout_49, 3, 0, 1, 1);
-
-        groupBox_9 = new QGroupBox(groupBox_8);
-        groupBox_9->setObjectName(QString::fromUtf8("groupBox_9"));
-        gridLayout_23 = new QGridLayout(groupBox_9);
-        gridLayout_23->setSpacing(6);
-        gridLayout_23->setContentsMargins(11, 11, 11, 11);
-        gridLayout_23->setObjectName(QString::fromUtf8("gridLayout_23"));
-        Prec_Scan_120_Cmd = new QTextEdit(groupBox_9);
-        Prec_Scan_120_Cmd->setObjectName(QString::fromUtf8("Prec_Scan_120_Cmd"));
-        Prec_Scan_120_Cmd->setReadOnly(true);
-
-        gridLayout_23->addWidget(Prec_Scan_120_Cmd, 0, 0, 1, 1);
-
-
-        gridLayout_24->addWidget(groupBox_9, 4, 0, 1, 1);
+        gridLayout_24->addLayout(horizontalLayout_53, 1, 0, 1, 1);
 
         groupBox_MySql = new QGroupBox(groupBox_8);
         groupBox_MySql->setObjectName(QString::fromUtf8("groupBox_MySql"));
@@ -3629,6 +3830,8 @@ public:
         horizontalLayout_55->setObjectName(QString::fromUtf8("horizontalLayout_55"));
         label_120_MySql_Status = new QLabel(groupBox_MySql);
         label_120_MySql_Status->setObjectName(QString::fromUtf8("label_120_MySql_Status"));
+        sizePolicy5.setHeightForWidth(label_120_MySql_Status->sizePolicy().hasHeightForWidth());
+        label_120_MySql_Status->setSizePolicy(sizePolicy5);
 
         horizontalLayout_55->addWidget(label_120_MySql_Status);
 
@@ -3641,56 +3844,66 @@ public:
 
         Pre_Scan_120_MySql_Server = new QLineEdit(groupBox_MySql);
         Pre_Scan_120_MySql_Server->setObjectName(QString::fromUtf8("Pre_Scan_120_MySql_Server"));
-        Pre_Scan_120_MySql_Server->setMaximumSize(QSize(120, 16777215));
+        sizePolicy4.setHeightForWidth(Pre_Scan_120_MySql_Server->sizePolicy().hasHeightForWidth());
+        Pre_Scan_120_MySql_Server->setSizePolicy(sizePolicy4);
+        Pre_Scan_120_MySql_Server->setMaximumSize(QSize(16777215, 16777215));
         Pre_Scan_120_MySql_Server->setReadOnly(true);
 
         horizontalLayout_55->addWidget(Pre_Scan_120_MySql_Server);
 
         label_167 = new QLabel(groupBox_MySql);
         label_167->setObjectName(QString::fromUtf8("label_167"));
-        sizePolicy7.setHeightForWidth(label_167->sizePolicy().hasHeightForWidth());
-        label_167->setSizePolicy(sizePolicy7);
+        sizePolicy6.setHeightForWidth(label_167->sizePolicy().hasHeightForWidth());
+        label_167->setSizePolicy(sizePolicy6);
 
         horizontalLayout_55->addWidget(label_167);
 
         MySql_Port = new QLineEdit(groupBox_MySql);
         MySql_Port->setObjectName(QString::fromUtf8("MySql_Port"));
-        sizePolicy11.setHeightForWidth(MySql_Port->sizePolicy().hasHeightForWidth());
-        MySql_Port->setSizePolicy(sizePolicy11);
+        sizePolicy4.setHeightForWidth(MySql_Port->sizePolicy().hasHeightForWidth());
+        MySql_Port->setSizePolicy(sizePolicy4);
 
         horizontalLayout_55->addWidget(MySql_Port);
 
         label_156 = new QLabel(groupBox_MySql);
         label_156->setObjectName(QString::fromUtf8("label_156"));
-        sizePolicy7.setHeightForWidth(label_156->sizePolicy().hasHeightForWidth());
-        label_156->setSizePolicy(sizePolicy7);
+        sizePolicy6.setHeightForWidth(label_156->sizePolicy().hasHeightForWidth());
+        label_156->setSizePolicy(sizePolicy6);
 
         horizontalLayout_55->addWidget(label_156);
 
         MySql_User = new QLineEdit(groupBox_MySql);
         MySql_User->setObjectName(QString::fromUtf8("MySql_User"));
-        sizePolicy11.setHeightForWidth(MySql_User->sizePolicy().hasHeightForWidth());
-        MySql_User->setSizePolicy(sizePolicy11);
+        sizePolicy4.setHeightForWidth(MySql_User->sizePolicy().hasHeightForWidth());
+        MySql_User->setSizePolicy(sizePolicy4);
 
         horizontalLayout_55->addWidget(MySql_User);
 
         label_149 = new QLabel(groupBox_MySql);
         label_149->setObjectName(QString::fromUtf8("label_149"));
+        sizePolicy5.setHeightForWidth(label_149->sizePolicy().hasHeightForWidth());
+        label_149->setSizePolicy(sizePolicy5);
 
         horizontalLayout_55->addWidget(label_149);
 
         MySql_Password = new QLineEdit(groupBox_MySql);
         MySql_Password->setObjectName(QString::fromUtf8("MySql_Password"));
+        sizePolicy4.setHeightForWidth(MySql_Password->sizePolicy().hasHeightForWidth());
+        MySql_Password->setSizePolicy(sizePolicy4);
 
         horizontalLayout_55->addWidget(MySql_Password);
 
         label_148 = new QLabel(groupBox_MySql);
         label_148->setObjectName(QString::fromUtf8("label_148"));
+        sizePolicy5.setHeightForWidth(label_148->sizePolicy().hasHeightForWidth());
+        label_148->setSizePolicy(sizePolicy5);
 
         horizontalLayout_55->addWidget(label_148);
 
         MySql_Database = new QLineEdit(groupBox_MySql);
         MySql_Database->setObjectName(QString::fromUtf8("MySql_Database"));
+        sizePolicy4.setHeightForWidth(MySql_Database->sizePolicy().hasHeightForWidth());
+        MySql_Database->setSizePolicy(sizePolicy4);
 
         horizontalLayout_55->addWidget(MySql_Database);
 
@@ -3699,32 +3912,1366 @@ public:
 
         horizontalLayout_55->addWidget(Pre_Scan_120_MySql_Reconnect);
 
-        horizontalSpacer_31 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-        horizontalLayout_55->addItem(horizontalSpacer_31);
-
-
-        gridLayout_24->addWidget(groupBox_MySql, 5, 0, 1, 1);
-
-        groupBox_Log = new QGroupBox(groupBox_8);
-        groupBox_Log->setObjectName(QString::fromUtf8("groupBox_Log"));
-        verticalLayout_24 = new QVBoxLayout(groupBox_Log);
-        verticalLayout_24->setSpacing(6);
-        verticalLayout_24->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_24->setObjectName(QString::fromUtf8("verticalLayout_24"));
-        Pre_Scan_120_Log = new QTextEdit(groupBox_Log);
-        Pre_Scan_120_Log->setObjectName(QString::fromUtf8("Pre_Scan_120_Log"));
-        Pre_Scan_120_Log->setReadOnly(true);
-
-        verticalLayout_24->addWidget(Pre_Scan_120_Log);
-
-
-        gridLayout_24->addWidget(groupBox_Log, 6, 0, 1, 1);
+        gridLayout_24->addWidget(groupBox_MySql, 3, 0, 1, 1);
 
 
         gridLayout_20->addWidget(groupBox_8, 0, 0, 1, 1);
 
         stackedWidget->addWidget(Pre_Scan_120_Widget);
+        Voice_Widget = new QWidget();
+        Voice_Widget->setObjectName(QString::fromUtf8("Voice_Widget"));
+        gridLayout = new QGridLayout(Voice_Widget);
+        gridLayout->setSpacing(6);
+        gridLayout->setContentsMargins(11, 11, 11, 11);
+        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+        groupBox_Voice_Config = new QGroupBox(Voice_Widget);
+        groupBox_Voice_Config->setObjectName(QString::fromUtf8("groupBox_Voice_Config"));
+        gridLayout_28 = new QGridLayout(groupBox_Voice_Config);
+        gridLayout_28->setSpacing(6);
+        gridLayout_28->setContentsMargins(11, 11, 11, 11);
+        gridLayout_28->setObjectName(QString::fromUtf8("gridLayout_28"));
+        label_Voice_Com = new QLabel(groupBox_Voice_Config);
+        label_Voice_Com->setObjectName(QString::fromUtf8("label_Voice_Com"));
+        sizePolicy5.setHeightForWidth(label_Voice_Com->sizePolicy().hasHeightForWidth());
+        label_Voice_Com->setSizePolicy(sizePolicy5);
+
+        gridLayout_28->addWidget(label_Voice_Com, 0, 0, 1, 1);
+
+        Voice_Com = new QComboBox(groupBox_Voice_Config);
+        Voice_Com->setObjectName(QString::fromUtf8("Voice_Com"));
+        sizePolicy4.setHeightForWidth(Voice_Com->sizePolicy().hasHeightForWidth());
+        Voice_Com->setSizePolicy(sizePolicy4);
+        Voice_Com->setEditable(true);
+
+        gridLayout_28->addWidget(Voice_Com, 0, 1, 1, 1);
+
+        label_Voice_Baud = new QLabel(groupBox_Voice_Config);
+        label_Voice_Baud->setObjectName(QString::fromUtf8("label_Voice_Baud"));
+        sizePolicy5.setHeightForWidth(label_Voice_Baud->sizePolicy().hasHeightForWidth());
+        label_Voice_Baud->setSizePolicy(sizePolicy5);
+
+        gridLayout_28->addWidget(label_Voice_Baud, 0, 2, 1, 1);
+
+        Voice_Baud = new QComboBox(groupBox_Voice_Config);
+        Voice_Baud->addItem(QString());
+        Voice_Baud->addItem(QString());
+        Voice_Baud->addItem(QString());
+        Voice_Baud->addItem(QString());
+        Voice_Baud->setObjectName(QString::fromUtf8("Voice_Baud"));
+        sizePolicy4.setHeightForWidth(Voice_Baud->sizePolicy().hasHeightForWidth());
+        Voice_Baud->setSizePolicy(sizePolicy4);
+
+        gridLayout_28->addWidget(Voice_Baud, 0, 3, 1, 1);
+
+        label_Voice_Addr = new QLabel(groupBox_Voice_Config);
+        label_Voice_Addr->setObjectName(QString::fromUtf8("label_Voice_Addr"));
+        sizePolicy5.setHeightForWidth(label_Voice_Addr->sizePolicy().hasHeightForWidth());
+        label_Voice_Addr->setSizePolicy(sizePolicy5);
+
+        gridLayout_28->addWidget(label_Voice_Addr, 1, 0, 1, 1);
+
+        Voice_Addr = new QSpinBox(groupBox_Voice_Config);
+        Voice_Addr->setObjectName(QString::fromUtf8("Voice_Addr"));
+        sizePolicy4.setHeightForWidth(Voice_Addr->sizePolicy().hasHeightForWidth());
+        Voice_Addr->setSizePolicy(sizePolicy4);
+        Voice_Addr->setMinimum(1);
+        Voice_Addr->setMaximum(255);
+        Voice_Addr->setValue(1);
+
+        gridLayout_28->addWidget(Voice_Addr, 1, 1, 1, 1);
+
+        label_Voice_Connected = new QLabel(groupBox_Voice_Config);
+        label_Voice_Connected->setObjectName(QString::fromUtf8("label_Voice_Connected"));
+        sizePolicy5.setHeightForWidth(label_Voice_Connected->sizePolicy().hasHeightForWidth());
+        label_Voice_Connected->setSizePolicy(sizePolicy5);
+
+        gridLayout_28->addWidget(label_Voice_Connected, 2, 0, 1, 1);
+
+        Voice_Connected = new c_Fr_Light(groupBox_Voice_Config);
+        Voice_Connected->setObjectName(QString::fromUtf8("Voice_Connected"));
+        Voice_Connected->setMinimumSize(QSize(20, 20));
+
+        gridLayout_28->addWidget(Voice_Connected, 2, 1, 1, 1);
+
+        label_Voice_Volume = new QLabel(groupBox_Voice_Config);
+        label_Voice_Volume->setObjectName(QString::fromUtf8("label_Voice_Volume"));
+        sizePolicy5.setHeightForWidth(label_Voice_Volume->sizePolicy().hasHeightForWidth());
+        label_Voice_Volume->setSizePolicy(sizePolicy5);
+
+        gridLayout_28->addWidget(label_Voice_Volume, 2, 2, 1, 1);
+
+        horizontalLayout_46 = new QHBoxLayout();
+        horizontalLayout_46->setSpacing(6);
+        horizontalLayout_46->setObjectName(QString::fromUtf8("horizontalLayout_46"));
+        Voice_Connect = new QPushButton(groupBox_Voice_Config);
+        Voice_Connect->setObjectName(QString::fromUtf8("Voice_Connect"));
+        sizePolicy4.setHeightForWidth(Voice_Connect->sizePolicy().hasHeightForWidth());
+        Voice_Connect->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_46->addWidget(Voice_Connect);
+
+        Voice_Disconnect = new QPushButton(groupBox_Voice_Config);
+        Voice_Disconnect->setObjectName(QString::fromUtf8("Voice_Disconnect"));
+        sizePolicy4.setHeightForWidth(Voice_Disconnect->sizePolicy().hasHeightForWidth());
+        Voice_Disconnect->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_46->addWidget(Voice_Disconnect);
+
+
+        gridLayout_28->addLayout(horizontalLayout_46, 1, 2, 1, 2);
+
+        Voice_Volume_Display = new QLineEdit(groupBox_Voice_Config);
+        Voice_Volume_Display->setObjectName(QString::fromUtf8("Voice_Volume_Display"));
+        sizePolicy4.setHeightForWidth(Voice_Volume_Display->sizePolicy().hasHeightForWidth());
+        Voice_Volume_Display->setSizePolicy(sizePolicy4);
+        Voice_Volume_Display->setReadOnly(true);
+
+        gridLayout_28->addWidget(Voice_Volume_Display, 2, 3, 1, 1);
+
+
+        gridLayout->addWidget(groupBox_Voice_Config, 0, 0, 1, 1);
+
+        groupBox_Voice_Play = new QGroupBox(Voice_Widget);
+        groupBox_Voice_Play->setObjectName(QString::fromUtf8("groupBox_Voice_Play"));
+        sizePolicy8.setHeightForWidth(groupBox_Voice_Play->sizePolicy().hasHeightForWidth());
+        groupBox_Voice_Play->setSizePolicy(sizePolicy8);
+        verticalLayout_Voice_Play = new QVBoxLayout(groupBox_Voice_Play);
+        verticalLayout_Voice_Play->setSpacing(6);
+        verticalLayout_Voice_Play->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_Voice_Play->setObjectName(QString::fromUtf8("verticalLayout_Voice_Play"));
+        gridLayout_Voice_Buttons = new QGridLayout();
+        gridLayout_Voice_Buttons->setSpacing(6);
+        gridLayout_Voice_Buttons->setObjectName(QString::fromUtf8("gridLayout_Voice_Buttons"));
+        btn_Voice_PA001 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA001->setObjectName(QString::fromUtf8("btn_Voice_PA001"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA001->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA001->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA001, 0, 0, 1, 1);
+
+        btn_Voice_PA002 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA002->setObjectName(QString::fromUtf8("btn_Voice_PA002"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA002->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA002->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA002, 0, 1, 1, 1);
+
+        btn_Voice_PA003 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA003->setObjectName(QString::fromUtf8("btn_Voice_PA003"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA003->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA003->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA003, 0, 2, 1, 1);
+
+        btn_Voice_PA004 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA004->setObjectName(QString::fromUtf8("btn_Voice_PA004"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA004->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA004->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA004, 0, 3, 1, 1);
+
+        btn_Voice_PA005 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA005->setObjectName(QString::fromUtf8("btn_Voice_PA005"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA005->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA005->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA005, 0, 4, 1, 1);
+
+        btn_Voice_PA006 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA006->setObjectName(QString::fromUtf8("btn_Voice_PA006"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA006->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA006->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA006, 1, 0, 1, 1);
+
+        btn_Voice_PA007 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA007->setObjectName(QString::fromUtf8("btn_Voice_PA007"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA007->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA007->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA007, 1, 1, 1, 1);
+
+        btn_Voice_PA008 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA008->setObjectName(QString::fromUtf8("btn_Voice_PA008"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA008->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA008->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA008, 1, 2, 1, 1);
+
+        btn_Voice_PA009 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA009->setObjectName(QString::fromUtf8("btn_Voice_PA009"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA009->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA009->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA009, 1, 3, 1, 1);
+
+        btn_Voice_PA010 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA010->setObjectName(QString::fromUtf8("btn_Voice_PA010"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA010->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA010->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA010, 1, 4, 1, 1);
+
+        btn_Voice_PA011 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA011->setObjectName(QString::fromUtf8("btn_Voice_PA011"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA011->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA011->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA011, 2, 0, 1, 1);
+
+        btn_Voice_PA012 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA012->setObjectName(QString::fromUtf8("btn_Voice_PA012"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA012->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA012->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA012, 2, 1, 1, 1);
+
+        btn_Voice_PA013 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA013->setObjectName(QString::fromUtf8("btn_Voice_PA013"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA013->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA013->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA013, 2, 2, 1, 1);
+
+        btn_Voice_PA014 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA014->setObjectName(QString::fromUtf8("btn_Voice_PA014"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA014->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA014->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA014, 2, 3, 1, 1);
+
+        btn_Voice_PA015 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA015->setObjectName(QString::fromUtf8("btn_Voice_PA015"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA015->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA015->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA015, 2, 4, 1, 1);
+
+        btn_Voice_PA016 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA016->setObjectName(QString::fromUtf8("btn_Voice_PA016"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA016->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA016->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA016, 3, 0, 1, 1);
+
+        btn_Voice_PA017 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA017->setObjectName(QString::fromUtf8("btn_Voice_PA017"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA017->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA017->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA017, 3, 1, 1, 1);
+
+        btn_Voice_PA018 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA018->setObjectName(QString::fromUtf8("btn_Voice_PA018"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA018->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA018->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA018, 3, 2, 1, 1);
+
+        btn_Voice_PA019 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA019->setObjectName(QString::fromUtf8("btn_Voice_PA019"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA019->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA019->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA019, 3, 3, 1, 1);
+
+        btn_Voice_PA020 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA020->setObjectName(QString::fromUtf8("btn_Voice_PA020"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA020->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA020->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA020, 3, 4, 1, 1);
+
+        btn_Voice_PA021 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA021->setObjectName(QString::fromUtf8("btn_Voice_PA021"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA021->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA021->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA021, 4, 0, 1, 1);
+
+        btn_Voice_PA022 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA022->setObjectName(QString::fromUtf8("btn_Voice_PA022"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA022->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA022->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA022, 4, 1, 1, 1);
+
+        btn_Voice_PA023 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA023->setObjectName(QString::fromUtf8("btn_Voice_PA023"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA023->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA023->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA023, 4, 2, 1, 1);
+
+        btn_Voice_PA024 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA024->setObjectName(QString::fromUtf8("btn_Voice_PA024"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA024->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA024->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA024, 4, 3, 1, 1);
+
+        btn_Voice_PA025 = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_PA025->setObjectName(QString::fromUtf8("btn_Voice_PA025"));
+        sizePolicy4.setHeightForWidth(btn_Voice_PA025->sizePolicy().hasHeightForWidth());
+        btn_Voice_PA025->setSizePolicy(sizePolicy4);
+
+        gridLayout_Voice_Buttons->addWidget(btn_Voice_PA025, 4, 4, 1, 1);
+
+
+        verticalLayout_Voice_Play->addLayout(gridLayout_Voice_Buttons);
+
+        horizontalLayout_Voice_Ctrl = new QHBoxLayout();
+        horizontalLayout_Voice_Ctrl->setSpacing(6);
+        horizontalLayout_Voice_Ctrl->setObjectName(QString::fromUtf8("horizontalLayout_Voice_Ctrl"));
+        btn_Voice_Stop = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_Stop->setObjectName(QString::fromUtf8("btn_Voice_Stop"));
+        sizePolicy4.setHeightForWidth(btn_Voice_Stop->sizePolicy().hasHeightForWidth());
+        btn_Voice_Stop->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_Voice_Ctrl->addWidget(btn_Voice_Stop);
+
+        btn_Voice_Vol_Low = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_Vol_Low->setObjectName(QString::fromUtf8("btn_Voice_Vol_Low"));
+        sizePolicy4.setHeightForWidth(btn_Voice_Vol_Low->sizePolicy().hasHeightForWidth());
+        btn_Voice_Vol_Low->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_Voice_Ctrl->addWidget(btn_Voice_Vol_Low);
+
+        btn_Voice_Vol_Med = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_Vol_Med->setObjectName(QString::fromUtf8("btn_Voice_Vol_Med"));
+        sizePolicy4.setHeightForWidth(btn_Voice_Vol_Med->sizePolicy().hasHeightForWidth());
+        btn_Voice_Vol_Med->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_Voice_Ctrl->addWidget(btn_Voice_Vol_Med);
+
+        btn_Voice_Vol_High = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_Vol_High->setObjectName(QString::fromUtf8("btn_Voice_Vol_High"));
+        sizePolicy4.setHeightForWidth(btn_Voice_Vol_High->sizePolicy().hasHeightForWidth());
+        btn_Voice_Vol_High->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_Voice_Ctrl->addWidget(btn_Voice_Vol_High);
+
+        btn_Voice_Test = new QPushButton(groupBox_Voice_Play);
+        btn_Voice_Test->setObjectName(QString::fromUtf8("btn_Voice_Test"));
+        sizePolicy4.setHeightForWidth(btn_Voice_Test->sizePolicy().hasHeightForWidth());
+        btn_Voice_Test->setSizePolicy(sizePolicy4);
+
+        horizontalLayout_Voice_Ctrl->addWidget(btn_Voice_Test);
+
+
+        verticalLayout_Voice_Play->addLayout(horizontalLayout_Voice_Ctrl);
+
+
+        gridLayout->addWidget(groupBox_Voice_Play, 0, 1, 2, 1);
+
+        groupBox_Voice_Info = new QGroupBox(Voice_Widget);
+        groupBox_Voice_Info->setObjectName(QString::fromUtf8("groupBox_Voice_Info"));
+        gridLayout_Voice_Info = new QGridLayout(groupBox_Voice_Info);
+        gridLayout_Voice_Info->setSpacing(6);
+        gridLayout_Voice_Info->setContentsMargins(11, 11, 11, 11);
+        gridLayout_Voice_Info->setObjectName(QString::fromUtf8("gridLayout_Voice_Info"));
+        label_Voice_Device_Status = new QLabel(groupBox_Voice_Info);
+        label_Voice_Device_Status->setObjectName(QString::fromUtf8("label_Voice_Device_Status"));
+        sizePolicy5.setHeightForWidth(label_Voice_Device_Status->sizePolicy().hasHeightForWidth());
+        label_Voice_Device_Status->setSizePolicy(sizePolicy5);
+
+        gridLayout_Voice_Info->addWidget(label_Voice_Device_Status, 0, 0, 1, 1);
+
+        Voice_Device_Status = new QLineEdit(groupBox_Voice_Info);
+        Voice_Device_Status->setObjectName(QString::fromUtf8("Voice_Device_Status"));
+        sizePolicy4.setHeightForWidth(Voice_Device_Status->sizePolicy().hasHeightForWidth());
+        Voice_Device_Status->setSizePolicy(sizePolicy4);
+        Voice_Device_Status->setReadOnly(true);
+
+        gridLayout_Voice_Info->addWidget(Voice_Device_Status, 0, 1, 1, 1);
+
+        label_Voice_Current_Audio = new QLabel(groupBox_Voice_Info);
+        label_Voice_Current_Audio->setObjectName(QString::fromUtf8("label_Voice_Current_Audio"));
+        sizePolicy5.setHeightForWidth(label_Voice_Current_Audio->sizePolicy().hasHeightForWidth());
+        label_Voice_Current_Audio->setSizePolicy(sizePolicy5);
+
+        gridLayout_Voice_Info->addWidget(label_Voice_Current_Audio, 1, 0, 1, 1);
+
+        Voice_Current_Audio = new QLineEdit(groupBox_Voice_Info);
+        Voice_Current_Audio->setObjectName(QString::fromUtf8("Voice_Current_Audio"));
+        sizePolicy4.setHeightForWidth(Voice_Current_Audio->sizePolicy().hasHeightForWidth());
+        Voice_Current_Audio->setSizePolicy(sizePolicy4);
+        Voice_Current_Audio->setReadOnly(true);
+
+        gridLayout_Voice_Info->addWidget(Voice_Current_Audio, 1, 1, 1, 1);
+
+        label_Voice_Count = new QLabel(groupBox_Voice_Info);
+        label_Voice_Count->setObjectName(QString::fromUtf8("label_Voice_Count"));
+        sizePolicy5.setHeightForWidth(label_Voice_Count->sizePolicy().hasHeightForWidth());
+        label_Voice_Count->setSizePolicy(sizePolicy5);
+
+        gridLayout_Voice_Info->addWidget(label_Voice_Count, 2, 0, 1, 1);
+
+        Voice_Count = new QLineEdit(groupBox_Voice_Info);
+        Voice_Count->setObjectName(QString::fromUtf8("Voice_Count"));
+        sizePolicy4.setHeightForWidth(Voice_Count->sizePolicy().hasHeightForWidth());
+        Voice_Count->setSizePolicy(sizePolicy4);
+        Voice_Count->setReadOnly(true);
+
+        gridLayout_Voice_Info->addWidget(Voice_Count, 2, 1, 1, 1);
+
+
+        gridLayout->addWidget(groupBox_Voice_Info, 1, 0, 1, 1);
+
+        groupBox_Voice_Log = new QGroupBox(Voice_Widget);
+        groupBox_Voice_Log->setObjectName(QString::fromUtf8("groupBox_Voice_Log"));
+        gridLayout_Voice_Log = new QGridLayout(groupBox_Voice_Log);
+        gridLayout_Voice_Log->setSpacing(6);
+        gridLayout_Voice_Log->setContentsMargins(11, 11, 11, 11);
+        gridLayout_Voice_Log->setObjectName(QString::fromUtf8("gridLayout_Voice_Log"));
+        Voice_Log = new QTableWidget(groupBox_Voice_Log);
+        if (Voice_Log->columnCount() < 3)
+            Voice_Log->setColumnCount(3);
+        QTableWidgetItem *__qtablewidgetitem21 = new QTableWidgetItem();
+        Voice_Log->setHorizontalHeaderItem(0, __qtablewidgetitem21);
+        QTableWidgetItem *__qtablewidgetitem22 = new QTableWidgetItem();
+        Voice_Log->setHorizontalHeaderItem(1, __qtablewidgetitem22);
+        QTableWidgetItem *__qtablewidgetitem23 = new QTableWidgetItem();
+        Voice_Log->setHorizontalHeaderItem(2, __qtablewidgetitem23);
+        Voice_Log->setObjectName(QString::fromUtf8("Voice_Log"));
+        Voice_Log->setColumnCount(3);
+
+        gridLayout_Voice_Log->addWidget(Voice_Log, 0, 0, 1, 1);
+
+
+        gridLayout->addWidget(groupBox_Voice_Log, 2, 0, 1, 2);
+
+        stackedWidget->addWidget(Voice_Widget);
+        IO_Widget = new QWidget();
+        IO_Widget->setObjectName(QString::fromUtf8("IO_Widget"));
+        gridLayout_29 = new QGridLayout(IO_Widget);
+        gridLayout_29->setSpacing(6);
+        gridLayout_29->setContentsMargins(11, 11, 11, 11);
+        gridLayout_29->setObjectName(QString::fromUtf8("gridLayout_29"));
+        groupBox_2 = new QGroupBox(IO_Widget);
+        groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
+        gridLayout_31 = new QGridLayout(groupBox_2);
+        gridLayout_31->setSpacing(6);
+        gridLayout_31->setContentsMargins(11, 11, 11, 11);
+        gridLayout_31->setObjectName(QString::fromUtf8("gridLayout_31"));
+        groupBox_24 = new QGroupBox(groupBox_2);
+        groupBox_24->setObjectName(QString::fromUtf8("groupBox_24"));
+        sizePolicy7.setHeightForWidth(groupBox_24->sizePolicy().hasHeightForWidth());
+        groupBox_24->setSizePolicy(sizePolicy7);
+        gridLayout_30 = new QGridLayout(groupBox_24);
+        gridLayout_30->setSpacing(4);
+        gridLayout_30->setContentsMargins(11, 11, 11, 11);
+        gridLayout_30->setObjectName(QString::fromUtf8("gridLayout_30"));
+        gridLayout_30->setContentsMargins(6, 6, 6, 6);
+        label_274 = new QLabel(groupBox_24);
+        label_274->setObjectName(QString::fromUtf8("label_274"));
+        sizePolicy7.setHeightForWidth(label_274->sizePolicy().hasHeightForWidth());
+        label_274->setSizePolicy(sizePolicy7);
+
+        gridLayout_30->addWidget(label_274, 8, 1, 1, 1);
+
+        label_275 = new QLabel(groupBox_24);
+        label_275->setObjectName(QString::fromUtf8("label_275"));
+        sizePolicy7.setHeightForWidth(label_275->sizePolicy().hasHeightForWidth());
+        label_275->setSizePolicy(sizePolicy7);
+
+        gridLayout_30->addWidget(label_275, 4, 1, 1, 1);
+
+        label_280 = new QLabel(groupBox_24);
+        label_280->setObjectName(QString::fromUtf8("label_280"));
+        sizePolicy7.setHeightForWidth(label_280->sizePolicy().hasHeightForWidth());
+        label_280->setSizePolicy(sizePolicy7);
+
+        gridLayout_30->addWidget(label_280, 9, 1, 1, 1);
+
+        Write_IO_Coils_Addr = new QSpinBox(groupBox_24);
+        Write_IO_Coils_Addr->setObjectName(QString::fromUtf8("Write_IO_Coils_Addr"));
+        sizePolicy4.setHeightForWidth(Write_IO_Coils_Addr->sizePolicy().hasHeightForWidth());
+        Write_IO_Coils_Addr->setSizePolicy(sizePolicy4);
+        Write_IO_Coils_Addr->setMaximum(9999);
+
+        gridLayout_30->addWidget(Write_IO_Coils_Addr, 2, 2, 1, 1);
+
+        label_278 = new QLabel(groupBox_24);
+        label_278->setObjectName(QString::fromUtf8("label_278"));
+        sizePolicy5.setHeightForWidth(label_278->sizePolicy().hasHeightForWidth());
+        label_278->setSizePolicy(sizePolicy5);
+
+        gridLayout_30->addWidget(label_278, 6, 1, 1, 1);
+
+        label_272 = new QLabel(groupBox_24);
+        label_272->setObjectName(QString::fromUtf8("label_272"));
+        sizePolicy5.setHeightForWidth(label_272->sizePolicy().hasHeightForWidth());
+        label_272->setSizePolicy(sizePolicy5);
+
+        gridLayout_30->addWidget(label_272, 7, 1, 1, 1);
+
+        Write_IO_HoldingRegisters_Size = new QSpinBox(groupBox_24);
+        Write_IO_HoldingRegisters_Size->setObjectName(QString::fromUtf8("Write_IO_HoldingRegisters_Size"));
+        sizePolicy4.setHeightForWidth(Write_IO_HoldingRegisters_Size->sizePolicy().hasHeightForWidth());
+        Write_IO_HoldingRegisters_Size->setSizePolicy(sizePolicy4);
+        Write_IO_HoldingRegisters_Size->setMaximum(9999);
+        Write_IO_HoldingRegisters_Size->setValue(4);
+
+        gridLayout_30->addWidget(Write_IO_HoldingRegisters_Size, 9, 2, 1, 1);
+
+        Write_IO_HoldingRegisters_Addr = new QSpinBox(groupBox_24);
+        Write_IO_HoldingRegisters_Addr->setObjectName(QString::fromUtf8("Write_IO_HoldingRegisters_Addr"));
+        sizePolicy4.setHeightForWidth(Write_IO_HoldingRegisters_Addr->sizePolicy().hasHeightForWidth());
+        Write_IO_HoldingRegisters_Addr->setSizePolicy(sizePolicy4);
+        Write_IO_HoldingRegisters_Addr->setMaximum(9999);
+
+        gridLayout_30->addWidget(Write_IO_HoldingRegisters_Addr, 8, 2, 1, 1);
+
+        Read_IO_InputRegisters_Addr = new QSpinBox(groupBox_24);
+        Read_IO_InputRegisters_Addr->setObjectName(QString::fromUtf8("Read_IO_InputRegisters_Addr"));
+        sizePolicy4.setHeightForWidth(Read_IO_InputRegisters_Addr->sizePolicy().hasHeightForWidth());
+        Read_IO_InputRegisters_Addr->setSizePolicy(sizePolicy4);
+        Read_IO_InputRegisters_Addr->setMaximum(9999);
+
+        gridLayout_30->addWidget(Read_IO_InputRegisters_Addr, 6, 2, 1, 1);
+
+        label_281 = new QLabel(groupBox_24);
+        label_281->setObjectName(QString::fromUtf8("label_281"));
+        sizePolicy5.setHeightForWidth(label_281->sizePolicy().hasHeightForWidth());
+        label_281->setSizePolicy(sizePolicy5);
+
+        gridLayout_30->addWidget(label_281, 2, 1, 1, 1);
+
+        Read_IO_DiscreteInputs_Size = new QSpinBox(groupBox_24);
+        Read_IO_DiscreteInputs_Size->setObjectName(QString::fromUtf8("Read_IO_DiscreteInputs_Size"));
+        sizePolicy4.setHeightForWidth(Read_IO_DiscreteInputs_Size->sizePolicy().hasHeightForWidth());
+        Read_IO_DiscreteInputs_Size->setSizePolicy(sizePolicy4);
+        Read_IO_DiscreteInputs_Size->setMaximum(9999);
+        Read_IO_DiscreteInputs_Size->setValue(16);
+
+        gridLayout_30->addWidget(Read_IO_DiscreteInputs_Size, 5, 2, 1, 1);
+
+        label_139 = new QLabel(groupBox_24);
+        label_139->setObjectName(QString::fromUtf8("label_139"));
+        sizePolicy4.setHeightForWidth(label_139->sizePolicy().hasHeightForWidth());
+        label_139->setSizePolicy(sizePolicy4);
+
+        gridLayout_30->addWidget(label_139, 0, 1, 1, 1);
+
+        label_273 = new QLabel(groupBox_24);
+        label_273->setObjectName(QString::fromUtf8("label_273"));
+        sizePolicy5.setHeightForWidth(label_273->sizePolicy().hasHeightForWidth());
+        label_273->setSizePolicy(sizePolicy5);
+
+        gridLayout_30->addWidget(label_273, 3, 1, 1, 1);
+
+        label_277 = new QLabel(groupBox_24);
+        label_277->setObjectName(QString::fromUtf8("label_277"));
+        sizePolicy7.setHeightForWidth(label_277->sizePolicy().hasHeightForWidth());
+        label_277->setSizePolicy(sizePolicy7);
+
+        gridLayout_30->addWidget(label_277, 5, 1, 1, 1);
+
+        Write_IO_Coils_Size = new QSpinBox(groupBox_24);
+        Write_IO_Coils_Size->setObjectName(QString::fromUtf8("Write_IO_Coils_Size"));
+        sizePolicy4.setHeightForWidth(Write_IO_Coils_Size->sizePolicy().hasHeightForWidth());
+        Write_IO_Coils_Size->setSizePolicy(sizePolicy4);
+        Write_IO_Coils_Size->setMaximum(9999);
+        Write_IO_Coils_Size->setValue(16);
+
+        gridLayout_30->addWidget(Write_IO_Coils_Size, 3, 2, 1, 1);
+
+        Read_IO_InputRegisters_Size = new QSpinBox(groupBox_24);
+        Read_IO_InputRegisters_Size->setObjectName(QString::fromUtf8("Read_IO_InputRegisters_Size"));
+        sizePolicy4.setHeightForWidth(Read_IO_InputRegisters_Size->sizePolicy().hasHeightForWidth());
+        Read_IO_InputRegisters_Size->setSizePolicy(sizePolicy4);
+        Read_IO_InputRegisters_Size->setMaximum(9999);
+        Read_IO_InputRegisters_Size->setValue(0);
+
+        gridLayout_30->addWidget(Read_IO_InputRegisters_Size, 7, 2, 1, 1);
+
+        Read_IO_DiscreteInputs_Addr = new QSpinBox(groupBox_24);
+        Read_IO_DiscreteInputs_Addr->setObjectName(QString::fromUtf8("Read_IO_DiscreteInputs_Addr"));
+        sizePolicy4.setHeightForWidth(Read_IO_DiscreteInputs_Addr->sizePolicy().hasHeightForWidth());
+        Read_IO_DiscreteInputs_Addr->setSizePolicy(sizePolicy4);
+        Read_IO_DiscreteInputs_Addr->setMaximum(9999);
+
+        gridLayout_30->addWidget(Read_IO_DiscreteInputs_Addr, 4, 2, 1, 1);
+
+        label_122 = new QLabel(groupBox_24);
+        label_122->setObjectName(QString::fromUtf8("label_122"));
+        sizePolicy4.setHeightForWidth(label_122->sizePolicy().hasHeightForWidth());
+        label_122->setSizePolicy(sizePolicy4);
+
+        gridLayout_30->addWidget(label_122, 1, 1, 1, 1);
+
+        IO_Ip = new QLineEdit(groupBox_24);
+        IO_Ip->setObjectName(QString::fromUtf8("IO_Ip"));
+        sizePolicy9.setHeightForWidth(IO_Ip->sizePolicy().hasHeightForWidth());
+        IO_Ip->setSizePolicy(sizePolicy9);
+
+        gridLayout_30->addWidget(IO_Ip, 0, 2, 1, 1);
+
+        IO_Port = new QLineEdit(groupBox_24);
+        IO_Port->setObjectName(QString::fromUtf8("IO_Port"));
+        sizePolicy9.setHeightForWidth(IO_Port->sizePolicy().hasHeightForWidth());
+        IO_Port->setSizePolicy(sizePolicy9);
+
+        gridLayout_30->addWidget(IO_Port, 1, 2, 1, 1);
+
+
+        gridLayout_31->addWidget(groupBox_24, 0, 0, 1, 1);
+
+        groupBox_IO_Connect = new QGroupBox(groupBox_2);
+        groupBox_IO_Connect->setObjectName(QString::fromUtf8("groupBox_IO_Connect"));
+        sizePolicy.setHeightForWidth(groupBox_IO_Connect->sizePolicy().hasHeightForWidth());
+        groupBox_IO_Connect->setSizePolicy(sizePolicy);
+        gridLayout_32 = new QGridLayout(groupBox_IO_Connect);
+        gridLayout_32->setSpacing(6);
+        gridLayout_32->setContentsMargins(11, 11, 11, 11);
+        gridLayout_32->setObjectName(QString::fromUtf8("gridLayout_32"));
+        label_25 = new QLabel(groupBox_IO_Connect);
+        label_25->setObjectName(QString::fromUtf8("label_25"));
+
+        gridLayout_32->addWidget(label_25, 0, 0, 1, 1);
+
+        IO_Connected = new c_Fr_Light(groupBox_IO_Connect);
+        IO_Connected->setObjectName(QString::fromUtf8("IO_Connected"));
+        IO_Connected->setMinimumSize(QSize(20, 20));
+
+        gridLayout_32->addWidget(IO_Connected, 0, 1, 1, 1);
+
+        label_24 = new QLabel(groupBox_IO_Connect);
+        label_24->setObjectName(QString::fromUtf8("label_24"));
+
+        gridLayout_32->addWidget(label_24, 0, 2, 1, 1);
+
+        IO_Ready = new c_Fr_Light(groupBox_IO_Connect);
+        IO_Ready->setObjectName(QString::fromUtf8("IO_Ready"));
+        IO_Ready->setMinimumSize(QSize(20, 20));
+
+        gridLayout_32->addWidget(IO_Ready, 0, 3, 1, 1);
+
+        IO_Connect = new QPushButton(groupBox_IO_Connect);
+        IO_Connect->setObjectName(QString::fromUtf8("IO_Connect"));
+        IO_Connect->setMinimumSize(QSize(80, 0));
+
+        gridLayout_32->addWidget(IO_Connect, 0, 4, 1, 1);
+
+        IO_Disconnect = new QPushButton(groupBox_IO_Connect);
+        IO_Disconnect->setObjectName(QString::fromUtf8("IO_Disconnect"));
+        IO_Disconnect->setMinimumSize(QSize(80, 0));
+
+        gridLayout_32->addWidget(IO_Disconnect, 0, 5, 1, 1);
+
+
+        gridLayout_31->addWidget(groupBox_IO_Connect, 1, 0, 1, 1);
+
+        groupBox_IO_DI = new QGroupBox(groupBox_2);
+        groupBox_IO_DI->setObjectName(QString::fromUtf8("groupBox_IO_DI"));
+        QSizePolicy sizePolicy10(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy10.setHorizontalStretch(1);
+        sizePolicy10.setVerticalStretch(1);
+        sizePolicy10.setHeightForWidth(groupBox_IO_DI->sizePolicy().hasHeightForWidth());
+        groupBox_IO_DI->setSizePolicy(sizePolicy10);
+        verticalLayout_IO_DI = new QVBoxLayout(groupBox_IO_DI);
+        verticalLayout_IO_DI->setSpacing(6);
+        verticalLayout_IO_DI->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_IO_DI->setObjectName(QString::fromUtf8("verticalLayout_IO_DI"));
+        tableWidget_IO_DI = new QTableWidget(groupBox_IO_DI);
+        if (tableWidget_IO_DI->columnCount() < 3)
+            tableWidget_IO_DI->setColumnCount(3);
+        QTableWidgetItem *__qtablewidgetitem24 = new QTableWidgetItem();
+        tableWidget_IO_DI->setHorizontalHeaderItem(0, __qtablewidgetitem24);
+        QTableWidgetItem *__qtablewidgetitem25 = new QTableWidgetItem();
+        tableWidget_IO_DI->setHorizontalHeaderItem(1, __qtablewidgetitem25);
+        QTableWidgetItem *__qtablewidgetitem26 = new QTableWidgetItem();
+        tableWidget_IO_DI->setHorizontalHeaderItem(2, __qtablewidgetitem26);
+        if (tableWidget_IO_DI->rowCount() < 16)
+            tableWidget_IO_DI->setRowCount(16);
+        tableWidget_IO_DI->setObjectName(QString::fromUtf8("tableWidget_IO_DI"));
+        tableWidget_IO_DI->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        tableWidget_IO_DI->setAlternatingRowColors(true);
+        tableWidget_IO_DI->setSelectionMode(QAbstractItemView::NoSelection);
+        tableWidget_IO_DI->setRowCount(16);
+        tableWidget_IO_DI->setColumnCount(3);
+        tableWidget_IO_DI->horizontalHeader()->setStretchLastSection(true);
+        tableWidget_IO_DI->verticalHeader()->setVisible(false);
+
+        verticalLayout_IO_DI->addWidget(tableWidget_IO_DI);
+
+
+        gridLayout_31->addWidget(groupBox_IO_DI, 0, 1, 6, 1);
+
+        groupBox_IO_AO = new QGroupBox(groupBox_2);
+        groupBox_IO_AO->setObjectName(QString::fromUtf8("groupBox_IO_AO"));
+        sizePolicy.setHeightForWidth(groupBox_IO_AO->sizePolicy().hasHeightForWidth());
+        groupBox_IO_AO->setSizePolicy(sizePolicy);
+        gridLayout_IO_AO = new QGridLayout(groupBox_IO_AO);
+        gridLayout_IO_AO->setSpacing(6);
+        gridLayout_IO_AO->setContentsMargins(11, 11, 11, 11);
+        gridLayout_IO_AO->setObjectName(QString::fromUtf8("gridLayout_IO_AO"));
+        label_IO_AO_1 = new QLabel(groupBox_IO_AO);
+        label_IO_AO_1->setObjectName(QString::fromUtf8("label_IO_AO_1"));
+
+        gridLayout_IO_AO->addWidget(label_IO_AO_1, 0, 0, 1, 1);
+
+        Spin_IO_AO_1 = new QSpinBox(groupBox_IO_AO);
+        Spin_IO_AO_1->setObjectName(QString::fromUtf8("Spin_IO_AO_1"));
+        Spin_IO_AO_1->setMaximum(65535);
+
+        gridLayout_IO_AO->addWidget(Spin_IO_AO_1, 0, 1, 1, 1);
+
+        btn_IO_AO_Set_1 = new QPushButton(groupBox_IO_AO);
+        btn_IO_AO_Set_1->setObjectName(QString::fromUtf8("btn_IO_AO_Set_1"));
+        btn_IO_AO_Set_1->setMinimumSize(QSize(60, 0));
+
+        gridLayout_IO_AO->addWidget(btn_IO_AO_Set_1, 0, 2, 1, 1);
+
+        label_IO_AO_2 = new QLabel(groupBox_IO_AO);
+        label_IO_AO_2->setObjectName(QString::fromUtf8("label_IO_AO_2"));
+
+        gridLayout_IO_AO->addWidget(label_IO_AO_2, 1, 0, 1, 1);
+
+        Spin_IO_AO_2 = new QSpinBox(groupBox_IO_AO);
+        Spin_IO_AO_2->setObjectName(QString::fromUtf8("Spin_IO_AO_2"));
+        Spin_IO_AO_2->setMaximum(65535);
+
+        gridLayout_IO_AO->addWidget(Spin_IO_AO_2, 1, 1, 1, 1);
+
+        btn_IO_AO_Set_2 = new QPushButton(groupBox_IO_AO);
+        btn_IO_AO_Set_2->setObjectName(QString::fromUtf8("btn_IO_AO_Set_2"));
+        btn_IO_AO_Set_2->setMinimumSize(QSize(60, 0));
+
+        gridLayout_IO_AO->addWidget(btn_IO_AO_Set_2, 1, 2, 1, 1);
+
+        label_IO_AO_3 = new QLabel(groupBox_IO_AO);
+        label_IO_AO_3->setObjectName(QString::fromUtf8("label_IO_AO_3"));
+
+        gridLayout_IO_AO->addWidget(label_IO_AO_3, 2, 0, 1, 1);
+
+        Spin_IO_AO_3 = new QSpinBox(groupBox_IO_AO);
+        Spin_IO_AO_3->setObjectName(QString::fromUtf8("Spin_IO_AO_3"));
+        Spin_IO_AO_3->setMaximum(65535);
+
+        gridLayout_IO_AO->addWidget(Spin_IO_AO_3, 2, 1, 1, 1);
+
+        btn_IO_AO_Set_3 = new QPushButton(groupBox_IO_AO);
+        btn_IO_AO_Set_3->setObjectName(QString::fromUtf8("btn_IO_AO_Set_3"));
+        btn_IO_AO_Set_3->setMinimumSize(QSize(60, 0));
+
+        gridLayout_IO_AO->addWidget(btn_IO_AO_Set_3, 2, 2, 1, 1);
+
+        label_IO_AO_4 = new QLabel(groupBox_IO_AO);
+        label_IO_AO_4->setObjectName(QString::fromUtf8("label_IO_AO_4"));
+
+        gridLayout_IO_AO->addWidget(label_IO_AO_4, 3, 0, 1, 1);
+
+        Spin_IO_AO_4 = new QSpinBox(groupBox_IO_AO);
+        Spin_IO_AO_4->setObjectName(QString::fromUtf8("Spin_IO_AO_4"));
+        Spin_IO_AO_4->setMaximum(65535);
+
+        gridLayout_IO_AO->addWidget(Spin_IO_AO_4, 3, 1, 1, 1);
+
+        btn_IO_AO_Set_4 = new QPushButton(groupBox_IO_AO);
+        btn_IO_AO_Set_4->setObjectName(QString::fromUtf8("btn_IO_AO_Set_4"));
+        btn_IO_AO_Set_4->setMinimumSize(QSize(60, 0));
+
+        gridLayout_IO_AO->addWidget(btn_IO_AO_Set_4, 3, 2, 1, 1);
+
+
+        gridLayout_31->addWidget(groupBox_IO_AO, 2, 0, 1, 1);
+
+        groupBox_IO_DO = new QGroupBox(groupBox_2);
+        groupBox_IO_DO->setObjectName(QString::fromUtf8("groupBox_IO_DO"));
+        sizePolicy.setHeightForWidth(groupBox_IO_DO->sizePolicy().hasHeightForWidth());
+        groupBox_IO_DO->setSizePolicy(sizePolicy);
+        horizontalLayout_IO_DO = new QHBoxLayout(groupBox_IO_DO);
+        horizontalLayout_IO_DO->setSpacing(6);
+        horizontalLayout_IO_DO->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_IO_DO->setObjectName(QString::fromUtf8("horizontalLayout_IO_DO"));
+        btn_IO_AlarmRed_ON = new QPushButton(groupBox_IO_DO);
+        btn_IO_AlarmRed_ON->setObjectName(QString::fromUtf8("btn_IO_AlarmRed_ON"));
+
+        horizontalLayout_IO_DO->addWidget(btn_IO_AlarmRed_ON);
+
+        btn_IO_AlarmRed_OFF = new QPushButton(groupBox_IO_DO);
+        btn_IO_AlarmRed_OFF->setObjectName(QString::fromUtf8("btn_IO_AlarmRed_OFF"));
+
+        horizontalLayout_IO_DO->addWidget(btn_IO_AlarmRed_OFF);
+
+        btn_IO_AlarmYellow_ON = new QPushButton(groupBox_IO_DO);
+        btn_IO_AlarmYellow_ON->setObjectName(QString::fromUtf8("btn_IO_AlarmYellow_ON"));
+
+        horizontalLayout_IO_DO->addWidget(btn_IO_AlarmYellow_ON);
+
+        btn_IO_AlarmYellow_OFF = new QPushButton(groupBox_IO_DO);
+        btn_IO_AlarmYellow_OFF->setObjectName(QString::fromUtf8("btn_IO_AlarmYellow_OFF"));
+
+        horizontalLayout_IO_DO->addWidget(btn_IO_AlarmYellow_OFF);
+
+        btn_IO_AlarmGreen_ON = new QPushButton(groupBox_IO_DO);
+        btn_IO_AlarmGreen_ON->setObjectName(QString::fromUtf8("btn_IO_AlarmGreen_ON"));
+
+        horizontalLayout_IO_DO->addWidget(btn_IO_AlarmGreen_ON);
+
+        btn_IO_AlarmGreen_OFF = new QPushButton(groupBox_IO_DO);
+        btn_IO_AlarmGreen_OFF->setObjectName(QString::fromUtf8("btn_IO_AlarmGreen_OFF"));
+
+        horizontalLayout_IO_DO->addWidget(btn_IO_AlarmGreen_OFF);
+
+        btn_IO_Fan_ON = new QPushButton(groupBox_IO_DO);
+        btn_IO_Fan_ON->setObjectName(QString::fromUtf8("btn_IO_Fan_ON"));
+
+        horizontalLayout_IO_DO->addWidget(btn_IO_Fan_ON);
+
+        btn_IO_Fan_OFF = new QPushButton(groupBox_IO_DO);
+        btn_IO_Fan_OFF->setObjectName(QString::fromUtf8("btn_IO_Fan_OFF"));
+
+        horizontalLayout_IO_DO->addWidget(btn_IO_Fan_OFF);
+
+
+        gridLayout_31->addWidget(groupBox_IO_DO, 3, 0, 1, 1);
+
+        groupBox_10 = new QGroupBox(groupBox_2);
+        groupBox_10->setObjectName(QString::fromUtf8("groupBox_10"));
+        QSizePolicy sizePolicy11(QSizePolicy::Preferred, QSizePolicy::Expanding);
+        sizePolicy11.setHorizontalStretch(0);
+        sizePolicy11.setVerticalStretch(1);
+        sizePolicy11.setHeightForWidth(groupBox_10->sizePolicy().hasHeightForWidth());
+        groupBox_10->setSizePolicy(sizePolicy11);
+        gridLayout_33 = new QGridLayout(groupBox_10);
+        gridLayout_33->setSpacing(6);
+        gridLayout_33->setContentsMargins(11, 11, 11, 11);
+        gridLayout_33->setObjectName(QString::fromUtf8("gridLayout_33"));
+        IO_Log = new QTextBrowser(groupBox_10);
+        IO_Log->setObjectName(QString::fromUtf8("IO_Log"));
+
+        gridLayout_33->addWidget(IO_Log, 0, 0, 1, 1);
+
+
+        gridLayout_31->addWidget(groupBox_10, 4, 0, 2, 1);
+
+
+        gridLayout_29->addWidget(groupBox_2, 0, 0, 1, 1);
+
+        stackedWidget->addWidget(IO_Widget);
+        Work_Widget = new QWidget();
+        Work_Widget->setObjectName(QString::fromUtf8("Work_Widget"));
+        gridLayout_27 = new QGridLayout(Work_Widget);
+        gridLayout_27->setSpacing(6);
+        gridLayout_27->setContentsMargins(11, 11, 11, 11);
+        gridLayout_27->setObjectName(QString::fromUtf8("gridLayout_27"));
+        Work_TopRow = new QHBoxLayout();
+        Work_TopRow->setSpacing(6);
+        Work_TopRow->setObjectName(QString::fromUtf8("Work_TopRow"));
+        Work_ServerGroup = new QGroupBox(Work_Widget);
+        Work_ServerGroup->setObjectName(QString::fromUtf8("Work_ServerGroup"));
+        sizePolicy.setHeightForWidth(Work_ServerGroup->sizePolicy().hasHeightForWidth());
+        Work_ServerGroup->setSizePolicy(sizePolicy);
+        Work_ServerLayout = new QHBoxLayout(Work_ServerGroup);
+        Work_ServerLayout->setSpacing(6);
+        Work_ServerLayout->setContentsMargins(11, 11, 11, 11);
+        Work_ServerLayout->setObjectName(QString::fromUtf8("Work_ServerLayout"));
+        label_Work_Client = new QLabel(Work_ServerGroup);
+        label_Work_Client->setObjectName(QString::fromUtf8("label_Work_Client"));
+        sizePolicy5.setHeightForWidth(label_Work_Client->sizePolicy().hasHeightForWidth());
+        label_Work_Client->setSizePolicy(sizePolicy5);
+
+        Work_ServerLayout->addWidget(label_Work_Client);
+
+        Work_Client_Light = new c_Fr_Light(Work_ServerGroup);
+        Work_Client_Light->setObjectName(QString::fromUtf8("Work_Client_Light"));
+        sizePolicy2.setHeightForWidth(Work_Client_Light->sizePolicy().hasHeightForWidth());
+        Work_Client_Light->setSizePolicy(sizePolicy2);
+        Work_Client_Light->setMinimumSize(QSize(20, 20));
+
+        Work_ServerLayout->addWidget(Work_Client_Light);
+
+        label_Work_Listen = new QLabel(Work_ServerGroup);
+        label_Work_Listen->setObjectName(QString::fromUtf8("label_Work_Listen"));
+        sizePolicy5.setHeightForWidth(label_Work_Listen->sizePolicy().hasHeightForWidth());
+        label_Work_Listen->setSizePolicy(sizePolicy5);
+
+        Work_ServerLayout->addWidget(label_Work_Listen);
+
+        Work_Listen_Light = new c_Fr_Light(Work_ServerGroup);
+        Work_Listen_Light->setObjectName(QString::fromUtf8("Work_Listen_Light"));
+        sizePolicy2.setHeightForWidth(Work_Listen_Light->sizePolicy().hasHeightForWidth());
+        Work_Listen_Light->setSizePolicy(sizePolicy2);
+        Work_Listen_Light->setMinimumSize(QSize(20, 20));
+
+        Work_ServerLayout->addWidget(Work_Listen_Light);
+
+        label_Work_ConnNum = new QLabel(Work_ServerGroup);
+        label_Work_ConnNum->setObjectName(QString::fromUtf8("label_Work_ConnNum"));
+        sizePolicy5.setHeightForWidth(label_Work_ConnNum->sizePolicy().hasHeightForWidth());
+        label_Work_ConnNum->setSizePolicy(sizePolicy5);
+
+        Work_ServerLayout->addWidget(label_Work_ConnNum);
+
+        Work_Client_Num = new QLineEdit(Work_ServerGroup);
+        Work_Client_Num->setObjectName(QString::fromUtf8("Work_Client_Num"));
+        sizePolicy2.setHeightForWidth(Work_Client_Num->sizePolicy().hasHeightForWidth());
+        Work_Client_Num->setSizePolicy(sizePolicy2);
+        Work_Client_Num->setReadOnly(true);
+
+        Work_ServerLayout->addWidget(Work_Client_Num);
+
+        label_Work_Port = new QLabel(Work_ServerGroup);
+        label_Work_Port->setObjectName(QString::fromUtf8("label_Work_Port"));
+        sizePolicy5.setHeightForWidth(label_Work_Port->sizePolicy().hasHeightForWidth());
+        label_Work_Port->setSizePolicy(sizePolicy5);
+
+        Work_ServerLayout->addWidget(label_Work_Port);
+
+        Work_Port = new QLineEdit(Work_ServerGroup);
+        Work_Port->setObjectName(QString::fromUtf8("Work_Port"));
+        sizePolicy2.setHeightForWidth(Work_Port->sizePolicy().hasHeightForWidth());
+        Work_Port->setSizePolicy(sizePolicy2);
+        Work_Port->setReadOnly(true);
+
+        Work_ServerLayout->addWidget(Work_Port);
+
+        label_Work_Checksum = new QLabel(Work_ServerGroup);
+        label_Work_Checksum->setObjectName(QString::fromUtf8("label_Work_Checksum"));
+        sizePolicy5.setHeightForWidth(label_Work_Checksum->sizePolicy().hasHeightForWidth());
+        label_Work_Checksum->setSizePolicy(sizePolicy5);
+
+        Work_ServerLayout->addWidget(label_Work_Checksum);
+
+        Work_Checksum = new QLineEdit(Work_ServerGroup);
+        Work_Checksum->setObjectName(QString::fromUtf8("Work_Checksum"));
+        sizePolicy.setHeightForWidth(Work_Checksum->sizePolicy().hasHeightForWidth());
+        Work_Checksum->setSizePolicy(sizePolicy);
+        Work_Checksum->setReadOnly(true);
+
+        Work_ServerLayout->addWidget(Work_Checksum);
+
+
+        Work_TopRow->addWidget(Work_ServerGroup);
+
+
+        gridLayout_27->addLayout(Work_TopRow, 0, 0, 1, 1);
+
+        Work_FlowRow = new QHBoxLayout();
+        Work_FlowRow->setSpacing(6);
+        Work_FlowRow->setObjectName(QString::fromUtf8("Work_FlowRow"));
+        Work_FlowGroup = new QGroupBox(Work_Widget);
+        Work_FlowGroup->setObjectName(QString::fromUtf8("Work_FlowGroup"));
+        sizePolicy.setHeightForWidth(Work_FlowGroup->sizePolicy().hasHeightForWidth());
+        Work_FlowGroup->setSizePolicy(sizePolicy);
+        Work_FlowLayout = new QHBoxLayout(Work_FlowGroup);
+        Work_FlowLayout->setSpacing(6);
+        Work_FlowLayout->setContentsMargins(11, 11, 11, 11);
+        Work_FlowLayout->setObjectName(QString::fromUtf8("Work_FlowLayout"));
+        label_Work_FlowState = new QLabel(Work_FlowGroup);
+        label_Work_FlowState->setObjectName(QString::fromUtf8("label_Work_FlowState"));
+
+        Work_FlowLayout->addWidget(label_Work_FlowState);
+
+        Work_Flow_State = new QLineEdit(Work_FlowGroup);
+        Work_Flow_State->setObjectName(QString::fromUtf8("Work_Flow_State"));
+        Work_Flow_State->setAlignment(Qt::AlignCenter);
+        Work_Flow_State->setReadOnly(true);
+
+        Work_FlowLayout->addWidget(Work_Flow_State);
+
+        Work_Flow_Desc = new QLineEdit(Work_FlowGroup);
+        Work_Flow_Desc->setObjectName(QString::fromUtf8("Work_Flow_Desc"));
+        Work_Flow_Desc->setReadOnly(true);
+
+        Work_FlowLayout->addWidget(Work_Flow_Desc);
+
+        Work_Btn_Start = new QPushButton(Work_FlowGroup);
+        Work_Btn_Start->setObjectName(QString::fromUtf8("Work_Btn_Start"));
+        Work_Btn_Start->setStyleSheet(QString::fromUtf8("background-color: #4CAF50; color: white; font-weight: bold;"));
+
+        Work_FlowLayout->addWidget(Work_Btn_Start);
+
+        Work_Btn_Pause = new QPushButton(Work_FlowGroup);
+        Work_Btn_Pause->setObjectName(QString::fromUtf8("Work_Btn_Pause"));
+        Work_Btn_Pause->setStyleSheet(QString::fromUtf8("background-color: #FF9800; color: white;"));
+
+        Work_FlowLayout->addWidget(Work_Btn_Pause);
+
+        Work_Btn_Resume = new QPushButton(Work_FlowGroup);
+        Work_Btn_Resume->setObjectName(QString::fromUtf8("Work_Btn_Resume"));
+        Work_Btn_Resume->setStyleSheet(QString::fromUtf8("background-color: #2196F3; color: white;"));
+
+        Work_FlowLayout->addWidget(Work_Btn_Resume);
+
+        Work_Btn_Cancel = new QPushButton(Work_FlowGroup);
+        Work_Btn_Cancel->setObjectName(QString::fromUtf8("Work_Btn_Cancel"));
+
+        Work_FlowLayout->addWidget(Work_Btn_Cancel);
+
+        Work_Btn_Stop = new QPushButton(Work_FlowGroup);
+        Work_Btn_Stop->setObjectName(QString::fromUtf8("Work_Btn_Stop"));
+        Work_Btn_Stop->setStyleSheet(QString::fromUtf8("background-color: #F44336; color: white; font-weight: bold;"));
+
+        Work_FlowLayout->addWidget(Work_Btn_Stop);
+
+        Work_Btn_Home = new QPushButton(Work_FlowGroup);
+        Work_Btn_Home->setObjectName(QString::fromUtf8("Work_Btn_Home"));
+
+        Work_FlowLayout->addWidget(Work_Btn_Home);
+
+
+        Work_FlowRow->addWidget(Work_FlowGroup);
+
+
+        gridLayout_27->addLayout(Work_FlowRow, 1, 0, 1, 1);
+
+        Work_StatusRow = new QHBoxLayout();
+        Work_StatusRow->setSpacing(6);
+        Work_StatusRow->setObjectName(QString::fromUtf8("Work_StatusRow"));
+        Work_SubsysGroup = new QGroupBox(Work_Widget);
+        Work_SubsysGroup->setObjectName(QString::fromUtf8("Work_SubsysGroup"));
+        sizePolicy.setHeightForWidth(Work_SubsysGroup->sizePolicy().hasHeightForWidth());
+        Work_SubsysGroup->setSizePolicy(sizePolicy);
+        Work_SubsysLayout = new QHBoxLayout(Work_SubsysGroup);
+        Work_SubsysLayout->setSpacing(6);
+        Work_SubsysLayout->setContentsMargins(11, 11, 11, 11);
+        Work_SubsysLayout->setObjectName(QString::fromUtf8("Work_SubsysLayout"));
+        label_Work_Arm = new QLabel(Work_SubsysGroup);
+        label_Work_Arm->setObjectName(QString::fromUtf8("label_Work_Arm"));
+
+        Work_SubsysLayout->addWidget(label_Work_Arm);
+
+        Work_Arm_Light = new c_Fr_Light(Work_SubsysGroup);
+        Work_Arm_Light->setObjectName(QString::fromUtf8("Work_Arm_Light"));
+        sizePolicy2.setHeightForWidth(Work_Arm_Light->sizePolicy().hasHeightForWidth());
+        Work_Arm_Light->setSizePolicy(sizePolicy2);
+        Work_Arm_Light->setMinimumSize(QSize(20, 20));
+
+        Work_SubsysLayout->addWidget(Work_Arm_Light);
+
+        label_Work_Chassis = new QLabel(Work_SubsysGroup);
+        label_Work_Chassis->setObjectName(QString::fromUtf8("label_Work_Chassis"));
+
+        Work_SubsysLayout->addWidget(label_Work_Chassis);
+
+        Work_Chassis_Light = new c_Fr_Light(Work_SubsysGroup);
+        Work_Chassis_Light->setObjectName(QString::fromUtf8("Work_Chassis_Light"));
+        sizePolicy2.setHeightForWidth(Work_Chassis_Light->sizePolicy().hasHeightForWidth());
+        Work_Chassis_Light->setSizePolicy(sizePolicy2);
+        Work_Chassis_Light->setMinimumSize(QSize(20, 20));
+
+        Work_SubsysLayout->addWidget(Work_Chassis_Light);
+
+        label_Work_Camera = new QLabel(Work_SubsysGroup);
+        label_Work_Camera->setObjectName(QString::fromUtf8("label_Work_Camera"));
+
+        Work_SubsysLayout->addWidget(label_Work_Camera);
+
+        Work_Camera_Light = new c_Fr_Light(Work_SubsysGroup);
+        Work_Camera_Light->setObjectName(QString::fromUtf8("Work_Camera_Light"));
+        sizePolicy2.setHeightForWidth(Work_Camera_Light->sizePolicy().hasHeightForWidth());
+        Work_Camera_Light->setSizePolicy(sizePolicy2);
+        Work_Camera_Light->setMinimumSize(QSize(20, 20));
+
+        Work_SubsysLayout->addWidget(Work_Camera_Light);
+
+        label_Work_Server = new QLabel(Work_SubsysGroup);
+        label_Work_Server->setObjectName(QString::fromUtf8("label_Work_Server"));
+
+        Work_SubsysLayout->addWidget(label_Work_Server);
+
+        Work_Server_Light = new c_Fr_Light(Work_SubsysGroup);
+        Work_Server_Light->setObjectName(QString::fromUtf8("Work_Server_Light"));
+        sizePolicy2.setHeightForWidth(Work_Server_Light->sizePolicy().hasHeightForWidth());
+        Work_Server_Light->setSizePolicy(sizePolicy2);
+        Work_Server_Light->setMinimumSize(QSize(20, 20));
+
+        Work_SubsysLayout->addWidget(Work_Server_Light);
+
+        Work_SubsysSpacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        Work_SubsysLayout->addItem(Work_SubsysSpacer);
+
+
+        Work_StatusRow->addWidget(Work_SubsysGroup);
+
+
+        gridLayout_27->addLayout(Work_StatusRow, 2, 0, 1, 1);
+
+        Work_TaskGroup = new QGroupBox(Work_Widget);
+        Work_TaskGroup->setObjectName(QString::fromUtf8("Work_TaskGroup"));
+        sizePolicy.setHeightForWidth(Work_TaskGroup->sizePolicy().hasHeightForWidth());
+        Work_TaskGroup->setSizePolicy(sizePolicy);
+        Work_TaskGrid = new QGridLayout(Work_TaskGroup);
+        Work_TaskGrid->setSpacing(6);
+        Work_TaskGrid->setContentsMargins(11, 11, 11, 11);
+        Work_TaskGrid->setObjectName(QString::fromUtf8("Work_TaskGrid"));
+        label_Work_TaskID = new QLabel(Work_TaskGroup);
+        label_Work_TaskID->setObjectName(QString::fromUtf8("label_Work_TaskID"));
+        sizePolicy5.setHeightForWidth(label_Work_TaskID->sizePolicy().hasHeightForWidth());
+        label_Work_TaskID->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_TaskID, 0, 0, 1, 1);
+
+        Work_TaskID = new QLineEdit(Work_TaskGroup);
+        Work_TaskID->setObjectName(QString::fromUtf8("Work_TaskID"));
+        sizePolicy4.setHeightForWidth(Work_TaskID->sizePolicy().hasHeightForWidth());
+        Work_TaskID->setSizePolicy(sizePolicy4);
+        Work_TaskID->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_TaskID, 0, 1, 1, 1);
+
+        label_Work_State = new QLabel(Work_TaskGroup);
+        label_Work_State->setObjectName(QString::fromUtf8("label_Work_State"));
+        sizePolicy5.setHeightForWidth(label_Work_State->sizePolicy().hasHeightForWidth());
+        label_Work_State->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_State, 0, 2, 1, 1);
+
+        Work_State = new QLineEdit(Work_TaskGroup);
+        Work_State->setObjectName(QString::fromUtf8("Work_State"));
+        sizePolicy.setHeightForWidth(Work_State->sizePolicy().hasHeightForWidth());
+        Work_State->setSizePolicy(sizePolicy);
+        Work_State->setAlignment(Qt::AlignCenter);
+        Work_State->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_State, 0, 3, 1, 1);
+
+        label_Work_Wheel = new QLabel(Work_TaskGroup);
+        label_Work_Wheel->setObjectName(QString::fromUtf8("label_Work_Wheel"));
+        sizePolicy5.setHeightForWidth(label_Work_Wheel->sizePolicy().hasHeightForWidth());
+        label_Work_Wheel->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_Wheel, 0, 4, 1, 1);
+
+        Work_Wheel = new QLineEdit(Work_TaskGroup);
+        Work_Wheel->setObjectName(QString::fromUtf8("Work_Wheel"));
+        sizePolicy.setHeightForWidth(Work_Wheel->sizePolicy().hasHeightForWidth());
+        Work_Wheel->setSizePolicy(sizePolicy);
+        Work_Wheel->setAlignment(Qt::AlignCenter);
+        Work_Wheel->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_Wheel, 0, 5, 1, 1);
+
+        label_Work_Pos = new QLabel(Work_TaskGroup);
+        label_Work_Pos->setObjectName(QString::fromUtf8("label_Work_Pos"));
+        sizePolicy5.setHeightForWidth(label_Work_Pos->sizePolicy().hasHeightForWidth());
+        label_Work_Pos->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_Pos, 0, 6, 1, 1);
+
+        Work_Pos = new QLineEdit(Work_TaskGroup);
+        Work_Pos->setObjectName(QString::fromUtf8("Work_Pos"));
+        sizePolicy.setHeightForWidth(Work_Pos->sizePolicy().hasHeightForWidth());
+        Work_Pos->setSizePolicy(sizePolicy);
+        Work_Pos->setAlignment(Qt::AlignCenter);
+        Work_Pos->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_Pos, 0, 7, 1, 1);
+
+        label_Work_Images = new QLabel(Work_TaskGroup);
+        label_Work_Images->setObjectName(QString::fromUtf8("label_Work_Images"));
+        sizePolicy5.setHeightForWidth(label_Work_Images->sizePolicy().hasHeightForWidth());
+        label_Work_Images->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_Images, 0, 8, 1, 1);
+
+        Work_Images = new QLineEdit(Work_TaskGroup);
+        Work_Images->setObjectName(QString::fromUtf8("Work_Images"));
+        sizePolicy.setHeightForWidth(Work_Images->sizePolicy().hasHeightForWidth());
+        Work_Images->setSizePolicy(sizePolicy);
+        Work_Images->setAlignment(Qt::AlignCenter);
+        Work_Images->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_Images, 0, 9, 1, 1);
+
+        label_Work_SendUnit = new QLabel(Work_TaskGroup);
+        label_Work_SendUnit->setObjectName(QString::fromUtf8("label_Work_SendUnit"));
+        sizePolicy5.setHeightForWidth(label_Work_SendUnit->sizePolicy().hasHeightForWidth());
+        label_Work_SendUnit->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_SendUnit, 1, 0, 1, 1);
+
+        Work_SendUnit = new QLineEdit(Work_TaskGroup);
+        Work_SendUnit->setObjectName(QString::fromUtf8("Work_SendUnit"));
+        sizePolicy4.setHeightForWidth(Work_SendUnit->sizePolicy().hasHeightForWidth());
+        Work_SendUnit->setSizePolicy(sizePolicy4);
+        Work_SendUnit->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_SendUnit, 1, 1, 1, 1);
+
+        label_Work_Repair = new QLabel(Work_TaskGroup);
+        label_Work_Repair->setObjectName(QString::fromUtf8("label_Work_Repair"));
+        sizePolicy5.setHeightForWidth(label_Work_Repair->sizePolicy().hasHeightForWidth());
+        label_Work_Repair->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_Repair, 1, 2, 1, 1);
+
+        Work_Repair = new QLineEdit(Work_TaskGroup);
+        Work_Repair->setObjectName(QString::fromUtf8("Work_Repair"));
+        sizePolicy4.setHeightForWidth(Work_Repair->sizePolicy().hasHeightForWidth());
+        Work_Repair->setSizePolicy(sizePolicy4);
+        Work_Repair->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_Repair, 1, 3, 1, 1);
+
+        label_Work_WheelsetNo = new QLabel(Work_TaskGroup);
+        label_Work_WheelsetNo->setObjectName(QString::fromUtf8("label_Work_WheelsetNo"));
+        sizePolicy5.setHeightForWidth(label_Work_WheelsetNo->sizePolicy().hasHeightForWidth());
+        label_Work_WheelsetNo->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_WheelsetNo, 1, 4, 1, 1);
+
+        Work_WheelsetNo = new QLineEdit(Work_TaskGroup);
+        Work_WheelsetNo->setObjectName(QString::fromUtf8("Work_WheelsetNo"));
+        sizePolicy4.setHeightForWidth(Work_WheelsetNo->sizePolicy().hasHeightForWidth());
+        Work_WheelsetNo->setSizePolicy(sizePolicy4);
+        Work_WheelsetNo->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_WheelsetNo, 1, 5, 1, 3);
+
+        label_Work_AxleNo = new QLabel(Work_TaskGroup);
+        label_Work_AxleNo->setObjectName(QString::fromUtf8("label_Work_AxleNo"));
+        sizePolicy5.setHeightForWidth(label_Work_AxleNo->sizePolicy().hasHeightForWidth());
+        label_Work_AxleNo->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_AxleNo, 1, 8, 1, 1);
+
+        Work_AxleNo = new QLineEdit(Work_TaskGroup);
+        Work_AxleNo->setObjectName(QString::fromUtf8("Work_AxleNo"));
+        sizePolicy4.setHeightForWidth(Work_AxleNo->sizePolicy().hasHeightForWidth());
+        Work_AxleNo->setSizePolicy(sizePolicy4);
+        Work_AxleNo->setAlignment(Qt::AlignCenter);
+        Work_AxleNo->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_AxleNo, 1, 9, 1, 1);
+
+        label_Work_Gain = new QLabel(Work_TaskGroup);
+        label_Work_Gain->setObjectName(QString::fromUtf8("label_Work_Gain"));
+        sizePolicy5.setHeightForWidth(label_Work_Gain->sizePolicy().hasHeightForWidth());
+        label_Work_Gain->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_Gain, 2, 0, 1, 1);
+
+        Work_Gain = new QLineEdit(Work_TaskGroup);
+        Work_Gain->setObjectName(QString::fromUtf8("Work_Gain"));
+        sizePolicy.setHeightForWidth(Work_Gain->sizePolicy().hasHeightForWidth());
+        Work_Gain->setSizePolicy(sizePolicy);
+        Work_Gain->setAlignment(Qt::AlignCenter);
+        Work_Gain->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_Gain, 2, 1, 1, 1);
+
+        label_Work_Part1 = new QLabel(Work_TaskGroup);
+        label_Work_Part1->setObjectName(QString::fromUtf8("label_Work_Part1"));
+        sizePolicy5.setHeightForWidth(label_Work_Part1->sizePolicy().hasHeightForWidth());
+        label_Work_Part1->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_Part1, 2, 2, 1, 1);
+
+        Work_Part1 = new QLineEdit(Work_TaskGroup);
+        Work_Part1->setObjectName(QString::fromUtf8("Work_Part1"));
+        sizePolicy4.setHeightForWidth(Work_Part1->sizePolicy().hasHeightForWidth());
+        Work_Part1->setSizePolicy(sizePolicy4);
+        Work_Part1->setAlignment(Qt::AlignCenter);
+        Work_Part1->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_Part1, 2, 3, 1, 1);
+
+        label_Work_Part2 = new QLabel(Work_TaskGroup);
+        label_Work_Part2->setObjectName(QString::fromUtf8("label_Work_Part2"));
+        sizePolicy5.setHeightForWidth(label_Work_Part2->sizePolicy().hasHeightForWidth());
+        label_Work_Part2->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_Part2, 2, 4, 1, 1);
+
+        Work_Part2 = new QLineEdit(Work_TaskGroup);
+        Work_Part2->setObjectName(QString::fromUtf8("Work_Part2"));
+        sizePolicy4.setHeightForWidth(Work_Part2->sizePolicy().hasHeightForWidth());
+        Work_Part2->setSizePolicy(sizePolicy4);
+        Work_Part2->setAlignment(Qt::AlignCenter);
+        Work_Part2->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_Part2, 2, 5, 1, 1);
+
+        label_Work_Point = new QLabel(Work_TaskGroup);
+        label_Work_Point->setObjectName(QString::fromUtf8("label_Work_Point"));
+        sizePolicy5.setHeightForWidth(label_Work_Point->sizePolicy().hasHeightForWidth());
+        label_Work_Point->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_Point, 2, 6, 1, 1);
+
+        Work_Point = new QLineEdit(Work_TaskGroup);
+        Work_Point->setObjectName(QString::fromUtf8("Work_Point"));
+        sizePolicy4.setHeightForWidth(Work_Point->sizePolicy().hasHeightForWidth());
+        Work_Point->setSizePolicy(sizePolicy4);
+        Work_Point->setAlignment(Qt::AlignCenter);
+        Work_Point->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_Point, 2, 7, 1, 1);
+
+        label_Work_StartTime = new QLabel(Work_TaskGroup);
+        label_Work_StartTime->setObjectName(QString::fromUtf8("label_Work_StartTime"));
+        sizePolicy5.setHeightForWidth(label_Work_StartTime->sizePolicy().hasHeightForWidth());
+        label_Work_StartTime->setSizePolicy(sizePolicy5);
+
+        Work_TaskGrid->addWidget(label_Work_StartTime, 2, 8, 1, 1);
+
+        Work_StartTime = new QLineEdit(Work_TaskGroup);
+        Work_StartTime->setObjectName(QString::fromUtf8("Work_StartTime"));
+        sizePolicy4.setHeightForWidth(Work_StartTime->sizePolicy().hasHeightForWidth());
+        Work_StartTime->setSizePolicy(sizePolicy4);
+        Work_StartTime->setAlignment(Qt::AlignCenter);
+        Work_StartTime->setReadOnly(true);
+
+        Work_TaskGrid->addWidget(Work_StartTime, 2, 9, 1, 1);
+
+
+        gridLayout_27->addWidget(Work_TaskGroup, 3, 0, 1, 1);
+
+        Work_BottomRow = new QHBoxLayout();
+        Work_BottomRow->setSpacing(6);
+        Work_BottomRow->setObjectName(QString::fromUtf8("Work_BottomRow"));
+        Work_LogGroup = new QGroupBox(Work_Widget);
+        Work_LogGroup->setObjectName(QString::fromUtf8("Work_LogGroup"));
+        QSizePolicy sizePolicy12(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy12.setHorizontalStretch(1);
+        sizePolicy12.setVerticalStretch(0);
+        sizePolicy12.setHeightForWidth(Work_LogGroup->sizePolicy().hasHeightForWidth());
+        Work_LogGroup->setSizePolicy(sizePolicy12);
+        Work_LogLayout = new QVBoxLayout(Work_LogGroup);
+        Work_LogLayout->setSpacing(6);
+        Work_LogLayout->setContentsMargins(11, 11, 11, 11);
+        Work_LogLayout->setObjectName(QString::fromUtf8("Work_LogLayout"));
+        Work_List = new QTextEdit(Work_LogGroup);
+        Work_List->setObjectName(QString::fromUtf8("Work_List"));
+        sizePolicy1.setHeightForWidth(Work_List->sizePolicy().hasHeightForWidth());
+        Work_List->setSizePolicy(sizePolicy1);
+        Work_List->setReadOnly(true);
+
+        Work_LogLayout->addWidget(Work_List);
+
+
+        Work_BottomRow->addWidget(Work_LogGroup);
+
+        Work_AlarmGroup = new QGroupBox(Work_Widget);
+        Work_AlarmGroup->setObjectName(QString::fromUtf8("Work_AlarmGroup"));
+        sizePolicy12.setHeightForWidth(Work_AlarmGroup->sizePolicy().hasHeightForWidth());
+        Work_AlarmGroup->setSizePolicy(sizePolicy12);
+        Work_AlarmLayout = new QVBoxLayout(Work_AlarmGroup);
+        Work_AlarmLayout->setSpacing(6);
+        Work_AlarmLayout->setContentsMargins(11, 11, 11, 11);
+        Work_AlarmLayout->setObjectName(QString::fromUtf8("Work_AlarmLayout"));
+        Work_Alarm = new QTextEdit(Work_AlarmGroup);
+        Work_Alarm->setObjectName(QString::fromUtf8("Work_Alarm"));
+        sizePolicy1.setHeightForWidth(Work_Alarm->sizePolicy().hasHeightForWidth());
+        Work_Alarm->setSizePolicy(sizePolicy1);
+        Work_Alarm->setReadOnly(true);
+
+        Work_AlarmLayout->addWidget(Work_Alarm);
+
+
+        Work_BottomRow->addWidget(Work_AlarmGroup);
+
+
+        gridLayout_27->addLayout(Work_BottomRow, 4, 0, 1, 1);
+
+        stackedWidget->addWidget(Work_Widget);
         Magic_Widget = new QWidget();
         Magic_Widget->setObjectName(QString::fromUtf8("Magic_Widget"));
         gridLayout_10 = new QGridLayout(Magic_Widget);
@@ -3752,8 +5299,8 @@ public:
 
         Magic_IP = new QLineEdit(groupBox_Connect);
         Magic_IP->setObjectName(QString::fromUtf8("Magic_IP"));
-        sizePolicy7.setHeightForWidth(Magic_IP->sizePolicy().hasHeightForWidth());
-        Magic_IP->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Magic_IP->sizePolicy().hasHeightForWidth());
+        Magic_IP->setSizePolicy(sizePolicy4);
 
         horizontalLayout_Connect->addWidget(Magic_IP);
 
@@ -3764,8 +5311,8 @@ public:
 
         Magic_Port = new QLineEdit(groupBox_Connect);
         Magic_Port->setObjectName(QString::fromUtf8("Magic_Port"));
-        sizePolicy7.setHeightForWidth(Magic_Port->sizePolicy().hasHeightForWidth());
-        Magic_Port->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Magic_Port->sizePolicy().hasHeightForWidth());
+        Magic_Port->setSizePolicy(sizePolicy4);
 
         horizontalLayout_Connect->addWidget(Magic_Port);
 
@@ -3776,8 +5323,8 @@ public:
 
         Magic_User = new QLineEdit(groupBox_Connect);
         Magic_User->setObjectName(QString::fromUtf8("Magic_User"));
-        sizePolicy7.setHeightForWidth(Magic_User->sizePolicy().hasHeightForWidth());
-        Magic_User->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Magic_User->sizePolicy().hasHeightForWidth());
+        Magic_User->setSizePolicy(sizePolicy4);
 
         horizontalLayout_Connect->addWidget(Magic_User);
 
@@ -3788,44 +5335,44 @@ public:
 
         Magic_Pass = new QLineEdit(groupBox_Connect);
         Magic_Pass->setObjectName(QString::fromUtf8("Magic_Pass"));
-        sizePolicy7.setHeightForWidth(Magic_Pass->sizePolicy().hasHeightForWidth());
-        Magic_Pass->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(Magic_Pass->sizePolicy().hasHeightForWidth());
+        Magic_Pass->setSizePolicy(sizePolicy4);
         Magic_Pass->setEchoMode(QLineEdit::Normal);
 
         horizontalLayout_Connect->addWidget(Magic_Pass);
 
         pushButton_Connect = new QPushButton(groupBox_Connect);
         pushButton_Connect->setObjectName(QString::fromUtf8("pushButton_Connect"));
-        sizePolicy7.setHeightForWidth(pushButton_Connect->sizePolicy().hasHeightForWidth());
-        pushButton_Connect->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(pushButton_Connect->sizePolicy().hasHeightForWidth());
+        pushButton_Connect->setSizePolicy(sizePolicy4);
 
         horizontalLayout_Connect->addWidget(pushButton_Connect);
 
         pushButton_Login = new QPushButton(groupBox_Connect);
         pushButton_Login->setObjectName(QString::fromUtf8("pushButton_Login"));
-        sizePolicy7.setHeightForWidth(pushButton_Login->sizePolicy().hasHeightForWidth());
-        pushButton_Login->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(pushButton_Login->sizePolicy().hasHeightForWidth());
+        pushButton_Login->setSizePolicy(sizePolicy4);
 
         horizontalLayout_Connect->addWidget(pushButton_Login);
 
         pushButton_Disconnect = new QPushButton(groupBox_Connect);
         pushButton_Disconnect->setObjectName(QString::fromUtf8("pushButton_Disconnect"));
-        sizePolicy7.setHeightForWidth(pushButton_Disconnect->sizePolicy().hasHeightForWidth());
-        pushButton_Disconnect->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(pushButton_Disconnect->sizePolicy().hasHeightForWidth());
+        pushButton_Disconnect->setSizePolicy(sizePolicy4);
 
         horizontalLayout_Connect->addWidget(pushButton_Disconnect);
 
         label_MAC = new QLabel(groupBox_Connect);
         label_MAC->setObjectName(QString::fromUtf8("label_MAC"));
-        sizePolicy3.setHeightForWidth(label_MAC->sizePolicy().hasHeightForWidth());
-        label_MAC->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_MAC->sizePolicy().hasHeightForWidth());
+        label_MAC->setSizePolicy(sizePolicy5);
 
         horizontalLayout_Connect->addWidget(label_MAC);
 
         lineEdit_MAC = new QLineEdit(groupBox_Connect);
         lineEdit_MAC->setObjectName(QString::fromUtf8("lineEdit_MAC"));
-        sizePolicy11.setHeightForWidth(lineEdit_MAC->sizePolicy().hasHeightForWidth());
-        lineEdit_MAC->setSizePolicy(sizePolicy11);
+        sizePolicy9.setHeightForWidth(lineEdit_MAC->sizePolicy().hasHeightForWidth());
+        lineEdit_MAC->setSizePolicy(sizePolicy9);
         lineEdit_MAC->setReadOnly(true);
 
         horizontalLayout_Connect->addWidget(lineEdit_MAC);
@@ -3958,8 +5505,8 @@ public:
 
         lineEdit_WX = new QLineEdit(groupBox_Pose);
         lineEdit_WX->setObjectName(QString::fromUtf8("lineEdit_WX"));
-        sizePolicy7.setHeightForWidth(lineEdit_WX->sizePolicy().hasHeightForWidth());
-        lineEdit_WX->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_WX->sizePolicy().hasHeightForWidth());
+        lineEdit_WX->setSizePolicy(sizePolicy4);
         lineEdit_WX->setReadOnly(true);
 
         horizontalLayout_Pose->addWidget(lineEdit_WX);
@@ -3971,8 +5518,8 @@ public:
 
         lineEdit_WY = new QLineEdit(groupBox_Pose);
         lineEdit_WY->setObjectName(QString::fromUtf8("lineEdit_WY"));
-        sizePolicy7.setHeightForWidth(lineEdit_WY->sizePolicy().hasHeightForWidth());
-        lineEdit_WY->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_WY->sizePolicy().hasHeightForWidth());
+        lineEdit_WY->setSizePolicy(sizePolicy4);
         lineEdit_WY->setReadOnly(true);
 
         horizontalLayout_Pose->addWidget(lineEdit_WY);
@@ -3984,8 +5531,8 @@ public:
 
         lineEdit_Angle = new QLineEdit(groupBox_Pose);
         lineEdit_Angle->setObjectName(QString::fromUtf8("lineEdit_Angle"));
-        sizePolicy7.setHeightForWidth(lineEdit_Angle->sizePolicy().hasHeightForWidth());
-        lineEdit_Angle->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_Angle->sizePolicy().hasHeightForWidth());
+        lineEdit_Angle->setSizePolicy(sizePolicy4);
         lineEdit_Angle->setReadOnly(true);
 
         horizontalLayout_Pose->addWidget(lineEdit_Angle);
@@ -3997,8 +5544,8 @@ public:
 
         lineEdit_Battery = new QLineEdit(groupBox_Pose);
         lineEdit_Battery->setObjectName(QString::fromUtf8("lineEdit_Battery"));
-        sizePolicy7.setHeightForWidth(lineEdit_Battery->sizePolicy().hasHeightForWidth());
-        lineEdit_Battery->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_Battery->sizePolicy().hasHeightForWidth());
+        lineEdit_Battery->setSizePolicy(sizePolicy4);
         lineEdit_Battery->setReadOnly(true);
 
         horizontalLayout_Pose->addWidget(lineEdit_Battery);
@@ -4010,8 +5557,8 @@ public:
 
         lineEdit_GridX = new QLineEdit(groupBox_Pose);
         lineEdit_GridX->setObjectName(QString::fromUtf8("lineEdit_GridX"));
-        sizePolicy7.setHeightForWidth(lineEdit_GridX->sizePolicy().hasHeightForWidth());
-        lineEdit_GridX->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_GridX->sizePolicy().hasHeightForWidth());
+        lineEdit_GridX->setSizePolicy(sizePolicy4);
         lineEdit_GridX->setReadOnly(true);
 
         horizontalLayout_Pose->addWidget(lineEdit_GridX);
@@ -4034,8 +5581,8 @@ public:
 
         lineEdit_CurrentMap = new QLineEdit(groupBox_Pose);
         lineEdit_CurrentMap->setObjectName(QString::fromUtf8("lineEdit_CurrentMap"));
-        sizePolicy7.setHeightForWidth(lineEdit_CurrentMap->sizePolicy().hasHeightForWidth());
-        lineEdit_CurrentMap->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_CurrentMap->sizePolicy().hasHeightForWidth());
+        lineEdit_CurrentMap->setSizePolicy(sizePolicy4);
         lineEdit_CurrentMap->setReadOnly(true);
 
         horizontalLayout_Pose->addWidget(lineEdit_CurrentMap);
@@ -4053,15 +5600,15 @@ public:
         horizontalLayout_SystemInfo->setObjectName(QString::fromUtf8("horizontalLayout_SystemInfo"));
         label_AntiCollision = new QLabel(groupBox_SystemInfo);
         label_AntiCollision->setObjectName(QString::fromUtf8("label_AntiCollision"));
-        sizePolicy3.setHeightForWidth(label_AntiCollision->sizePolicy().hasHeightForWidth());
-        label_AntiCollision->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_AntiCollision->sizePolicy().hasHeightForWidth());
+        label_AntiCollision->setSizePolicy(sizePolicy5);
 
         horizontalLayout_SystemInfo->addWidget(label_AntiCollision);
 
         lineEdit_AntiCollision = new QLineEdit(groupBox_SystemInfo);
         lineEdit_AntiCollision->setObjectName(QString::fromUtf8("lineEdit_AntiCollision"));
-        sizePolicy7.setHeightForWidth(lineEdit_AntiCollision->sizePolicy().hasHeightForWidth());
-        lineEdit_AntiCollision->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_AntiCollision->sizePolicy().hasHeightForWidth());
+        lineEdit_AntiCollision->setSizePolicy(sizePolicy4);
         lineEdit_AntiCollision->setMaximumSize(QSize(16777215, 16777215));
         lineEdit_AntiCollision->setReadOnly(true);
 
@@ -4069,15 +5616,15 @@ public:
 
         label_WorkMode = new QLabel(groupBox_SystemInfo);
         label_WorkMode->setObjectName(QString::fromUtf8("label_WorkMode"));
-        sizePolicy3.setHeightForWidth(label_WorkMode->sizePolicy().hasHeightForWidth());
-        label_WorkMode->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_WorkMode->sizePolicy().hasHeightForWidth());
+        label_WorkMode->setSizePolicy(sizePolicy5);
 
         horizontalLayout_SystemInfo->addWidget(label_WorkMode);
 
         lineEdit_WorkMode = new QLineEdit(groupBox_SystemInfo);
         lineEdit_WorkMode->setObjectName(QString::fromUtf8("lineEdit_WorkMode"));
-        sizePolicy7.setHeightForWidth(lineEdit_WorkMode->sizePolicy().hasHeightForWidth());
-        lineEdit_WorkMode->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_WorkMode->sizePolicy().hasHeightForWidth());
+        lineEdit_WorkMode->setSizePolicy(sizePolicy4);
         lineEdit_WorkMode->setMaximumSize(QSize(16777215, 16777215));
         lineEdit_WorkMode->setReadOnly(true);
 
@@ -4085,15 +5632,15 @@ public:
 
         label_ErrorCode = new QLabel(groupBox_SystemInfo);
         label_ErrorCode->setObjectName(QString::fromUtf8("label_ErrorCode"));
-        sizePolicy3.setHeightForWidth(label_ErrorCode->sizePolicy().hasHeightForWidth());
-        label_ErrorCode->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_ErrorCode->sizePolicy().hasHeightForWidth());
+        label_ErrorCode->setSizePolicy(sizePolicy5);
 
         horizontalLayout_SystemInfo->addWidget(label_ErrorCode);
 
         lineEdit_ErrorCode = new QLineEdit(groupBox_SystemInfo);
         lineEdit_ErrorCode->setObjectName(QString::fromUtf8("lineEdit_ErrorCode"));
-        sizePolicy7.setHeightForWidth(lineEdit_ErrorCode->sizePolicy().hasHeightForWidth());
-        lineEdit_ErrorCode->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_ErrorCode->sizePolicy().hasHeightForWidth());
+        lineEdit_ErrorCode->setSizePolicy(sizePolicy4);
         lineEdit_ErrorCode->setMaximumSize(QSize(16777215, 16777215));
         lineEdit_ErrorCode->setReadOnly(true);
 
@@ -4101,30 +5648,30 @@ public:
 
         label_ChassisVer = new QLabel(groupBox_SystemInfo);
         label_ChassisVer->setObjectName(QString::fromUtf8("label_ChassisVer"));
-        sizePolicy3.setHeightForWidth(label_ChassisVer->sizePolicy().hasHeightForWidth());
-        label_ChassisVer->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_ChassisVer->sizePolicy().hasHeightForWidth());
+        label_ChassisVer->setSizePolicy(sizePolicy5);
 
         horizontalLayout_SystemInfo->addWidget(label_ChassisVer);
 
         lineEdit_ChassisVer = new QLineEdit(groupBox_SystemInfo);
         lineEdit_ChassisVer->setObjectName(QString::fromUtf8("lineEdit_ChassisVer"));
-        sizePolicy7.setHeightForWidth(lineEdit_ChassisVer->sizePolicy().hasHeightForWidth());
-        lineEdit_ChassisVer->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_ChassisVer->sizePolicy().hasHeightForWidth());
+        lineEdit_ChassisVer->setSizePolicy(sizePolicy4);
         lineEdit_ChassisVer->setReadOnly(true);
 
         horizontalLayout_SystemInfo->addWidget(lineEdit_ChassisVer);
 
         label_NavVer = new QLabel(groupBox_SystemInfo);
         label_NavVer->setObjectName(QString::fromUtf8("label_NavVer"));
-        sizePolicy3.setHeightForWidth(label_NavVer->sizePolicy().hasHeightForWidth());
-        label_NavVer->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_NavVer->sizePolicy().hasHeightForWidth());
+        label_NavVer->setSizePolicy(sizePolicy5);
 
         horizontalLayout_SystemInfo->addWidget(label_NavVer);
 
         lineEdit_NavVer = new QLineEdit(groupBox_SystemInfo);
         lineEdit_NavVer->setObjectName(QString::fromUtf8("lineEdit_NavVer"));
-        sizePolicy7.setHeightForWidth(lineEdit_NavVer->sizePolicy().hasHeightForWidth());
-        lineEdit_NavVer->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(lineEdit_NavVer->sizePolicy().hasHeightForWidth());
+        lineEdit_NavVer->setSizePolicy(sizePolicy4);
         lineEdit_NavVer->setReadOnly(true);
 
         horizontalLayout_SystemInfo->addWidget(lineEdit_NavVer);
@@ -4134,11 +5681,8 @@ public:
 
         groupBox_MapList = new QGroupBox(groupBox_7);
         groupBox_MapList->setObjectName(QString::fromUtf8("groupBox_MapList"));
-        QSizePolicy sizePolicy12(QSizePolicy::Preferred, QSizePolicy::Expanding);
-        sizePolicy12.setHorizontalStretch(0);
-        sizePolicy12.setVerticalStretch(1);
-        sizePolicy12.setHeightForWidth(groupBox_MapList->sizePolicy().hasHeightForWidth());
-        groupBox_MapList->setSizePolicy(sizePolicy12);
+        sizePolicy11.setHeightForWidth(groupBox_MapList->sizePolicy().hasHeightForWidth());
+        groupBox_MapList->setSizePolicy(sizePolicy11);
         gridLayout_16 = new QGridLayout(groupBox_MapList);
         gridLayout_16->setSpacing(6);
         gridLayout_16->setContentsMargins(11, 11, 11, 11);
@@ -4172,8 +5716,8 @@ public:
         verticalLayout_FrontCamView->setObjectName(QString::fromUtf8("verticalLayout_FrontCamView"));
         label_FrontCamera = new QLabel(groupBox_FrontCamView);
         label_FrontCamera->setObjectName(QString::fromUtf8("label_FrontCamera"));
-        sizePolicy7.setHeightForWidth(label_FrontCamera->sizePolicy().hasHeightForWidth());
-        label_FrontCamera->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(label_FrontCamera->sizePolicy().hasHeightForWidth());
+        label_FrontCamera->setSizePolicy(sizePolicy4);
         label_FrontCamera->setMinimumSize(QSize(300, 200));
         label_FrontCamera->setMaximumSize(QSize(800, 600));
         label_FrontCamera->setScaledContents(true);
@@ -4194,8 +5738,8 @@ public:
         gridLayout_19->setObjectName(QString::fromUtf8("gridLayout_19"));
         widget_LidarView = new c_Magic_Lidar_View(groupBox_4);
         widget_LidarView->setObjectName(QString::fromUtf8("widget_LidarView"));
-        sizePolicy11.setHeightForWidth(widget_LidarView->sizePolicy().hasHeightForWidth());
-        widget_LidarView->setSizePolicy(sizePolicy11);
+        sizePolicy9.setHeightForWidth(widget_LidarView->sizePolicy().hasHeightForWidth());
+        widget_LidarView->setSizePolicy(sizePolicy9);
         widget_LidarView->setMinimumSize(QSize(300, 200));
         widget_LidarView->setMaximumSize(QSize(16777215, 500));
 
@@ -4214,8 +5758,8 @@ public:
         verticalLayout_RearCamView->setObjectName(QString::fromUtf8("verticalLayout_RearCamView"));
         label_RearCamera = new QLabel(groupBox_RearCamView);
         label_RearCamera->setObjectName(QString::fromUtf8("label_RearCamera"));
-        sizePolicy7.setHeightForWidth(label_RearCamera->sizePolicy().hasHeightForWidth());
-        label_RearCamera->setSizePolicy(sizePolicy7);
+        sizePolicy4.setHeightForWidth(label_RearCamera->sizePolicy().hasHeightForWidth());
+        label_RearCamera->setSizePolicy(sizePolicy4);
         label_RearCamera->setMinimumSize(QSize(300, 200));
         label_RearCamera->setMaximumSize(QSize(800, 600));
         label_RearCamera->setScaledContents(true);
@@ -4297,8 +5841,8 @@ public:
         horizontalLayout_FixedNav->setObjectName(QString::fromUtf8("horizontalLayout_FixedNav"));
         label_FixedX = new QLabel(groupBox_FixedNav);
         label_FixedX->setObjectName(QString::fromUtf8("label_FixedX"));
-        sizePolicy5.setHeightForWidth(label_FixedX->sizePolicy().hasHeightForWidth());
-        label_FixedX->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_FixedX->sizePolicy().hasHeightForWidth());
+        label_FixedX->setSizePolicy(sizePolicy2);
 
         horizontalLayout_FixedNav->addWidget(label_FixedX);
 
@@ -4313,8 +5857,8 @@ public:
 
         label_FixedY = new QLabel(groupBox_FixedNav);
         label_FixedY->setObjectName(QString::fromUtf8("label_FixedY"));
-        sizePolicy5.setHeightForWidth(label_FixedY->sizePolicy().hasHeightForWidth());
-        label_FixedY->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_FixedY->sizePolicy().hasHeightForWidth());
+        label_FixedY->setSizePolicy(sizePolicy2);
 
         horizontalLayout_FixedNav->addWidget(label_FixedY);
 
@@ -4329,8 +5873,8 @@ public:
 
         label_FixedAngle = new QLabel(groupBox_FixedNav);
         label_FixedAngle->setObjectName(QString::fromUtf8("label_FixedAngle"));
-        sizePolicy5.setHeightForWidth(label_FixedAngle->sizePolicy().hasHeightForWidth());
-        label_FixedAngle->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_FixedAngle->sizePolicy().hasHeightForWidth());
+        label_FixedAngle->setSizePolicy(sizePolicy2);
 
         horizontalLayout_FixedNav->addWidget(label_FixedAngle);
 
@@ -4422,8 +5966,8 @@ public:
         horizontalLayout_MapOps1->setObjectName(QString::fromUtf8("horizontalLayout_MapOps1"));
         comboBox_MapList = new QComboBox(tab_Map);
         comboBox_MapList->setObjectName(QString::fromUtf8("comboBox_MapList"));
-        sizePolicy11.setHeightForWidth(comboBox_MapList->sizePolicy().hasHeightForWidth());
-        comboBox_MapList->setSizePolicy(sizePolicy11);
+        sizePolicy9.setHeightForWidth(comboBox_MapList->sizePolicy().hasHeightForWidth());
+        comboBox_MapList->setSizePolicy(sizePolicy9);
 
         horizontalLayout_MapOps1->addWidget(comboBox_MapList);
 
@@ -4450,8 +5994,8 @@ public:
         horizontalLayout_TaskSelect->setObjectName(QString::fromUtf8("horizontalLayout_TaskSelect"));
         label_TaskType = new QLabel(groupBox_TaskSelect);
         label_TaskType->setObjectName(QString::fromUtf8("label_TaskType"));
-        sizePolicy5.setHeightForWidth(label_TaskType->sizePolicy().hasHeightForWidth());
-        label_TaskType->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_TaskType->sizePolicy().hasHeightForWidth());
+        label_TaskType->setSizePolicy(sizePolicy2);
 
         horizontalLayout_TaskSelect->addWidget(label_TaskType);
 
@@ -4466,8 +6010,8 @@ public:
 
         label_TaskName = new QLabel(groupBox_TaskSelect);
         label_TaskName->setObjectName(QString::fromUtf8("label_TaskName"));
-        sizePolicy5.setHeightForWidth(label_TaskName->sizePolicy().hasHeightForWidth());
-        label_TaskName->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_TaskName->sizePolicy().hasHeightForWidth());
+        label_TaskName->setSizePolicy(sizePolicy2);
 
         horizontalLayout_TaskSelect->addWidget(label_TaskName);
 
@@ -4478,8 +6022,8 @@ public:
 
         label_LoopCount = new QLabel(groupBox_TaskSelect);
         label_LoopCount->setObjectName(QString::fromUtf8("label_LoopCount"));
-        sizePolicy5.setHeightForWidth(label_LoopCount->sizePolicy().hasHeightForWidth());
-        label_LoopCount->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_LoopCount->sizePolicy().hasHeightForWidth());
+        label_LoopCount->setSizePolicy(sizePolicy2);
 
         horizontalLayout_TaskSelect->addWidget(label_LoopCount);
 
@@ -4634,8 +6178,8 @@ public:
         verticalLayout_PathPoint->setObjectName(QString::fromUtf8("verticalLayout_PathPoint"));
         tabWidget_PathPoint = new QTabWidget(tab_PathPoint);
         tabWidget_PathPoint->setObjectName(QString::fromUtf8("tabWidget_PathPoint"));
-        sizePolicy2.setHeightForWidth(tabWidget_PathPoint->sizePolicy().hasHeightForWidth());
-        tabWidget_PathPoint->setSizePolicy(sizePolicy2);
+        sizePolicy7.setHeightForWidth(tabWidget_PathPoint->sizePolicy().hasHeightForWidth());
+        tabWidget_PathPoint->setSizePolicy(sizePolicy7);
         tab_NavPoint = new QWidget();
         tab_NavPoint->setObjectName(QString::fromUtf8("tab_NavPoint"));
         verticalLayout_NavPoint = new QVBoxLayout(tab_NavPoint);
@@ -4645,16 +6189,16 @@ public:
         table_NavPoints = new QTableWidget(tab_NavPoint);
         if (table_NavPoints->columnCount() < 5)
             table_NavPoints->setColumnCount(5);
-        QTableWidgetItem *__qtablewidgetitem21 = new QTableWidgetItem();
-        table_NavPoints->setHorizontalHeaderItem(0, __qtablewidgetitem21);
-        QTableWidgetItem *__qtablewidgetitem22 = new QTableWidgetItem();
-        table_NavPoints->setHorizontalHeaderItem(1, __qtablewidgetitem22);
-        QTableWidgetItem *__qtablewidgetitem23 = new QTableWidgetItem();
-        table_NavPoints->setHorizontalHeaderItem(2, __qtablewidgetitem23);
-        QTableWidgetItem *__qtablewidgetitem24 = new QTableWidgetItem();
-        table_NavPoints->setHorizontalHeaderItem(3, __qtablewidgetitem24);
-        QTableWidgetItem *__qtablewidgetitem25 = new QTableWidgetItem();
-        table_NavPoints->setHorizontalHeaderItem(4, __qtablewidgetitem25);
+        QTableWidgetItem *__qtablewidgetitem27 = new QTableWidgetItem();
+        table_NavPoints->setHorizontalHeaderItem(0, __qtablewidgetitem27);
+        QTableWidgetItem *__qtablewidgetitem28 = new QTableWidgetItem();
+        table_NavPoints->setHorizontalHeaderItem(1, __qtablewidgetitem28);
+        QTableWidgetItem *__qtablewidgetitem29 = new QTableWidgetItem();
+        table_NavPoints->setHorizontalHeaderItem(2, __qtablewidgetitem29);
+        QTableWidgetItem *__qtablewidgetitem30 = new QTableWidgetItem();
+        table_NavPoints->setHorizontalHeaderItem(3, __qtablewidgetitem30);
+        QTableWidgetItem *__qtablewidgetitem31 = new QTableWidgetItem();
+        table_NavPoints->setHorizontalHeaderItem(4, __qtablewidgetitem31);
         table_NavPoints->setObjectName(QString::fromUtf8("table_NavPoints"));
         QSizePolicy sizePolicy16(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
         sizePolicy16.setHorizontalStretch(0);
@@ -4706,12 +6250,12 @@ public:
         table_GraphPaths = new QTableWidget(tab_GraphPath);
         if (table_GraphPaths->columnCount() < 3)
             table_GraphPaths->setColumnCount(3);
-        QTableWidgetItem *__qtablewidgetitem26 = new QTableWidgetItem();
-        table_GraphPaths->setHorizontalHeaderItem(0, __qtablewidgetitem26);
-        QTableWidgetItem *__qtablewidgetitem27 = new QTableWidgetItem();
-        table_GraphPaths->setHorizontalHeaderItem(1, __qtablewidgetitem27);
-        QTableWidgetItem *__qtablewidgetitem28 = new QTableWidgetItem();
-        table_GraphPaths->setHorizontalHeaderItem(2, __qtablewidgetitem28);
+        QTableWidgetItem *__qtablewidgetitem32 = new QTableWidgetItem();
+        table_GraphPaths->setHorizontalHeaderItem(0, __qtablewidgetitem32);
+        QTableWidgetItem *__qtablewidgetitem33 = new QTableWidgetItem();
+        table_GraphPaths->setHorizontalHeaderItem(1, __qtablewidgetitem33);
+        QTableWidgetItem *__qtablewidgetitem34 = new QTableWidgetItem();
+        table_GraphPaths->setHorizontalHeaderItem(2, __qtablewidgetitem34);
         table_GraphPaths->setObjectName(QString::fromUtf8("table_GraphPaths"));
         sizePolicy14.setHeightForWidth(table_GraphPaths->sizePolicy().hasHeightForWidth());
         table_GraphPaths->setSizePolicy(sizePolicy14);
@@ -4765,10 +6309,10 @@ public:
         table_RecordPaths = new QTableWidget(tab_RecordPath);
         if (table_RecordPaths->columnCount() < 2)
             table_RecordPaths->setColumnCount(2);
-        QTableWidgetItem *__qtablewidgetitem29 = new QTableWidgetItem();
-        table_RecordPaths->setHorizontalHeaderItem(0, __qtablewidgetitem29);
-        QTableWidgetItem *__qtablewidgetitem30 = new QTableWidgetItem();
-        table_RecordPaths->setHorizontalHeaderItem(1, __qtablewidgetitem30);
+        QTableWidgetItem *__qtablewidgetitem35 = new QTableWidgetItem();
+        table_RecordPaths->setHorizontalHeaderItem(0, __qtablewidgetitem35);
+        QTableWidgetItem *__qtablewidgetitem36 = new QTableWidgetItem();
+        table_RecordPaths->setHorizontalHeaderItem(1, __qtablewidgetitem36);
         table_RecordPaths->setObjectName(QString::fromUtf8("table_RecordPaths"));
         sizePolicy14.setHeightForWidth(table_RecordPaths->sizePolicy().hasHeightForWidth());
         table_RecordPaths->setSizePolicy(sizePolicy14);
@@ -4832,10 +6376,10 @@ public:
         table_PathCombines = new QTableWidget(tab_TaskQueue);
         if (table_PathCombines->columnCount() < 2)
             table_PathCombines->setColumnCount(2);
-        QTableWidgetItem *__qtablewidgetitem31 = new QTableWidgetItem();
-        table_PathCombines->setHorizontalHeaderItem(0, __qtablewidgetitem31);
-        QTableWidgetItem *__qtablewidgetitem32 = new QTableWidgetItem();
-        table_PathCombines->setHorizontalHeaderItem(1, __qtablewidgetitem32);
+        QTableWidgetItem *__qtablewidgetitem37 = new QTableWidgetItem();
+        table_PathCombines->setHorizontalHeaderItem(0, __qtablewidgetitem37);
+        QTableWidgetItem *__qtablewidgetitem38 = new QTableWidgetItem();
+        table_PathCombines->setHorizontalHeaderItem(1, __qtablewidgetitem38);
         table_PathCombines->setObjectName(QString::fromUtf8("table_PathCombines"));
         sizePolicy14.setHeightForWidth(table_PathCombines->sizePolicy().hasHeightForWidth());
         table_PathCombines->setSizePolicy(sizePolicy14);
@@ -4900,8 +6444,8 @@ public:
         gridLayout_Speed->setObjectName(QString::fromUtf8("gridLayout_Speed"));
         label_GoalSpeed = new QLabel(groupBox_Speed);
         label_GoalSpeed->setObjectName(QString::fromUtf8("label_GoalSpeed"));
-        sizePolicy3.setHeightForWidth(label_GoalSpeed->sizePolicy().hasHeightForWidth());
-        label_GoalSpeed->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_GoalSpeed->sizePolicy().hasHeightForWidth());
+        label_GoalSpeed->setSizePolicy(sizePolicy5);
 
         gridLayout_Speed->addWidget(label_GoalSpeed, 0, 0, 1, 1);
 
@@ -4917,8 +6461,8 @@ public:
 
         label_GraphSpeed = new QLabel(groupBox_Speed);
         label_GraphSpeed->setObjectName(QString::fromUtf8("label_GraphSpeed"));
-        sizePolicy3.setHeightForWidth(label_GraphSpeed->sizePolicy().hasHeightForWidth());
-        label_GraphSpeed->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_GraphSpeed->sizePolicy().hasHeightForWidth());
+        label_GraphSpeed->setSizePolicy(sizePolicy5);
 
         gridLayout_Speed->addWidget(label_GraphSpeed, 0, 2, 1, 1);
 
@@ -4934,8 +6478,8 @@ public:
 
         label_RecordSpeed = new QLabel(groupBox_Speed);
         label_RecordSpeed->setObjectName(QString::fromUtf8("label_RecordSpeed"));
-        sizePolicy3.setHeightForWidth(label_RecordSpeed->sizePolicy().hasHeightForWidth());
-        label_RecordSpeed->setSizePolicy(sizePolicy3);
+        sizePolicy5.setHeightForWidth(label_RecordSpeed->sizePolicy().hasHeightForWidth());
+        label_RecordSpeed->setSizePolicy(sizePolicy5);
 
         gridLayout_Speed->addWidget(label_RecordSpeed, 1, 0, 1, 1);
 
@@ -5083,8 +6627,8 @@ public:
         horizontalLayout_SpeedControl->setObjectName(QString::fromUtf8("horizontalLayout_SpeedControl"));
         label_LinearSpeed = new QLabel(groupBox_SpeedControl);
         label_LinearSpeed->setObjectName(QString::fromUtf8("label_LinearSpeed"));
-        sizePolicy5.setHeightForWidth(label_LinearSpeed->sizePolicy().hasHeightForWidth());
-        label_LinearSpeed->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_LinearSpeed->sizePolicy().hasHeightForWidth());
+        label_LinearSpeed->setSizePolicy(sizePolicy2);
 
         horizontalLayout_SpeedControl->addWidget(label_LinearSpeed);
 
@@ -5100,8 +6644,8 @@ public:
 
         label_AngularSpeed = new QLabel(groupBox_SpeedControl);
         label_AngularSpeed->setObjectName(QString::fromUtf8("label_AngularSpeed"));
-        sizePolicy5.setHeightForWidth(label_AngularSpeed->sizePolicy().hasHeightForWidth());
-        label_AngularSpeed->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_AngularSpeed->sizePolicy().hasHeightForWidth());
+        label_AngularSpeed->setSizePolicy(sizePolicy2);
 
         horizontalLayout_SpeedControl->addWidget(label_AngularSpeed);
 
@@ -5164,8 +6708,8 @@ public:
         horizontalLayout_MoveParams->setObjectName(QString::fromUtf8("horizontalLayout_MoveParams"));
         label_MoveMode = new QLabel(groupBox_MoveParams);
         label_MoveMode->setObjectName(QString::fromUtf8("label_MoveMode"));
-        sizePolicy5.setHeightForWidth(label_MoveMode->sizePolicy().hasHeightForWidth());
-        label_MoveMode->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_MoveMode->sizePolicy().hasHeightForWidth());
+        label_MoveMode->setSizePolicy(sizePolicy2);
 
         horizontalLayout_MoveParams->addWidget(label_MoveMode);
 
@@ -5178,8 +6722,8 @@ public:
 
         label_MoveTarget = new QLabel(groupBox_MoveParams);
         label_MoveTarget->setObjectName(QString::fromUtf8("label_MoveTarget"));
-        sizePolicy5.setHeightForWidth(label_MoveTarget->sizePolicy().hasHeightForWidth());
-        label_MoveTarget->setSizePolicy(sizePolicy5);
+        sizePolicy2.setHeightForWidth(label_MoveTarget->sizePolicy().hasHeightForWidth());
+        label_MoveTarget->setSizePolicy(sizePolicy2);
 
         horizontalLayout_MoveParams->addWidget(label_MoveTarget);
 
@@ -5681,15 +7225,15 @@ public:
 
         verticalLayout_3->addWidget(tabWidget_Magic);
 
-        groupBox_Log1 = new QGroupBox(groupBox_7);
-        groupBox_Log1->setObjectName(QString::fromUtf8("groupBox_Log1"));
-        sizePolicy4.setHeightForWidth(groupBox_Log1->sizePolicy().hasHeightForWidth());
-        groupBox_Log1->setSizePolicy(sizePolicy4);
-        verticalLayout_Log = new QVBoxLayout(groupBox_Log1);
+        groupBox_Log = new QGroupBox(groupBox_7);
+        groupBox_Log->setObjectName(QString::fromUtf8("groupBox_Log"));
+        sizePolicy1.setHeightForWidth(groupBox_Log->sizePolicy().hasHeightForWidth());
+        groupBox_Log->setSizePolicy(sizePolicy1);
+        verticalLayout_Log = new QVBoxLayout(groupBox_Log);
         verticalLayout_Log->setSpacing(6);
         verticalLayout_Log->setContentsMargins(11, 11, 11, 11);
         verticalLayout_Log->setObjectName(QString::fromUtf8("verticalLayout_Log"));
-        Magic_Log = new QTextEdit(groupBox_Log1);
+        Magic_Log = new QTextEdit(groupBox_Log);
         Magic_Log->setObjectName(QString::fromUtf8("Magic_Log"));
         QFont font;
         font.setFamily(QString::fromUtf8("Consolas"));
@@ -5700,7 +7244,7 @@ public:
         verticalLayout_Log->addWidget(Magic_Log);
 
 
-        verticalLayout_3->addWidget(groupBox_Log1);
+        verticalLayout_3->addWidget(groupBox_Log);
 
 
         gridLayout_2->addLayout(verticalLayout_3, 1, 1, 4, 1);
@@ -5712,49 +7256,74 @@ public:
 
         gridLayout_15->addWidget(stackedWidget, 0, 1, 1, 1);
 
-        horizontalLayout_46 = new QHBoxLayout();
-        horizontalLayout_46->setSpacing(6);
-        horizontalLayout_46->setObjectName(QString::fromUtf8("horizontalLayout_46"));
-        groupBox_11 = new QGroupBox(centralWidget);
-        groupBox_11->setObjectName(QString::fromUtf8("groupBox_11"));
-        sizePolicy.setHeightForWidth(groupBox_11->sizePolicy().hasHeightForWidth());
-        groupBox_11->setSizePolicy(sizePolicy);
-        gridLayout = new QGridLayout(groupBox_11);
-        gridLayout->setSpacing(6);
-        gridLayout->setContentsMargins(11, 11, 11, 11);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        Worry_List = new QTextEdit(groupBox_11);
-        Worry_List->setObjectName(QString::fromUtf8("Worry_List"));
-        sizePolicy.setHeightForWidth(Worry_List->sizePolicy().hasHeightForWidth());
-        Worry_List->setSizePolicy(sizePolicy);
-        Worry_List->setReadOnly(true);
+        widget_10 = new QWidget(centralWidget);
+        widget_10->setObjectName(QString::fromUtf8("widget_10"));
+        QSizePolicy sizePolicy17(QSizePolicy::Maximum, QSizePolicy::Expanding);
+        sizePolicy17.setHorizontalStretch(0);
+        sizePolicy17.setVerticalStretch(0);
+        sizePolicy17.setHeightForWidth(widget_10->sizePolicy().hasHeightForWidth());
+        widget_10->setSizePolicy(sizePolicy17);
+        widget_10->setMinimumSize(QSize(0, 0));
+        widget_10->setMaximumSize(QSize(16777215, 16777215));
+        gridLayout_94 = new QGridLayout(widget_10);
+        gridLayout_94->setSpacing(6);
+        gridLayout_94->setContentsMargins(11, 11, 11, 11);
+        gridLayout_94->setObjectName(QString::fromUtf8("gridLayout_94"));
+        groupBox_5 = new QGroupBox(widget_10);
+        groupBox_5->setObjectName(QString::fromUtf8("groupBox_5"));
+        sizePolicy17.setHeightForWidth(groupBox_5->sizePolicy().hasHeightForWidth());
+        groupBox_5->setSizePolicy(sizePolicy17);
+        gridLayout_4 = new QGridLayout(groupBox_5);
+        gridLayout_4->setSpacing(6);
+        gridLayout_4->setContentsMargins(11, 11, 11, 11);
+        gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
+        Show_Pre_Scan_120_Widget = new QPushButton(groupBox_5);
+        Show_Pre_Scan_120_Widget->setObjectName(QString::fromUtf8("Show_Pre_Scan_120_Widget"));
+        sizePolicy5.setHeightForWidth(Show_Pre_Scan_120_Widget->sizePolicy().hasHeightForWidth());
+        Show_Pre_Scan_120_Widget->setSizePolicy(sizePolicy5);
 
-        gridLayout->addWidget(Worry_List, 0, 0, 1, 1);
+        gridLayout_4->addWidget(Show_Pre_Scan_120_Widget, 3, 0, 1, 1);
+
+        Show_CGXi_Widget = new QPushButton(groupBox_5);
+        Show_CGXi_Widget->setObjectName(QString::fromUtf8("Show_CGXi_Widget"));
+        sizePolicy7.setHeightForWidth(Show_CGXi_Widget->sizePolicy().hasHeightForWidth());
+        Show_CGXi_Widget->setSizePolicy(sizePolicy7);
+
+        gridLayout_4->addWidget(Show_CGXi_Widget, 2, 0, 1, 1);
+
+        Show_Voice_Widget = new QPushButton(groupBox_5);
+        Show_Voice_Widget->setObjectName(QString::fromUtf8("Show_Voice_Widget"));
+        sizePolicy7.setHeightForWidth(Show_Voice_Widget->sizePolicy().hasHeightForWidth());
+        Show_Voice_Widget->setSizePolicy(sizePolicy7);
+
+        gridLayout_4->addWidget(Show_Voice_Widget, 4, 0, 1, 1);
+
+        Show_Magic_Widget = new QPushButton(groupBox_5);
+        Show_Magic_Widget->setObjectName(QString::fromUtf8("Show_Magic_Widget"));
+        sizePolicy7.setHeightForWidth(Show_Magic_Widget->sizePolicy().hasHeightForWidth());
+        Show_Magic_Widget->setSizePolicy(sizePolicy7);
+
+        gridLayout_4->addWidget(Show_Magic_Widget, 1, 0, 1, 1);
+
+        Show_Work_Widget = new QPushButton(groupBox_5);
+        Show_Work_Widget->setObjectName(QString::fromUtf8("Show_Work_Widget"));
+        sizePolicy7.setHeightForWidth(Show_Work_Widget->sizePolicy().hasHeightForWidth());
+        Show_Work_Widget->setSizePolicy(sizePolicy7);
+
+        gridLayout_4->addWidget(Show_Work_Widget, 0, 0, 1, 1);
+
+        Show_IO_Widget = new QPushButton(groupBox_5);
+        Show_IO_Widget->setObjectName(QString::fromUtf8("Show_IO_Widget"));
+        sizePolicy7.setHeightForWidth(Show_IO_Widget->sizePolicy().hasHeightForWidth());
+        Show_IO_Widget->setSizePolicy(sizePolicy7);
+
+        gridLayout_4->addWidget(Show_IO_Widget, 5, 0, 1, 1);
 
 
-        horizontalLayout_46->addWidget(groupBox_11);
-
-        groupBox_2 = new QGroupBox(centralWidget);
-        groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
-        sizePolicy.setHeightForWidth(groupBox_2->sizePolicy().hasHeightForWidth());
-        groupBox_2->setSizePolicy(sizePolicy);
-        gridLayout_51 = new QGridLayout(groupBox_2);
-        gridLayout_51->setSpacing(6);
-        gridLayout_51->setContentsMargins(11, 11, 11, 11);
-        gridLayout_51->setObjectName(QString::fromUtf8("gridLayout_51"));
-        Work_List = new QTextEdit(groupBox_2);
-        Work_List->setObjectName(QString::fromUtf8("Work_List"));
-        sizePolicy.setHeightForWidth(Work_List->sizePolicy().hasHeightForWidth());
-        Work_List->setSizePolicy(sizePolicy);
-        Work_List->setReadOnly(true);
-
-        gridLayout_51->addWidget(Work_List, 0, 0, 1, 1);
+        gridLayout_94->addWidget(groupBox_5, 0, 0, 1, 1);
 
 
-        horizontalLayout_46->addWidget(groupBox_2);
-
-
-        gridLayout_15->addLayout(horizontalLayout_46, 1, 0, 1, 2);
+        gridLayout_15->addWidget(widget_10, 0, 0, 1, 1);
 
         Robot_App_Widget->setCentralWidget(centralWidget);
         Status_Bar = new QStatusBar(Robot_App_Widget);
@@ -5763,7 +7332,7 @@ public:
 
         retranslateUi(Robot_App_Widget);
 
-        stackedWidget->setCurrentIndex(1);
+        stackedWidget->setCurrentIndex(3);
         tabWidget_Status->setCurrentIndex(0);
         tabWidget_Magic->setCurrentIndex(0);
         tabWidget_PathPoint->setCurrentIndex(3);
@@ -5775,10 +7344,6 @@ public:
     void retranslateUi(QMainWindow *Robot_App_Widget)
     {
         Robot_App_Widget->setWindowTitle(QApplication::translate("Robot_App_Widget", "\346\231\272\350\203\275\345\272\225\351\203\250\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\346\216\247\345\210\266\345\271\263\345\217\260", nullptr));
-        groupBox_5->setTitle(QApplication::translate("Robot_App_Widget", "\350\217\234\345\215\225", nullptr));
-        Show_Magic_Widget->setText(QApplication::translate("Robot_App_Widget", "\345\272\225\347\233\230", nullptr));
-        Show_CGXi_Widget->setText(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202", nullptr));
-        Show_Pre_Scan_120_Widget->setText(QApplication::translate("Robot_App_Widget", "\347\262\276\346\211\253", nullptr));
         groupBox_3->setTitle(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202", nullptr));
         label_ip->setText(QApplication::translate("Robot_App_Widget", "IP:", nullptr));
         CGXi_IP->setText(QApplication::translate("Robot_App_Widget", "192.168.6.6", nullptr));
@@ -5971,6 +7536,13 @@ public:
         tabWidget_Status->setTabText(tabWidget_Status->indexOf(tab_Robot), QApplication::translate("Robot_App_Widget", "\346\234\272\345\231\250\344\272\272\347\212\266\346\200\201 (Addr: 850~863)", nullptr));
         groupBox->setTitle(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202\346\227\245\345\277\227\344\277\241\346\201\257", nullptr));
         groupBox_8->setTitle(QApplication::translate("Robot_App_Widget", "\347\262\276\346\211\253\347\233\270\346\234\272 \342\200\224 \347\253\213\345\210\233\347\273\223\346\236\204\345\205\211 T1", nullptr));
+        label_120_Remote_Status->setText(QApplication::translate("Robot_App_Widget", "\350\277\234\347\250\213\345\217\221\351\200\201:", nullptr));
+        label_120_Monitor_Status->setText(QApplication::translate("Robot_App_Widget", "\345\217\215\351\246\210\346\216\245\346\224\266:", nullptr));
+        label_120_Listen_Status->setText(QApplication::translate("Robot_App_Widget", "TCP\347\233\221\345\220\254:", nullptr));
+        label_120_Tran_Status->setText(QApplication::translate("Robot_App_Widget", "TCP\350\275\254\345\217\221:", nullptr));
+        label_120_Client_Num->setText(QApplication::translate("Robot_App_Widget", "\345\256\242\346\210\267\347\253\257:", nullptr));
+        label_120_Cam_Num->setText(QApplication::translate("Robot_App_Widget", "\347\233\270\346\234\272\347\274\226\345\217\267:", nullptr));
+        Pre_Scan_120_Cam_Num->setText(QApplication::translate("Robot_App_Widget", "T1", nullptr));
         label_120_IP->setText(QApplication::translate("Robot_App_Widget", "\347\233\270\346\234\272IP:", nullptr));
         Pre_Scan_120_IP->setText(QApplication::translate("Robot_App_Widget", "192.168.6.35", nullptr));
         label_120_Port->setText(QApplication::translate("Robot_App_Widget", "\347\253\257\345\217\243:", nullptr));
@@ -5981,41 +7553,6 @@ public:
         Pre_Scan_120_Tran_Port->setText(QApplication::translate("Robot_App_Widget", "9000", nullptr));
         Pre_Scan_120_Connect->setText(QApplication::translate("Robot_App_Widget", "\350\277\236\346\216\245", nullptr));
         Pre_Scan_120_Disconnect->setText(QApplication::translate("Robot_App_Widget", "\346\226\255\345\274\200", nullptr));
-        label_120_Remote_Status->setText(QApplication::translate("Robot_App_Widget", "\350\277\234\347\250\213\345\217\221\351\200\201:", nullptr));
-        label_120_Monitor_Status->setText(QApplication::translate("Robot_App_Widget", "\345\217\215\351\246\210\346\216\245\346\224\266:", nullptr));
-        label_120_Tran_Status->setText(QApplication::translate("Robot_App_Widget", "TCP\350\275\254\345\217\221:", nullptr));
-        label_120_Listen_Status->setText(QApplication::translate("Robot_App_Widget", "TCP\347\233\221\345\220\254:", nullptr));
-        label_120_Client_Num->setText(QApplication::translate("Robot_App_Widget", "\345\256\242\346\210\267\347\253\257:", nullptr));
-        label_120_Cam_Num->setText(QApplication::translate("Robot_App_Widget", "\347\233\270\346\234\272\347\274\226\345\217\267:", nullptr));
-        Pre_Scan_120_Cam_Num->setText(QApplication::translate("Robot_App_Widget", "T1", nullptr));
-        label_120_LastUpdate->setText(QApplication::translate("Robot_App_Widget", "\346\234\200\345\220\216\346\233\264\346\226\260:", nullptr));
-        groupBox_Task_Info->setTitle(QApplication::translate("Robot_App_Widget", "WEB\344\273\273\345\212\241\344\277\241\346\201\257(\350\257\273)", nullptr));
-        label_120_TaskID->setText(QApplication::translate("Robot_App_Widget", "\344\273\273\345\212\241ID:", nullptr));
-        label_120_Wheelset->setText(QApplication::translate("Robot_App_Widget", "\350\275\256\345\257\271\345\217\267:", nullptr));
-        label_120_StartTime->setText(QApplication::translate("Robot_App_Widget", "\345\274\200\345\247\213\346\227\266\351\227\264:", nullptr));
-        label_120_Axle->setText(QApplication::translate("Robot_App_Widget", "\350\275\246\350\275\264\345\217\267:", nullptr));
-        label_120_Repair->setText(QApplication::translate("Robot_App_Widget", "\344\277\256\347\250\213:", nullptr));
-        label_120_SendUnit->setText(QApplication::translate("Robot_App_Widget", "\351\200\201\350\275\256\345\215\225\344\275\215:", nullptr));
-        groupBox_Collect_Status->setTitle(QApplication::translate("Robot_App_Widget", "\351\207\207\351\233\206\347\212\266\346\200\201\357\274\210\350\257\273\357\274\211", nullptr));
-        label_120_Prog->setText(QApplication::translate("Robot_App_Widget", "\347\250\213\345\272\217\347\264\242\345\274\225:", nullptr));
-        label_120_Gain->setText(QApplication::translate("Robot_App_Widget", "\347\233\270\346\234\272\345\242\236\347\233\212:", nullptr));
-        label_120_Part1->setText(QApplication::translate("Robot_App_Widget", "\344\270\200\347\272\247\351\203\250\344\273\266:", nullptr));
-        label_120_Part2->setText(QApplication::translate("Robot_App_Widget", "\344\272\214\347\272\247\351\203\250\344\273\266:", nullptr));
-        label_120_Point->setText(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\347\202\271:", nullptr));
-        groupBox_Control->setTitle(QApplication::translate("Robot_App_Widget", "\346\211\213\345\212\250\346\216\247\345\210\266", nullptr));
-        Pre_Scan_120_Start_Scan->setText(QApplication::translate("Robot_App_Widget", "\345\274\200\345\247\213\351\207\207\351\233\206", nullptr));
-        Pre_Scan_120_Collector->setText(QApplication::translate("Robot_App_Widget", "\345\215\225\346\254\241\351\207\207\351\233\206", nullptr));
-        Pre_Scan_120_Finish_Scan->setText(QApplication::translate("Robot_App_Widget", "\345\256\214\346\210\220\351\207\207\351\233\206", nullptr));
-        Pre_Scan_120_Change_Gain->setText(QApplication::translate("Robot_App_Widget", "\350\256\276\347\275\256\345\242\236\347\233\212", nullptr));
-        label_120_TotalImages->setText(QApplication::translate("Robot_App_Widget", "\351\207\207\351\233\206\345\233\276\345\203\217:", nullptr));
-        label_120_WorkState->setText(QApplication::translate("Robot_App_Widget", "\345\267\245\344\275\234\347\212\266\346\200\201:", nullptr));
-        Pre_Scan_120_WorkState->setItemText(0, QApplication::translate("Robot_App_Widget", "\347\251\272\351\227\262", nullptr));
-        Pre_Scan_120_WorkState->setItemText(1, QApplication::translate("Robot_App_Widget", "\345\260\261\347\273\252", nullptr));
-        Pre_Scan_120_WorkState->setItemText(2, QApplication::translate("Robot_App_Widget", "\351\207\207\351\233\206\344\270\255", nullptr));
-        Pre_Scan_120_WorkState->setItemText(3, QApplication::translate("Robot_App_Widget", "\346\232\202\345\201\234", nullptr));
-        Pre_Scan_120_WorkState->setItemText(4, QApplication::translate("Robot_App_Widget", "\345\256\214\346\210\220", nullptr));
-        Pre_Scan_120_WorkState->setItemText(5, QApplication::translate("Robot_App_Widget", "\351\224\231\350\257\257", nullptr));
-
         groupBox_Task_Info_2->setTitle(QApplication::translate("Robot_App_Widget", "WEB\344\273\273\345\212\241\344\277\241\346\201\257\357\274\210\345\206\231\357\274\211", nullptr));
         label_120_Wheelset_2->setText(QApplication::translate("Robot_App_Widget", "\350\275\256\345\257\271\345\217\267:", nullptr));
         label_120_Repair_2->setText(QApplication::translate("Robot_App_Widget", "\344\277\256\347\250\213:", nullptr));
@@ -6041,6 +7578,34 @@ public:
         set_Pre_Scan_120_Part2->setText(QApplication::translate("Robot_App_Widget", "\345\206\231\345\205\245", nullptr));
         label_120_Part1_2->setText(QApplication::translate("Robot_App_Widget", "\344\270\200\347\272\247\351\203\250\344\273\266:", nullptr));
         groupBox_9->setTitle(QApplication::translate("Robot_App_Widget", "\345\267\246\347\262\276\346\211\253\346\266\210\346\201\257", nullptr));
+        groupBox_Task_Info->setTitle(QApplication::translate("Robot_App_Widget", "WEB\344\273\273\345\212\241\344\277\241\346\201\257(\350\257\273)", nullptr));
+        label_120_TaskID->setText(QApplication::translate("Robot_App_Widget", "\344\273\273\345\212\241ID:", nullptr));
+        label_120_Wheelset->setText(QApplication::translate("Robot_App_Widget", "\350\275\256\345\257\271\345\217\267:", nullptr));
+        label_120_StartTime->setText(QApplication::translate("Robot_App_Widget", "\345\274\200\345\247\213\346\227\266\351\227\264:", nullptr));
+        label_120_Axle->setText(QApplication::translate("Robot_App_Widget", "\350\275\246\350\275\264\345\217\267:", nullptr));
+        label_120_Repair->setText(QApplication::translate("Robot_App_Widget", "\344\277\256\347\250\213:", nullptr));
+        label_120_SendUnit->setText(QApplication::translate("Robot_App_Widget", "\351\200\201\350\275\256\345\215\225\344\275\215:", nullptr));
+        groupBox_Collect_Status->setTitle(QApplication::translate("Robot_App_Widget", "\351\207\207\351\233\206\347\212\266\346\200\201\357\274\210\350\257\273\357\274\211", nullptr));
+        label_120_Part1->setText(QApplication::translate("Robot_App_Widget", "\344\270\200\347\272\247\351\203\250\344\273\266:", nullptr));
+        label_120_Part2->setText(QApplication::translate("Robot_App_Widget", "\344\272\214\347\272\247\351\203\250\344\273\266:", nullptr));
+        label_120_Gain->setText(QApplication::translate("Robot_App_Widget", "\347\233\270\346\234\272\345\242\236\347\233\212:", nullptr));
+        label_120_Prog->setText(QApplication::translate("Robot_App_Widget", "\347\250\213\345\272\217\347\264\242\345\274\225:", nullptr));
+        label_120_Point->setText(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\347\202\271:", nullptr));
+        label_120_LastUpdate->setText(QApplication::translate("Robot_App_Widget", "\346\234\200\345\220\216\346\233\264\346\226\260:", nullptr));
+        groupBox_Control->setTitle(QApplication::translate("Robot_App_Widget", "\346\211\213\345\212\250\346\216\247\345\210\266", nullptr));
+        Pre_Scan_120_Start_Scan->setText(QApplication::translate("Robot_App_Widget", "\345\274\200\345\247\213\351\207\207\351\233\206", nullptr));
+        Pre_Scan_120_Collector->setText(QApplication::translate("Robot_App_Widget", "\345\215\225\346\254\241\351\207\207\351\233\206", nullptr));
+        Pre_Scan_120_Finish_Scan->setText(QApplication::translate("Robot_App_Widget", "\345\256\214\346\210\220\351\207\207\351\233\206", nullptr));
+        Pre_Scan_120_Change_Gain->setText(QApplication::translate("Robot_App_Widget", "\350\256\276\347\275\256\345\242\236\347\233\212", nullptr));
+        label_120_TotalImages->setText(QApplication::translate("Robot_App_Widget", "\351\207\207\351\233\206\345\233\276\345\203\217:", nullptr));
+        label_120_WorkState->setText(QApplication::translate("Robot_App_Widget", "\345\267\245\344\275\234\347\212\266\346\200\201:", nullptr));
+        Pre_Scan_120_WorkState->setItemText(0, QApplication::translate("Robot_App_Widget", "\347\251\272\351\227\262", nullptr));
+        Pre_Scan_120_WorkState->setItemText(1, QApplication::translate("Robot_App_Widget", "\345\260\261\347\273\252", nullptr));
+        Pre_Scan_120_WorkState->setItemText(2, QApplication::translate("Robot_App_Widget", "\351\207\207\351\233\206\344\270\255", nullptr));
+        Pre_Scan_120_WorkState->setItemText(3, QApplication::translate("Robot_App_Widget", "\346\232\202\345\201\234", nullptr));
+        Pre_Scan_120_WorkState->setItemText(4, QApplication::translate("Robot_App_Widget", "\345\256\214\346\210\220", nullptr));
+        Pre_Scan_120_WorkState->setItemText(5, QApplication::translate("Robot_App_Widget", "\351\224\231\350\257\257", nullptr));
+
         groupBox_MySql->setTitle(QApplication::translate("Robot_App_Widget", "\346\225\260\346\215\256\345\272\223\350\277\236\346\216\245", nullptr));
         label_120_MySql_Status->setText(QApplication::translate("Robot_App_Widget", "\347\212\266\346\200\201:", nullptr));
         label_167->setText(QApplication::translate("Robot_App_Widget", "\346\225\260\346\215\256\345\272\223\347\253\257\345\217\243\357\274\232", nullptr));
@@ -6049,7 +7614,221 @@ public:
         label_149->setText(QApplication::translate("Robot_App_Widget", "\346\225\260\346\215\256\345\272\223\345\257\206\347\240\201\357\274\232", nullptr));
         label_148->setText(QApplication::translate("Robot_App_Widget", "\346\225\260\346\215\256\345\272\223\350\241\250\345\244\264\357\274\232", nullptr));
         Pre_Scan_120_MySql_Reconnect->setText(QApplication::translate("Robot_App_Widget", "\351\207\215\346\226\260\350\277\236\346\216\245", nullptr));
-        groupBox_Log->setTitle(QApplication::translate("Robot_App_Widget", "\351\200\232\350\256\257\346\227\245\345\277\227", nullptr));
+        groupBox_Voice_Config->setTitle(QApplication::translate("Robot_App_Widget", "\351\200\232\344\277\241\351\205\215\347\275\256", nullptr));
+        label_Voice_Com->setText(QApplication::translate("Robot_App_Widget", "COM\345\217\243:", nullptr));
+        Voice_Com->setCurrentText(QApplication::translate("Robot_App_Widget", "COM1", nullptr));
+        label_Voice_Baud->setText(QApplication::translate("Robot_App_Widget", "\346\263\242\347\211\271\347\216\207:", nullptr));
+        Voice_Baud->setItemText(0, QApplication::translate("Robot_App_Widget", "9600", nullptr));
+        Voice_Baud->setItemText(1, QApplication::translate("Robot_App_Widget", "19200", nullptr));
+        Voice_Baud->setItemText(2, QApplication::translate("Robot_App_Widget", "38400", nullptr));
+        Voice_Baud->setItemText(3, QApplication::translate("Robot_App_Widget", "115200", nullptr));
+
+        label_Voice_Addr->setText(QApplication::translate("Robot_App_Widget", "\344\273\216\347\253\231:", nullptr));
+        label_Voice_Connected->setText(QApplication::translate("Robot_App_Widget", "\350\277\236\346\216\245:", nullptr));
+        label_Voice_Volume->setText(QApplication::translate("Robot_App_Widget", "\351\237\263\351\207\217:", nullptr));
+        Voice_Connect->setText(QApplication::translate("Robot_App_Widget", "\350\277\236\346\216\245", nullptr));
+        Voice_Disconnect->setText(QApplication::translate("Robot_App_Widget", "\346\226\255\345\274\200", nullptr));
+        Voice_Volume_Display->setText(QApplication::translate("Robot_App_Widget", "\344\270\255(2)", nullptr));
+        groupBox_Voice_Play->setTitle(QApplication::translate("Robot_App_Widget", "\351\237\263\351\242\221\346\222\255\346\212\245", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA001->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\346\255\243\345\234\250\345\267\241\346\243\200\344\270\255\357\274\214\350\257\267\346\263\250\346\204\217\345\256\211\345\205\250", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA001->setText(QApplication::translate("Robot_App_Widget", "PA001", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA002->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\346\243\200\346\265\213\345\210\260\351\232\234\347\242\215\347\211\251", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA002->setText(QApplication::translate("Robot_App_Widget", "PA002", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA003->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\350\256\276\345\244\207\346\225\205\351\232\234\357\274\214\345\267\262\345\201\234\346\255\242\350\277\220\350\241\214", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA003->setText(QApplication::translate("Robot_App_Widget", "PA003", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA004->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\347\224\265\351\207\217\350\277\207\344\275\216\357\274\214\350\257\267\345\260\275\345\277\253\345\205\205\347\224\265", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA004->setText(QApplication::translate("Robot_App_Widget", "PA004", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA005->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\345\267\262\346\232\202\345\201\234\350\277\220\350\241\214\357\274\214\350\257\267\345\213\277\351\235\240\350\277\221", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA005->setText(QApplication::translate("Robot_App_Widget", "PA005", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA006->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\346\234\272\346\242\260\350\207\202\346\255\243\345\234\250\350\277\220\350\241\214\344\270\255\357\274\214\350\257\267\346\263\250\346\204\217", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA006->setText(QApplication::translate("Robot_App_Widget", "PA006", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA007->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\351\200\232\344\277\241\346\225\205\351\232\234\357\274\214\350\257\267\346\243\200\346\237\245\347\275\221\347\273\234", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA007->setText(QApplication::translate("Robot_App_Widget", "PA007", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA008->setToolTip(QApplication::translate("Robot_App_Widget", "\347\233\270\346\234\272\346\225\205\351\232\234\357\274\214\350\257\267\346\243\200\346\237\245\347\233\270\346\234\272\346\230\257\345\220\246\346\255\243\345\270\270", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA008->setText(QApplication::translate("Robot_App_Widget", "PA008", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA009->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\346\234\272\345\231\250\344\272\272\345\272\225\347\233\230\346\225\205\351\232\234\357\274\214\350\257\267\346\243\200\346\237\245", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA009->setText(QApplication::translate("Robot_App_Widget", "PA009", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA010->setToolTip(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202\346\243\200\346\265\213\345\210\260\347\242\260\346\222\236\357\274\214\350\257\267\344\272\272\345\267\245\345\244\204\347\220\206", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA010->setText(QApplication::translate("Robot_App_Widget", "PA010", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA011->setToolTip(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202\346\234\252\345\210\260\350\276\276\347\233\256\346\240\207\357\274\214\350\257\267\344\272\272\345\267\245\345\210\207\346\215\242", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA011->setText(QApplication::translate("Robot_App_Widget", "PA011", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA012->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\262\345\210\207\346\215\242\346\211\213\345\212\250\345\211\215\350\277\233\357\274\214\347\233\256\350\247\206\346\223\215\344\275\234", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA012->setText(QApplication::translate("Robot_App_Widget", "PA012", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA013->setToolTip(QApplication::translate("Robot_App_Widget", "\345\267\262\345\210\207\346\215\242\346\211\213\345\212\250\345\220\216\351\200\200\357\274\214\347\233\256\350\247\206\346\223\215\344\275\234", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA013->setText(QApplication::translate("Robot_App_Widget", "PA013", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA014->setToolTip(QApplication::translate("Robot_App_Widget", "\345\210\235\345\247\213\345\256\232\344\275\215\345\256\214\346\210\220", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA014->setText(QApplication::translate("Robot_App_Widget", "PA014", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA015->setToolTip(QApplication::translate("Robot_App_Widget", "\345\256\232\344\275\215\345\256\214\346\210\220", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA015->setText(QApplication::translate("Robot_App_Widget", "PA015", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA016->setToolTip(QApplication::translate("Robot_App_Widget", "\345\233\236\345\216\237\347\202\271\350\277\220\350\241\214\344\270\255\357\274\214\350\257\267\346\263\250\346\204\217\345\256\211\345\205\250", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA016->setText(QApplication::translate("Robot_App_Widget", "PA016", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA017->setToolTip(QApplication::translate("Robot_App_Widget", "\345\205\205\347\224\265\347\224\265\345\216\213\346\234\252\350\276\276\345\210\260\357\274\214\350\257\267\344\272\272\345\267\245\346\243\200\346\237\245", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA017->setText(QApplication::translate("Robot_App_Widget", "PA017", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA018->setToolTip(QApplication::translate("Robot_App_Widget", "\345\233\236\345\216\237\347\202\271\347\273\223\346\235\237\345\220\216\346\234\252\350\276\276\345\210\260\357\274\214\350\257\267\344\272\272\345\267\245\346\243\200\346\237\245", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA018->setText(QApplication::translate("Robot_App_Widget", "PA018", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA019->setToolTip(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202\344\270\215\345\234\250\345\216\237\347\202\271\357\274\214\350\257\267\344\272\272\345\267\245\345\244\204\347\220\206", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA019->setText(QApplication::translate("Robot_App_Widget", "PA019", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA020->setToolTip(QApplication::translate("Robot_App_Widget", "\346\200\245\345\201\234\346\214\211\351\222\256\346\214\211\344\270\213\357\274\214\350\257\267\344\272\272\345\267\245\345\244\204\347\220\206", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA020->setText(QApplication::translate("Robot_App_Widget", "PA020", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA021->setToolTip(QApplication::translate("Robot_App_Widget", "\347\262\276\346\211\253\347\233\270\346\234\272\346\225\205\351\232\234\357\274\214\350\257\267\344\272\272\345\267\245\346\243\200\346\237\245", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA021->setText(QApplication::translate("Robot_App_Widget", "PA021", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA022->setToolTip(QApplication::translate("Robot_App_Widget", "\345\256\232\344\275\215\345\244\261\350\264\245\346\210\226\344\270\242\345\244\261\357\274\214\350\257\267\344\272\272\345\267\245\346\243\200\346\237\245", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA022->setText(QApplication::translate("Robot_App_Widget", "PA022", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA023->setToolTip(QApplication::translate("Robot_App_Widget", "\345\205\205\347\224\265\347\224\265\345\216\213\346\234\252\350\276\276\345\210\260\345\201\234\346\255\242\346\235\241\344\273\266", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA023->setText(QApplication::translate("Robot_App_Widget", "PA023", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA024->setToolTip(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202\345\205\205\347\224\265\346\234\252\350\276\276\345\210\260\345\201\234\346\255\242\346\235\241\344\273\266", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA024->setText(QApplication::translate("Robot_App_Widget", "PA024", nullptr));
+#ifndef QT_NO_TOOLTIP
+        btn_Voice_PA025->setToolTip(QApplication::translate("Robot_App_Widget", "\347\246\201\346\255\242\351\200\232\350\241\214", nullptr));
+#endif // QT_NO_TOOLTIP
+        btn_Voice_PA025->setText(QApplication::translate("Robot_App_Widget", "PA025", nullptr));
+        btn_Voice_Stop->setText(QApplication::translate("Robot_App_Widget", "\345\201\234\346\255\242\346\222\255\346\224\276", nullptr));
+        btn_Voice_Vol_Low->setText(QApplication::translate("Robot_App_Widget", "\351\237\263\351\207\217:\344\275\216(1)", nullptr));
+        btn_Voice_Vol_Med->setText(QApplication::translate("Robot_App_Widget", "\351\237\263\351\207\217:\344\270\255(2)", nullptr));
+        btn_Voice_Vol_High->setText(QApplication::translate("Robot_App_Widget", "\351\237\263\351\207\217:\351\253\230(3)", nullptr));
+        btn_Voice_Test->setText(QApplication::translate("Robot_App_Widget", "\346\265\213\350\257\225\346\222\255\346\212\245", nullptr));
+        groupBox_Voice_Info->setTitle(QApplication::translate("Robot_App_Widget", "\346\222\255\346\212\245\344\277\241\346\201\257", nullptr));
+        label_Voice_Device_Status->setText(QApplication::translate("Robot_App_Widget", "\350\256\276\345\244\207\347\212\266\346\200\201:", nullptr));
+        Voice_Device_Status->setText(QApplication::translate("Robot_App_Widget", "\347\251\272\351\227\262", nullptr));
+        label_Voice_Current_Audio->setText(QApplication::translate("Robot_App_Widget", "\345\275\223\345\211\215\351\237\263\351\242\221:", nullptr));
+        label_Voice_Count->setText(QApplication::translate("Robot_App_Widget", "\346\222\255\346\212\245\346\254\241\346\225\260:", nullptr));
+        Voice_Count->setText(QApplication::translate("Robot_App_Widget", "0", nullptr));
+        groupBox_Voice_Log->setTitle(QApplication::translate("Robot_App_Widget", "\346\222\255\346\212\245\350\256\260\345\275\225", nullptr));
+        QTableWidgetItem *___qtablewidgetitem21 = Voice_Log->horizontalHeaderItem(0);
+        ___qtablewidgetitem21->setText(QApplication::translate("Robot_App_Widget", "\346\227\266\351\227\264", nullptr));
+        QTableWidgetItem *___qtablewidgetitem22 = Voice_Log->horizontalHeaderItem(1);
+        ___qtablewidgetitem22->setText(QApplication::translate("Robot_App_Widget", "\351\237\263\351\242\221\347\274\226\345\217\267", nullptr));
+        QTableWidgetItem *___qtablewidgetitem23 = Voice_Log->horizontalHeaderItem(2);
+        ___qtablewidgetitem23->setText(QApplication::translate("Robot_App_Widget", "\346\222\255\346\212\245\345\206\205\345\256\271", nullptr));
+        groupBox_2->setTitle(QApplication::translate("Robot_App_Widget", "IO\346\216\247\345\210\266", nullptr));
+        groupBox_24->setTitle(QApplication::translate("Robot_App_Widget", "IO\346\250\241\345\235\227\351\200\232\350\256\257\345\217\202\346\225\260", nullptr));
+        label_274->setText(QApplication::translate("Robot_App_Widget", "\345\206\231\344\277\235\346\214\201\345\234\260\345\235\200:", nullptr));
+        label_275->setText(QApplication::translate("Robot_App_Widget", "\350\257\273\347\246\273\346\225\243\345\234\260\345\235\200:", nullptr));
+        label_280->setText(QApplication::translate("Robot_App_Widget", "\345\206\231\344\277\235\346\214\201\351\225\277\345\272\246:", nullptr));
+        label_278->setText(QApplication::translate("Robot_App_Widget", "\350\257\273\350\276\223\345\205\245\345\234\260\345\235\200:", nullptr));
+        label_272->setText(QApplication::translate("Robot_App_Widget", "\350\257\273\350\276\223\345\205\245\351\225\277\345\272\246:", nullptr));
+        label_281->setText(QApplication::translate("Robot_App_Widget", "\345\206\231\347\272\277\345\234\210\345\234\260\345\235\200:", nullptr));
+        label_139->setText(QApplication::translate("Robot_App_Widget", "\346\250\241\345\235\227\345\234\260\345\235\200\357\274\232", nullptr));
+        label_273->setText(QApplication::translate("Robot_App_Widget", "\345\206\231\347\272\277\345\234\210\351\225\277\345\272\246:", nullptr));
+        label_277->setText(QApplication::translate("Robot_App_Widget", "\350\257\273\347\246\273\346\225\243\351\225\277\345\272\246:", nullptr));
+        label_122->setText(QApplication::translate("Robot_App_Widget", "\346\250\241\345\235\227\347\253\257\345\217\243\357\274\232", nullptr));
+        IO_Port->setText(QString());
+        groupBox_IO_Connect->setTitle(QApplication::translate("Robot_App_Widget", "\350\277\236\346\216\245\346\216\247\345\210\266", nullptr));
+        label_25->setText(QApplication::translate("Robot_App_Widget", "\350\277\236\346\216\245:", nullptr));
+        label_24->setText(QApplication::translate("Robot_App_Widget", "\345\260\261\347\273\252:", nullptr));
+        IO_Connect->setText(QApplication::translate("Robot_App_Widget", "\350\277\236\346\216\245", nullptr));
+        IO_Disconnect->setText(QApplication::translate("Robot_App_Widget", "\346\226\255\345\274\200", nullptr));
+        groupBox_IO_DI->setTitle(QApplication::translate("Robot_App_Widget", "\346\225\260\345\255\227\351\207\217\350\276\223\345\205\245\347\233\221\350\247\206  XB6S-3200", nullptr));
+        QTableWidgetItem *___qtablewidgetitem24 = tableWidget_IO_DI->horizontalHeaderItem(0);
+        ___qtablewidgetitem24->setText(QApplication::translate("Robot_App_Widget", "\351\200\232\351\201\223", nullptr));
+        QTableWidgetItem *___qtablewidgetitem25 = tableWidget_IO_DI->horizontalHeaderItem(1);
+        ___qtablewidgetitem25->setText(QApplication::translate("Robot_App_Widget", "\344\277\241\345\217\267\345\220\215\347\247\260", nullptr));
+        QTableWidgetItem *___qtablewidgetitem26 = tableWidget_IO_DI->horizontalHeaderItem(2);
+        ___qtablewidgetitem26->setText(QApplication::translate("Robot_App_Widget", "\347\212\266\346\200\201", nullptr));
+        groupBox_IO_AO->setTitle(QApplication::translate("Robot_App_Widget", "\346\250\241\346\213\237\351\207\217\350\276\223\345\207\272\346\216\247\345\210\266  XB6S-A04", nullptr));
+        label_IO_AO_1->setText(QApplication::translate("Robot_App_Widget", "\351\200\232\351\201\223 1:", nullptr));
+        btn_IO_AO_Set_1->setText(QApplication::translate("Robot_App_Widget", "\350\256\276\347\275\256", nullptr));
+        label_IO_AO_2->setText(QApplication::translate("Robot_App_Widget", "\351\200\232\351\201\223 2:", nullptr));
+        btn_IO_AO_Set_2->setText(QApplication::translate("Robot_App_Widget", "\350\256\276\347\275\256", nullptr));
+        label_IO_AO_3->setText(QApplication::translate("Robot_App_Widget", "\351\200\232\351\201\223 3:", nullptr));
+        btn_IO_AO_Set_3->setText(QApplication::translate("Robot_App_Widget", "\350\256\276\347\275\256", nullptr));
+        label_IO_AO_4->setText(QApplication::translate("Robot_App_Widget", "\351\200\232\351\201\223 4:", nullptr));
+        btn_IO_AO_Set_4->setText(QApplication::translate("Robot_App_Widget", "\350\256\276\347\275\256", nullptr));
+        groupBox_IO_DO->setTitle(QApplication::translate("Robot_App_Widget", "\346\225\260\345\255\227\351\207\217\350\276\223\345\207\272\346\265\213\350\257\225  XB6S-3200B", nullptr));
+        btn_IO_AlarmRed_ON->setText(QApplication::translate("Robot_App_Widget", "\347\272\242\345\274\200", nullptr));
+        btn_IO_AlarmRed_OFF->setText(QApplication::translate("Robot_App_Widget", "\347\272\242\345\205\263", nullptr));
+        btn_IO_AlarmYellow_ON->setText(QApplication::translate("Robot_App_Widget", "\351\273\204\345\274\200", nullptr));
+        btn_IO_AlarmYellow_OFF->setText(QApplication::translate("Robot_App_Widget", "\351\273\204\345\205\263", nullptr));
+        btn_IO_AlarmGreen_ON->setText(QApplication::translate("Robot_App_Widget", "\347\273\277\345\274\200", nullptr));
+        btn_IO_AlarmGreen_OFF->setText(QApplication::translate("Robot_App_Widget", "\347\273\277\345\205\263", nullptr));
+        btn_IO_Fan_ON->setText(QApplication::translate("Robot_App_Widget", "\351\243\216\346\211\207\345\274\200", nullptr));
+        btn_IO_Fan_OFF->setText(QApplication::translate("Robot_App_Widget", "\351\243\216\346\211\207\345\205\263", nullptr));
+        groupBox_10->setTitle(QApplication::translate("Robot_App_Widget", "IO\346\227\245\345\277\227", nullptr));
+        Work_ServerGroup->setTitle(QApplication::translate("Robot_App_Widget", "WEB \346\234\215\345\212\241\345\231\250", nullptr));
+        label_Work_Client->setText(QApplication::translate("Robot_App_Widget", "\345\256\242\346\210\267\347\253\257:", nullptr));
+        label_Work_Listen->setText(QApplication::translate("Robot_App_Widget", "\347\233\221\345\220\254:", nullptr));
+        label_Work_ConnNum->setText(QApplication::translate("Robot_App_Widget", "\350\277\236\346\216\245\346\225\260:", nullptr));
+        label_Work_Port->setText(QApplication::translate("Robot_App_Widget", "\347\253\257\345\217\243:", nullptr));
+        label_Work_Checksum->setText(QApplication::translate("Robot_App_Widget", "\346\240\241\351\252\214\347\240\201:", nullptr));
+        Work_FlowGroup->setTitle(QApplication::translate("Robot_App_Widget", "\345\267\245\344\275\234\346\265\201\347\212\266\346\200\201", nullptr));
+        label_Work_FlowState->setText(QApplication::translate("Robot_App_Widget", "\347\212\266\346\200\201:", nullptr));
+        Work_Flow_State->setText(QApplication::translate("Robot_App_Widget", "\347\251\272\351\227\262", nullptr));
+        Work_Btn_Start->setText(QApplication::translate("Robot_App_Widget", "\345\274\200\345\247\213\345\267\241\346\243\200", nullptr));
+        Work_Btn_Pause->setText(QApplication::translate("Robot_App_Widget", "\346\232\202\345\201\234", nullptr));
+        Work_Btn_Resume->setText(QApplication::translate("Robot_App_Widget", "\347\273\247\347\273\255", nullptr));
+        Work_Btn_Cancel->setText(QApplication::translate("Robot_App_Widget", "\345\217\226\346\266\210", nullptr));
+        Work_Btn_Stop->setText(QApplication::translate("Robot_App_Widget", "\346\200\245\345\201\234", nullptr));
+        Work_Btn_Home->setText(QApplication::translate("Robot_App_Widget", "\345\233\236\345\216\237\347\202\271", nullptr));
+        Work_SubsysGroup->setTitle(QApplication::translate("Robot_App_Widget", "\345\255\220\347\263\273\347\273\237\347\212\266\346\200\201", nullptr));
+        label_Work_Arm->setText(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202:", nullptr));
+        label_Work_Chassis->setText(QApplication::translate("Robot_App_Widget", "\345\272\225\347\233\230:", nullptr));
+        label_Work_Camera->setText(QApplication::translate("Robot_App_Widget", "\347\233\270\346\234\272:", nullptr));
+        label_Work_Server->setText(QApplication::translate("Robot_App_Widget", "WEB:", nullptr));
+        Work_TaskGroup->setTitle(QApplication::translate("Robot_App_Widget", "\344\273\273\345\212\241\347\212\266\346\200\201", nullptr));
+        label_Work_TaskID->setText(QApplication::translate("Robot_App_Widget", "\344\273\273 \345\212\241 ID:", nullptr));
+        label_Work_State->setText(QApplication::translate("Robot_App_Widget", "\347\212\266\346\200\201 :", nullptr));
+        label_Work_Wheel->setText(QApplication::translate("Robot_App_Widget", "\350\275\256  \345\257\271:", nullptr));
+        label_Work_Pos->setText(QApplication::translate("Robot_App_Widget", "\345\267\245\344\275\215:", nullptr));
+        label_Work_Images->setText(QApplication::translate("Robot_App_Widget", "\345\233\276\345\203\217\346\225\260:", nullptr));
+        label_Work_SendUnit->setText(QApplication::translate("Robot_App_Widget", "\351\200\201\346\243\200\345\215\225\344\275\215:", nullptr));
+        label_Work_Repair->setText(QApplication::translate("Robot_App_Widget", "\344\277\256\347\250\213 :", nullptr));
+        label_Work_WheelsetNo->setText(QApplication::translate("Robot_App_Widget", "\350\275\256\345\257\271\345\217\267:", nullptr));
+        label_Work_AxleNo->setText(QApplication::translate("Robot_App_Widget", "\350\275\246\350\275\264\345\217\267:", nullptr));
+        label_Work_Gain->setText(QApplication::translate("Robot_App_Widget", "\345\242\236  \347\233\212  :", nullptr));
+        label_Work_Part1->setText(QApplication::translate("Robot_App_Widget", "\351\203\250\344\273\2661:", nullptr));
+        label_Work_Part2->setText(QApplication::translate("Robot_App_Widget", "\351\203\250\344\273\266 2:", nullptr));
+        label_Work_Point->setText(QApplication::translate("Robot_App_Widget", "\347\202\271\344\275\215:", nullptr));
+        label_Work_StartTime->setText(QApplication::translate("Robot_App_Widget", "\345\274\200\345\247\213:", nullptr));
+        Work_LogGroup->setTitle(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\350\277\207\347\250\213", nullptr));
+        Work_AlarmGroup->setTitle(QApplication::translate("Robot_App_Widget", "\347\263\273\347\273\237\346\212\245\350\255\246", nullptr));
         groupBox_7->setTitle(QApplication::translate("Robot_App_Widget", "\345\272\225\347\233\230\346\216\247\345\210\266", nullptr));
         groupBox_Connect->setTitle(QApplication::translate("Robot_App_Widget", "\350\277\236\346\216\245\344\270\216\350\256\244\350\257\201", nullptr));
         label_IP->setText(QApplication::translate("Robot_App_Widget", "IP:", nullptr));
@@ -6149,37 +7928,37 @@ public:
         btn_GridInit->setText(QApplication::translate("Robot_App_Widget", "\346\240\205\346\240\274\345\210\235\345\247\213\345\214\226", nullptr));
         btn_InitResult->setText(QApplication::translate("Robot_App_Widget", "\345\210\235\345\247\213\345\214\226\347\273\223\346\236\234", nullptr));
         tabWidget_Magic->setTabText(tabWidget_Magic->indexOf(tab_Map), QApplication::translate("Robot_App_Widget", "\345\234\260\345\233\276", nullptr));
-        QTableWidgetItem *___qtablewidgetitem21 = table_NavPoints->horizontalHeaderItem(0);
-        ___qtablewidgetitem21->setText(QApplication::translate("Robot_App_Widget", "\345\220\215\347\247\260", nullptr));
-        QTableWidgetItem *___qtablewidgetitem22 = table_NavPoints->horizontalHeaderItem(1);
-        ___qtablewidgetitem22->setText(QApplication::translate("Robot_App_Widget", "\347\261\273\345\236\213", nullptr));
-        QTableWidgetItem *___qtablewidgetitem23 = table_NavPoints->horizontalHeaderItem(2);
-        ___qtablewidgetitem23->setText(QApplication::translate("Robot_App_Widget", "X", nullptr));
-        QTableWidgetItem *___qtablewidgetitem24 = table_NavPoints->horizontalHeaderItem(3);
-        ___qtablewidgetitem24->setText(QApplication::translate("Robot_App_Widget", "Y", nullptr));
-        QTableWidgetItem *___qtablewidgetitem25 = table_NavPoints->horizontalHeaderItem(4);
-        ___qtablewidgetitem25->setText(QApplication::translate("Robot_App_Widget", "\350\247\222\345\272\246", nullptr));
+        QTableWidgetItem *___qtablewidgetitem27 = table_NavPoints->horizontalHeaderItem(0);
+        ___qtablewidgetitem27->setText(QApplication::translate("Robot_App_Widget", "\345\220\215\347\247\260", nullptr));
+        QTableWidgetItem *___qtablewidgetitem28 = table_NavPoints->horizontalHeaderItem(1);
+        ___qtablewidgetitem28->setText(QApplication::translate("Robot_App_Widget", "\347\261\273\345\236\213", nullptr));
+        QTableWidgetItem *___qtablewidgetitem29 = table_NavPoints->horizontalHeaderItem(2);
+        ___qtablewidgetitem29->setText(QApplication::translate("Robot_App_Widget", "X", nullptr));
+        QTableWidgetItem *___qtablewidgetitem30 = table_NavPoints->horizontalHeaderItem(3);
+        ___qtablewidgetitem30->setText(QApplication::translate("Robot_App_Widget", "Y", nullptr));
+        QTableWidgetItem *___qtablewidgetitem31 = table_NavPoints->horizontalHeaderItem(4);
+        ___qtablewidgetitem31->setText(QApplication::translate("Robot_App_Widget", "\350\247\222\345\272\246", nullptr));
         btn_AddNavPoint->setText(QApplication::translate("Robot_App_Widget", "\345\210\233\345\273\272", nullptr));
         btn_EditNavPoint->setText(QApplication::translate("Robot_App_Widget", "\347\274\226\350\276\221", nullptr));
         btn_DeleteNavPoint->setText(QApplication::translate("Robot_App_Widget", "\345\210\240\351\231\244", nullptr));
         btn_RefreshNavPoints->setText(QApplication::translate("Robot_App_Widget", "\345\210\267\346\226\260\345\210\227\350\241\250", nullptr));
         tabWidget_PathPoint->setTabText(tabWidget_PathPoint->indexOf(tab_NavPoint), QApplication::translate("Robot_App_Widget", "\345\257\274\350\210\252\347\202\271", nullptr));
-        QTableWidgetItem *___qtablewidgetitem26 = table_GraphPaths->horizontalHeaderItem(0);
-        ___qtablewidgetitem26->setText(QApplication::translate("Robot_App_Widget", "\345\220\215\347\247\260", nullptr));
-        QTableWidgetItem *___qtablewidgetitem27 = table_GraphPaths->horizontalHeaderItem(1);
-        ___qtablewidgetitem27->setText(QApplication::translate("Robot_App_Widget", "\351\225\277\345\272\246(m)", nullptr));
-        QTableWidgetItem *___qtablewidgetitem28 = table_GraphPaths->horizontalHeaderItem(2);
-        ___qtablewidgetitem28->setText(QApplication::translate("Robot_App_Widget", "\351\227\255\347\216\257", nullptr));
+        QTableWidgetItem *___qtablewidgetitem32 = table_GraphPaths->horizontalHeaderItem(0);
+        ___qtablewidgetitem32->setText(QApplication::translate("Robot_App_Widget", "\345\220\215\347\247\260", nullptr));
+        QTableWidgetItem *___qtablewidgetitem33 = table_GraphPaths->horizontalHeaderItem(1);
+        ___qtablewidgetitem33->setText(QApplication::translate("Robot_App_Widget", "\351\225\277\345\272\246(m)", nullptr));
+        QTableWidgetItem *___qtablewidgetitem34 = table_GraphPaths->horizontalHeaderItem(2);
+        ___qtablewidgetitem34->setText(QApplication::translate("Robot_App_Widget", "\351\227\255\347\216\257", nullptr));
         btn_CreateGraphPath->setText(QApplication::translate("Robot_App_Widget", "\345\210\233\345\273\272", nullptr));
         btn_EditGraphPath->setText(QApplication::translate("Robot_App_Widget", "\347\274\226\350\276\221", nullptr));
         btn_DeleteGraphPath->setText(QApplication::translate("Robot_App_Widget", "\345\210\240\351\231\244", nullptr));
         btn_RenameGraphPath->setText(QApplication::translate("Robot_App_Widget", "\351\207\215\345\221\275\345\220\215", nullptr));
         btn_RefreshGraphPaths->setText(QApplication::translate("Robot_App_Widget", "\345\210\267\346\226\260\345\210\227\350\241\250", nullptr));
         tabWidget_PathPoint->setTabText(tabWidget_PathPoint->indexOf(tab_GraphPath), QApplication::translate("Robot_App_Widget", "\346\211\213\347\273\230\350\267\257\345\276\204", nullptr));
-        QTableWidgetItem *___qtablewidgetitem29 = table_RecordPaths->horizontalHeaderItem(0);
-        ___qtablewidgetitem29->setText(QApplication::translate("Robot_App_Widget", "\345\220\215\347\247\260", nullptr));
-        QTableWidgetItem *___qtablewidgetitem30 = table_RecordPaths->horizontalHeaderItem(1);
-        ___qtablewidgetitem30->setText(QApplication::translate("Robot_App_Widget", "\347\202\271\346\225\260", nullptr));
+        QTableWidgetItem *___qtablewidgetitem35 = table_RecordPaths->horizontalHeaderItem(0);
+        ___qtablewidgetitem35->setText(QApplication::translate("Robot_App_Widget", "\345\220\215\347\247\260", nullptr));
+        QTableWidgetItem *___qtablewidgetitem36 = table_RecordPaths->horizontalHeaderItem(1);
+        ___qtablewidgetitem36->setText(QApplication::translate("Robot_App_Widget", "\347\202\271\346\225\260", nullptr));
         btn_StartRecord->setText(QApplication::translate("Robot_App_Widget", "\345\274\200\345\247\213\345\275\225\345\210\266", nullptr));
         btn_StopRecord->setText(QApplication::translate("Robot_App_Widget", "\345\201\234\346\255\242\345\271\266\344\277\235\345\255\230", nullptr));
         btn_CancelRecord->setText(QApplication::translate("Robot_App_Widget", "\345\217\226\346\266\210\345\275\225\345\210\266", nullptr));
@@ -6188,10 +7967,10 @@ public:
         btn_RenameRecordPath->setText(QApplication::translate("Robot_App_Widget", "\351\207\215\345\221\275\345\220\215", nullptr));
         btn_RefreshRecordPaths->setText(QApplication::translate("Robot_App_Widget", "\345\210\267\346\226\260\345\210\227\350\241\250", nullptr));
         tabWidget_PathPoint->setTabText(tabWidget_PathPoint->indexOf(tab_RecordPath), QApplication::translate("Robot_App_Widget", "\345\275\225\345\210\266\350\267\257\345\276\204", nullptr));
-        QTableWidgetItem *___qtablewidgetitem31 = table_PathCombines->horizontalHeaderItem(0);
-        ___qtablewidgetitem31->setText(QApplication::translate("Robot_App_Widget", "\345\220\215\347\247\260", nullptr));
-        QTableWidgetItem *___qtablewidgetitem32 = table_PathCombines->horizontalHeaderItem(1);
-        ___qtablewidgetitem32->setText(QApplication::translate("Robot_App_Widget", "\344\273\273\345\212\241\346\225\260", nullptr));
+        QTableWidgetItem *___qtablewidgetitem37 = table_PathCombines->horizontalHeaderItem(0);
+        ___qtablewidgetitem37->setText(QApplication::translate("Robot_App_Widget", "\345\220\215\347\247\260", nullptr));
+        QTableWidgetItem *___qtablewidgetitem38 = table_PathCombines->horizontalHeaderItem(1);
+        ___qtablewidgetitem38->setText(QApplication::translate("Robot_App_Widget", "\344\273\273\345\212\241\346\225\260", nullptr));
         btn_CreateCombine->setText(QApplication::translate("Robot_App_Widget", "\345\210\233\345\273\272", nullptr));
         btn_EditCombine->setText(QApplication::translate("Robot_App_Widget", "\347\274\226\350\276\221", nullptr));
         btn_DeleteCombine->setText(QApplication::translate("Robot_App_Widget", "\345\210\240\351\231\244", nullptr));
@@ -6290,9 +8069,14 @@ public:
         btn_DownLogs->setText(QApplication::translate("Robot_App_Widget", "\344\270\213\350\275\275", nullptr));
         btn_DropLogs->setText(QApplication::translate("Robot_App_Widget", "\345\210\240\351\231\244", nullptr));
         tabWidget_Magic->setTabText(tabWidget_Magic->indexOf(tab_Sensor), QApplication::translate("Robot_App_Widget", "\344\274\240\346\204\237\345\231\250\346\225\260\346\215\256", nullptr));
-        groupBox_Log1->setTitle(QApplication::translate("Robot_App_Widget", "\346\227\245\345\277\227\344\277\241\346\201\257", nullptr));
-        groupBox_11->setTitle(QApplication::translate("Robot_App_Widget", "\347\263\273\347\273\237\344\277\241\346\201\257", nullptr));
-        groupBox_2->setTitle(QApplication::translate("Robot_App_Widget", "\345\267\241\346\243\200\350\277\207\347\250\213\344\277\241\346\201\257", nullptr));
+        groupBox_Log->setTitle(QApplication::translate("Robot_App_Widget", "\346\227\245\345\277\227\344\277\241\346\201\257", nullptr));
+        groupBox_5->setTitle(QApplication::translate("Robot_App_Widget", "\350\217\234\345\215\225", nullptr));
+        Show_Pre_Scan_120_Widget->setText(QApplication::translate("Robot_App_Widget", "\347\262\276\346\211\253", nullptr));
+        Show_CGXi_Widget->setText(QApplication::translate("Robot_App_Widget", "\346\234\272\346\242\260\350\207\202", nullptr));
+        Show_Voice_Widget->setText(QApplication::translate("Robot_App_Widget", "\350\257\255\351\237\263", nullptr));
+        Show_Magic_Widget->setText(QApplication::translate("Robot_App_Widget", "\345\272\225\347\233\230", nullptr));
+        Show_Work_Widget->setText(QApplication::translate("Robot_App_Widget", "\344\273\273\345\212\241", nullptr));
+        Show_IO_Widget->setText(QApplication::translate("Robot_App_Widget", "IO", nullptr));
     } // retranslateUi
 
 };

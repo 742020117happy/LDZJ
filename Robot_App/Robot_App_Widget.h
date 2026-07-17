@@ -8,6 +8,7 @@
 #include "Server_Remote.h"
 #include "Work_Remote.h"
 #include "Voice_Remote.h"
+#include "IO_Remote.h"
 
 class c_Robot_App_Widget : public QMainWindow
 {
@@ -60,6 +61,11 @@ public slots:
 	void Voice_Scan();			// 语音状态轮询
 	void Voice_Button();		// 语音按钮事件绑定
 
+	void IO_Init();				// 初始化IO模块（创建线程/绑定信号槽）
+	void IO_DB();				// IO模块UI变量绑定（读取Communicate_DB.json）
+	void IO_Scan();				// IO模块状态轮询
+	void IO_Button();			// IO模块按钮事件绑定
+
 protected:
 	void keyPressEvent(QKeyEvent *event) override;	// 键盘按键事件
 	void closeEvent(QCloseEvent *event) override;		// 窗口关闭事件
@@ -91,6 +97,9 @@ private:
 
 	c_Voice_Remote *m_Voice_Remote = nullptr;		// 语音播报器控制
 	QThread *m_Voice_Remote_Thread = nullptr;		// 语音播报器线程
+
+	c_IO_Remote *m_IO_Remote = nullptr;				// IO模块控制
+	QThread *m_IO_Remote_Thread = nullptr;			// IO模块线程
 
 	QTimer *m_Pre_Scan_120_MonitorTimer = nullptr;	// 相机监控定时器
 
@@ -139,4 +148,5 @@ private:
 	void Write_Prec_Scan_120_Cmd(QString ip, int port, QString value);	// 发送相机指令
 	void Write_Work_List(QString value);					// 写入工作流日志
 	void Write_Voice_List(QString value);					// 写入语音播报日志
+	void Write_IO_List(QString value);						// 写入IO模块日志
 };

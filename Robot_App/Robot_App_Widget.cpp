@@ -34,12 +34,15 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	QObject::connect(ui->Show_Voice_Widget, &QPushButton::clicked, this, [=]() {
 		ui->stackedWidget->setCurrentWidget(ui->Voice_Widget);
 	});
+	QObject::connect(ui->Show_IO_Widget, &QPushButton::clicked, this, [=]() {
+		ui->stackedWidget->setCurrentWidget(ui->IO_Widget);
+	});
 
 	ui->Work_Alarm->document()->setMaximumBlockCount(3000);
 	ui->Work_List->document()->setMaximumBlockCount(3000);
 	ui->Magic_Log->document()->setMaximumBlockCount(3000);
 	ui->CGXi_Log->document()->setMaximumBlockCount(3000);
-	
+	ui->IO_Log->document()->setMaximumBlockCount(3000);
 	//初始化系统变量
 	QTimer::singleShot(100, this, &c_Robot_App_Widget::Variable_Init);
 	QTimer::singleShot(200, this, &c_Robot_App_Widget::Magic_Init);
@@ -49,6 +52,7 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	QTimer::singleShot(600, this, &c_Robot_App_Widget::Server_Init);
 	QTimer::singleShot(650, this, &c_Robot_App_Widget::Work_Init);
 	QTimer::singleShot(700, this, &c_Robot_App_Widget::Voice_Init);
+	QTimer::singleShot(750, this, &c_Robot_App_Widget::IO_Init);
 	//系统轮询
 	QTimer::singleShot(1000, this, &c_Robot_App_Widget::System_Scan);
 
@@ -80,6 +84,7 @@ void c_Robot_App_Widget::System_Scan()
 	c_Robot_App_Widget::Server_Scan();
 	c_Robot_App_Widget::Work_Scan();
 	c_Robot_App_Widget::Voice_Scan();
+	c_Robot_App_Widget::IO_Scan();
 
 	ui->Status_Bar->showMessage(
 		"系统时间：" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") 
@@ -518,6 +523,7 @@ void c_Robot_App_Widget::Magic_Button()
 		QMetaObject::invokeMethod(m_Magic_Remote, "Login", Qt::QueuedConnection,
 			Q_ARG(QString, c_Variable::getInstance().g_Magic.WriteData.userCode), Q_ARG(QString, c_Variable::getInstance().g_Magic.WriteData.password));
 	});
+	QObject::connect(ui->light_Connected, &c_Fr_Light::Working_State, ui->pushButton_Login, &QPushButton::click);
 	// Token刷新
 	QObject::connect(ui->btn_RefreshToken, &QPushButton::clicked, this, [this]() {
 		QString rt = c_Variable::getInstance().g_Magic.refreshToken;
@@ -1774,7 +1780,7 @@ void c_Robot_App_Widget::Pre_Scan_120_DB()
 	work.sendUnit = "SHCLD";
 	work.startTime = "202404231143";
 	work.repairLevel = "L3";
-	work.currentWheelset = 0;
+	work.currentTaskIndex = 0;
 	work.currentGain = 20;
 	work.currentPart1 = "TCLD";
 	work.currentPart2 = "05";
@@ -1852,7 +1858,7 @@ void c_Robot_App_Widget::Pre_Scan_120_Button()
 		DB::getInstance().g_Work_DB.repairLevel = m_wRepair;
 	});
 	QObject::connect(ui->set_Pre_Scan_120_currentWheelset, &QPushButton::clicked, this, [this]() {
-		DB::getInstance().g_Work_DB.currentWheelset = m_wCurrentWheelset.toInt();
+		DB::getInstance().g_Work_DB.currentTaskIndex = m_wCurrentWheelset.toInt();
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Part1, &QPushButton::clicked, this, [this]() {
 		DB::getInstance().g_Work_DB.currentPart1 = m_wPart1;
@@ -1884,7 +1890,7 @@ void c_Robot_App_Widget::Pre_Scan_120_Scan()
 	ui->r_Pre_Scan_120_StartTime->setText(work.startTime);
 	ui->r_Pre_Scan_120_Repair->setText(work.repairLevel);
 
-	ui->r_Pre_Scan_120_currentWheelset->setText(QString::number(work.currentWheelset));
+	ui->r_Pre_Scan_120_currentWheelset->setText(QString::number(work.currentTaskIndex));
 	ui->r_Pre_Scan_120_Gain->setText(QString::number(work.currentGain));
 	ui->r_Pre_Scan_120_Part1->setText(work.currentPart1);
 	ui->r_Pre_Scan_120_Part2->setText(work.currentPart2);
@@ -2434,7 +2440,7 @@ void c_Robot_App_Widget::Work_Scan()
 	auto &info = c_Variable::getInstance().g_Work;
 
 	ui->Work_TaskID->setText(w.taskId);
-	ui->Work_Wheel->setText(QString::number(w.currentWheelset + 1) + "/" + QString::number(w.wheelsetCount));
+	ui->Work_Wheel->setText(QString::number(w.currentTaskIndex + 1) + "/" + QString::number(w.taskCount));
 	ui->Work_Pos->setText(QString::number(w.currentPos + 1));
 	{
 		QString stateStr;
@@ -2549,6 +2555,11 @@ void c_Robot_App_Widget::closeEvent(QCloseEvent *event) {
 			m_Voice_Remote_Thread->quit();
 			m_Voice_Remote_Thread->wait(5000);
 		}
+		if (m_IO_Remote_Thread && m_IO_Remote_Thread->isRunning()) {
+			m_IO_Remote_Thread->requestInterruption();
+			m_IO_Remote_Thread->quit();
+			m_IO_Remote_Thread->wait(5000);
+		}
 		// 允许关闭
 		event->accept();
 	}
@@ -2575,6 +2586,195 @@ void c_Robot_App_Widget::resizeEvent(QResizeEvent *event) {
 	ui->tableWidget_Joint->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	ui->tableWidget_TCP->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	ui->tableWidget_Robot->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	ui->tableWidget_IO_DI->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+}
+/*************************************************************************************************************************************************
+**Function:初始化IO模块 - 创建子线程和 c_IO_Remote 对象
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::IO_Init()
+{
+	m_IO_Remote = new c_IO_Remote;
+	m_IO_Remote_Thread = new QThread;
+	m_IO_Remote->moveToThread(m_IO_Remote_Thread);
+	QObject::connect(m_IO_Remote_Thread, &QThread::started, m_IO_Remote, &c_IO_Remote::Init);
+	QObject::connect(m_IO_Remote_Thread, &QThread::finished, m_IO_Remote, &c_IO_Remote::deleteLater);
+	QObject::connect(m_IO_Remote, &c_IO_Remote::Status, this, &c_Robot_App_Widget::Write_IO_List);
+	c_Robot_App_Widget::IO_DB();
+	c_Robot_App_Widget::IO_Button();
+	m_IO_Remote_Thread->start();
+}
+/*************************************************************************************************************************************************
+**Function:IO模块UI变量绑定 - 读取 Communicate_DB.json 填充UI控件并绑定修改事件
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::IO_DB()
+{
+	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
+
+	ui->IO_Ip->blockSignals(true);
+	ui->IO_Ip->setText(cfg.value("IO_IP").toString("192.168.1.10"));
+	ui->IO_Ip->blockSignals(false);
+
+	ui->IO_Port->blockSignals(true);
+	ui->IO_Port->setText(cfg.value("IO_Port").toString("502"));
+	ui->IO_Port->blockSignals(false);
+
+	ui->Write_IO_Coils_Addr->blockSignals(true);
+	ui->Write_IO_Coils_Addr->setValue(cfg.value("IO_Coils_Addr").toInt(0));
+	ui->Write_IO_Coils_Addr->blockSignals(false);
+
+	ui->Write_IO_Coils_Size->blockSignals(true);
+	ui->Write_IO_Coils_Size->setValue(cfg.value("IO_Coils_Size").toInt(16));
+	ui->Write_IO_Coils_Size->blockSignals(false);
+
+	ui->Read_IO_DiscreteInputs_Addr->blockSignals(true);
+	ui->Read_IO_DiscreteInputs_Addr->setValue(cfg.value("IO_DiscreteInputs_Addr").toInt(0));
+	ui->Read_IO_DiscreteInputs_Addr->blockSignals(false);
+
+	ui->Read_IO_DiscreteInputs_Size->blockSignals(true);
+	ui->Read_IO_DiscreteInputs_Size->setValue(cfg.value("IO_DiscreteInputs_Size").toInt(16));
+	ui->Read_IO_DiscreteInputs_Size->blockSignals(false);
+
+	ui->Read_IO_InputRegisters_Addr->blockSignals(true);
+	ui->Read_IO_InputRegisters_Addr->setValue(cfg.value("IO_InputRegisters_Addr").toInt(0));
+	ui->Read_IO_InputRegisters_Addr->blockSignals(false);
+
+	ui->Read_IO_InputRegisters_Size->blockSignals(true);
+	ui->Read_IO_InputRegisters_Size->setValue(cfg.value("IO_InputRegisters_Size").toInt(0));
+	ui->Read_IO_InputRegisters_Size->blockSignals(false);
+
+	ui->Write_IO_HoldingRegisters_Addr->blockSignals(true);
+	ui->Write_IO_HoldingRegisters_Addr->setValue(cfg.value("IO_HoldingRegisters_Addr").toInt(0));
+	ui->Write_IO_HoldingRegisters_Addr->blockSignals(false);
+
+	ui->Write_IO_HoldingRegisters_Size->blockSignals(true);
+	ui->Write_IO_HoldingRegisters_Size->setValue(cfg.value("IO_HoldingRegisters_Size").toInt(4));
+	ui->Write_IO_HoldingRegisters_Size->blockSignals(false);
+
+	QObject::connect(ui->IO_Ip, &QLineEdit::textChanged, this, [this](const QString &text) {
+		Write_Communicate_DB("IO_IP", text);
+	});
+	QObject::connect(ui->IO_Port, &QLineEdit::textChanged, this, [this](const QString &text) {
+		Write_Communicate_DB("IO_Port", text.toInt());
+	});
+	QObject::connect(ui->Write_IO_Coils_Addr, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("IO_Coils_Addr", val);
+	});
+	QObject::connect(ui->Write_IO_Coils_Size, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("IO_Coils_Size", val);
+	});
+	QObject::connect(ui->Read_IO_DiscreteInputs_Addr, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("IO_DiscreteInputs_Addr", val);
+	});
+	QObject::connect(ui->Read_IO_DiscreteInputs_Size, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("IO_DiscreteInputs_Size", val);
+	});
+	QObject::connect(ui->Read_IO_InputRegisters_Addr, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("IO_InputRegisters_Addr", val);
+	});
+	QObject::connect(ui->Read_IO_InputRegisters_Size, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("IO_InputRegisters_Size", val);
+	});
+	QObject::connect(ui->Write_IO_HoldingRegisters_Addr, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("IO_HoldingRegisters_Addr", val);
+	});
+	QObject::connect(ui->Write_IO_HoldingRegisters_Size, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int val) {
+		Write_Communicate_DB("IO_HoldingRegisters_Size", val);
+	});
+
+	QObject::connect(m_IO_Remote, &c_IO_Remote::Set_Working, this, [this]() {
+		ui->IO_Connected->Set_State(true);
+	});
+	QObject::connect(m_IO_Remote, &c_IO_Remote::Set_Default, this, [this]() {
+		ui->IO_Connected->Set_State(false);
+	});
+
+	ui->tableWidget_IO_DI->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	for (int i = 0; i < 16; i++) {
+		if (!ui->tableWidget_IO_DI->item(i, 0))
+			ui->tableWidget_IO_DI->setItem(i, 0, new QTableWidgetItem(QString::number(i + 1)));
+		if (!ui->tableWidget_IO_DI->item(i, 1))
+			ui->tableWidget_IO_DI->setItem(i, 1, new QTableWidgetItem(QString("DI%1").arg(i + 1, 2, 10, QChar('0'))));
+		if (!ui->tableWidget_IO_DI->item(i, 2))
+			ui->tableWidget_IO_DI->setItem(i, 2, new QTableWidgetItem("OFF"));
+	}
+}
+/*************************************************************************************************************************************************
+**Function:IO模块按钮事件绑定
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::IO_Button()
+{
+	auto *io = m_IO_Remote;
+	QObject::connect(ui->IO_Connect, &QPushButton::clicked, io, &c_IO_Remote::Connect);
+	QObject::connect(ui->IO_Disconnect, &QPushButton::clicked, io, &c_IO_Remote::Disconnect_Device);
+
+	QObject::connect(ui->btn_IO_AO_Set_1, &QPushButton::clicked, io, [io, this]() {
+		io->Set_AnalogOutput(0, (quint16)ui->Spin_IO_AO_1->value());
+	});
+	QObject::connect(ui->btn_IO_AO_Set_2, &QPushButton::clicked, io, [io, this]() {
+		io->Set_AnalogOutput(1, (quint16)ui->Spin_IO_AO_2->value());
+	});
+	QObject::connect(ui->btn_IO_AO_Set_3, &QPushButton::clicked, io, [io, this]() {
+		io->Set_AnalogOutput(2, (quint16)ui->Spin_IO_AO_3->value());
+	});
+	QObject::connect(ui->btn_IO_AO_Set_4, &QPushButton::clicked, io, [io, this]() {
+		io->Set_AnalogOutput(3, (quint16)ui->Spin_IO_AO_4->value());
+	});
+
+	// XB6S-3200B 数字量输出测试按钮
+	QObject::connect(ui->btn_IO_AlarmRed_ON, &QPushButton::clicked, io, &c_IO_Remote::Set_Alarm_Red);
+	QObject::connect(ui->btn_IO_AlarmRed_OFF, &QPushButton::clicked, io, &c_IO_Remote::Reset_Alarm_Red);
+	QObject::connect(ui->btn_IO_AlarmYellow_ON, &QPushButton::clicked, io, &c_IO_Remote::Set_Alarm_Yellow);
+	QObject::connect(ui->btn_IO_AlarmYellow_OFF, &QPushButton::clicked, io, &c_IO_Remote::Reset_Alarm_Yellow);
+	QObject::connect(ui->btn_IO_AlarmGreen_ON, &QPushButton::clicked, io, &c_IO_Remote::Set_Alarm_Green);
+	QObject::connect(ui->btn_IO_AlarmGreen_OFF, &QPushButton::clicked, io, &c_IO_Remote::Reset_Alarm_Green);
+	QObject::connect(ui->btn_IO_Fan_ON, &QPushButton::clicked, io, &c_IO_Remote::Set_Fan);
+	QObject::connect(ui->btn_IO_Fan_OFF, &QPushButton::clicked, io, &c_IO_Remote::Reset_Fan);
+}
+/*************************************************************************************************************************************************
+**Function:IO模块状态轮询 - 刷新连接灯 / 就绪灯 / 数字量输入表 / 模拟量输出值
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::IO_Scan()
+{
+	auto &io = c_Variable::getInstance().g_IO;
+
+	ui->IO_Connected->Set_State(io.Connected);
+	ui->IO_Ready->Set_State(io.Ready);
+
+	int diSize = c_Variable::getInstance().g_Communicate_DB.value("IO_DiscreteInputs_Size").toInt(16);
+	for (int i = 0; i < diSize && i < 16; i++) {
+		bool on = io.DiscreteInputs[i] != 0;
+		QTableWidgetItem *item = ui->tableWidget_IO_DI->item(i, 2);
+		if (item) {
+			item->setText(on ? "ON" : "OFF");
+			item->setForeground(on ? QColor(0, 180, 0) : QColor(128, 128, 128));
+		}
+	}
+
+	ui->Spin_IO_AO_1->blockSignals(true);
+	ui->Spin_IO_AO_1->setValue(io.read_HoldingRegisters[0]);
+	ui->Spin_IO_AO_1->blockSignals(false);
+	ui->Spin_IO_AO_2->blockSignals(true);
+	ui->Spin_IO_AO_2->setValue(io.read_HoldingRegisters[1]);
+	ui->Spin_IO_AO_2->blockSignals(false);
+	ui->Spin_IO_AO_3->blockSignals(true);
+	ui->Spin_IO_AO_3->setValue(io.read_HoldingRegisters[2]);
+	ui->Spin_IO_AO_3->blockSignals(false);
+	ui->Spin_IO_AO_4->blockSignals(true);
+	ui->Spin_IO_AO_4->setValue(io.read_HoldingRegisters[3]);
+	ui->Spin_IO_AO_4->blockSignals(false);
+}
+/*************************************************************************************************************************************************
+**Function:写入IO模块日志 - 追加到 IO_Log QTextBrowser
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::Write_IO_List(QString value)
+{
+	QString time = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
+	ui->IO_Log->append(time + "->" + value);
+
+	c_Variable::getInstance().g_Worry_List.append(time + "->" + value);
+	if (c_Variable::getInstance().g_Worry_List.size() > 10) {
+		c_Variable::getInstance().g_Worry_List.removeAt(0);
+	}
 }
 
 
