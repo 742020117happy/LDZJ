@@ -824,6 +824,9 @@ void c_Magic_Remote::Reset_Robot_Base_Default() {
 // ======================== 统一响应解析 ========================
 void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 {
+	// 2026-10-24 崩溃修复 C1：函数级 QWriteLocker 覆盖整函数（T13），
+	// 内层 T84 的 token 写锁属嵌套锁定——QReadWriteLock 非递归，登录/401 响应必死锁
+	// （症状：Qt5Core.dll 0xc0000005 卡死闪退）。内层锁已删除，token 写入由外层锁统一保护。
 	QWriteLocker locker(&c_Variable::g_lock);
 	// ========== 剥离 Query 参数，精确匹配路径 ==========
 	QString path = api.split('?').first();
@@ -842,10 +845,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	if (!successed) {
 		if (errCode == 401) {
 			emit Status("Magic遥控：Token已过期或无效(401)，自动重新登录");
-			{	// 2026-10-24 T84：token 跨线程读取（GUI），写侧持写锁
-				QWriteLocker locker(&c_Variable::g_lock);
-				magicDB.token = "";
-			}
+			magicDB.token = "";	// 2026-10-24 C1：外层写锁已覆盖，勿再嵌套加锁
 			emit Signal_Set_Token("");
 			// 2026-10-24 审查修复 D1：401 后停轮询 → 用缓存凭证自动重登一次（原链路断裂永不恢复）
 			if (m_PollTimer) m_PollTimer->stop();
@@ -866,11 +866,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QString token = dataObj["token"].toString();
 		QString refreshToken = dataObj["refresh_token"].toString();
 		if (!token.isEmpty()) {
-			{	// 2026-10-24 T84：token/refreshToken 跨线程读取（GUI），写侧持写锁
-				QWriteLocker locker(&c_Variable::g_lock);
-				magicDB.token = token;
-				if (!refreshToken.isEmpty()) { magicDB.refreshToken = refreshToken; }
-			}
+			magicDB.token = token;	// 2026-10-24 C1：外层写锁已覆盖
+			if (!refreshToken.isEmpty()) { magicDB.refreshToken = refreshToken; }
 			emit Signal_Set_Token(token);
 		}
 		else {
@@ -883,10 +880,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QJsonObject dataObj = dataVal.toObject();
 		QString newToken = dataObj["token"].toString();
 		if (!newToken.isEmpty()) {
-			{	// 2026-10-24 T84：token 跨线程读取（GUI），写侧持写锁
-				QWriteLocker locker(&c_Variable::g_lock);
-				magicDB.token = newToken;
-			}
+			magicDB.token = newToken;	// 2026-10-24 C1：外层写锁已覆盖
 			emit Signal_Set_Token(newToken);
 			emit Status("Magic遥控：Token已刷新");
 		}
