@@ -96,15 +96,30 @@ void c_Robot_App_Widget::System_Scan()
 		return;
 	}
 
-	c_Robot_App_Widget::Magic_Scan();
-	c_Robot_App_Widget::CGXi_Scan();
-	c_Robot_App_Widget::Pre_Scan_120_Scan();
+	// 2026-10-24 C3：连接指示灯不随门控停更——模块断开时须红灯提示
+	// （Fr_Light::Set_State 内部状态未变免重绘，开销可忽略）
+	{
+		auto &v = c_Variable::getInstance().g_Voice;
+		ui->Voice_Connected->Set_State(v.is_connected);
+		auto &io = c_Variable::getInstance().g_IO;
+		ui->IO_Connected->Set_State(io.Connected);
+		ui->IO_Ready->Set_State(io.Ready);
+		auto &c = c_Variable::getInstance().g_CGXi;
+		ui->CGXi_Connected->Set_State(c.Connected);
+		ui->CGXi_Ready->Set_State(c.Ready);
+		ui->light_Connected->Set_State(c_Variable::getInstance().g_Magic.is_connected);
+		ui->light_Ready->Set_State(c_Variable::getInstance().g_Magic.Ready);
+	}
+
+	if (c_Variable::getInstance().g_Magic.is_connected)c_Robot_App_Widget::Magic_Scan();
+	if (c_Variable::getInstance().g_CGXi.Connected)c_Robot_App_Widget::CGXi_Scan();
+	if(c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen) c_Robot_App_Widget::Pre_Scan_120_Scan();
 	c_Robot_App_Widget::Server_Scan();
 	c_Robot_App_Widget::Work_Scan();
-	c_Robot_App_Widget::Voice_Scan();
-	c_Robot_App_Widget::IO_Scan();
+	if (c_Variable::getInstance().g_Voice.is_connected)c_Robot_App_Widget::Voice_Scan();
+	if (c_Variable::getInstance().g_IO.Connected)c_Robot_App_Widget::IO_Scan();
 	// 2026-10-24 T41：机器人状态→三色灯/语音联动（状态变化才动作，内部防抖）
-	c_Robot_App_Widget::Status_Light_Voice_Scan();
+	if (c_Variable::getInstance().g_Voice.is_connected && c_Variable::getInstance().g_IO.Connected)c_Robot_App_Widget::Status_Light_Voice_Scan();
 
 	// 2026-10-24 重构 T28：状态栏文本含 QDateTime 格式化，10ms 更新浪费 UI 预算，降为约 1s 一次
 	if (m_FPS % 100 == 0) {
