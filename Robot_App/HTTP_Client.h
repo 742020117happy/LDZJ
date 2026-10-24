@@ -46,7 +46,7 @@ signals:
 	void Read_Ready(QNetworkReply *reply);
 
 private:
-	QNetworkAccessManager *m_Manager;
+	QNetworkAccessManager *m_Manager = nullptr;	// 2026-10-24 C2：初始化
 	QString m_BaseUrl;
 	QString m_Token;
 

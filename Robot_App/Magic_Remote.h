@@ -306,11 +306,11 @@ signals:
 	void On_Response_Error(QString api, QString error_msg);
 
 private:
-	c_HTTP_Client *m_HTTP_Client;
-	QThread *m_HTTP_Thread;
+	c_HTTP_Client *m_HTTP_Client = nullptr;	// 2026-10-24 C2：未初始化指针致 T25 重入保护误判（垃圾值偶发非零→首次 Init 被跳过→下游空指针崩溃）
+	QThread *m_HTTP_Thread = nullptr;
 
-	QTimer *m_PollTimer;          // 状态轮询定时器
-	QTimer *m_ReconnectTimer;     // 断线自动重连定时器
+	QTimer *m_PollTimer = nullptr;          // 状态轮询定时器（2026-10-24 C2 初始化，防 Init 跳过时空指针）
+	QTimer *m_ReconnectTimer = nullptr;     // 断线自动重连定时器（2026-10-24 C2 初始化）
 	bool m_NavTaskActive = false;
 	bool m_NavTaskSeenRunning = false;
 	bool m_DisRecharging = false;			// 2026-10-24 T45：脱离充电桩进行中（轮询 status 用）	// 2026-10-24 T43：导航任务运行观察标志（防下发瞬间误判完成）	// 2026-10-24 重构 T03：工作流导航任务激活标记

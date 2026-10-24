@@ -88,7 +88,7 @@ signals:
 
 private:
 	// Modbus TCP客户端实例
-	QModbusTcpClient *m_ModbusDevice;
+	QModbusTcpClient *m_ModbusDevice = nullptr;	// 2026-10-24 C2：初始化
 	bool m_Stop_Connect = false;
 	// 私有数据缓存(写操作直接从此结构体提取数据,与外部解耦)
 	// 【核心】私有成员变量，作为底层数据缓存

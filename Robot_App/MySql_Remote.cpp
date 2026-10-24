@@ -121,6 +121,8 @@ void c_Sql_Remote::On_Photo_Completed(QString fname)
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		return;
 	}
+	// 2026-10-24 C2：init 前槽调用防护（互斥锁惰性创建）
+	if (!m_Mutex) m_Mutex = new QMutex;
 
 	bool shouldFlush = false;
 	{

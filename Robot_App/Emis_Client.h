@@ -21,8 +21,8 @@ signals:
 	void Update_Error();
 
 private:
-	QMutex *m_Mutex;
-	QNetworkAccessManager *m_Manager;
+	QMutex *m_Mutex = nullptr;	// 2026-10-24 C2：初始化防 init 前槽调用空指针
+	QNetworkAccessManager *m_Manager = nullptr;	// 2026-10-24 C2：初始化
 
 	private slots:
 	void Update_Info(QString timeType);

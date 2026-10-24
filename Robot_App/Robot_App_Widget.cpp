@@ -1572,12 +1572,8 @@ void c_Robot_App_Widget::MySql_Init()
 		ui->Pre_Scan_120_MySql_Light->Set_Working();
 		Write_Work_List("MySQL 连接成功");
 	});
-	QObject::connect(m_Sql_Remote, &c_Object::Status, this, [this](const QString &msg) {
-		if (msg.contains("失败") || msg.contains("断开")) {
-			ui->Pre_Scan_120_MySql_Light->Set_Error();
-		}
-		c_Log::Write("数据库", msg);	// 2026-10-24 重构 T31：MySql 日志接入统一日志中心
-	});
+
+	QObject::connect(m_Sql_Remote, &c_Object::Status, this, &c_Robot_App_Widget::Write_Prec_Scan_120_List);
 
 	c_Robot_App_Widget::MySql_DB();
 	c_Robot_App_Widget::MySql_Button();
@@ -1599,6 +1595,8 @@ void c_Robot_App_Widget::MySql_DB()
 	ui->MySql_User->setText(DB::getInstance().g_Communicate_DB.value("MySql_User").toString("root"));
 	ui->MySql_Password->setText(DB::getInstance().g_Communicate_DB.value("MySql_Password").toString("root"));
 	ui->MySql_Database->setText(DB::getInstance().g_Communicate_DB.value("MySql_Database").toString("robot_db"));
+
+	QObject::connect(ui->Pre_Scan_120_MySql_Server, &QLineEdit::textChanged, this, [=](QString ip) { Write_Communicate_DB("Web_Server_Ip", ip); });
 
 	QObject::connect(ui->MySql_Port, &QLineEdit::textChanged, this, [=](QString port) { Write_Communicate_DB("MySql_Port", port.toInt()); });
 	QObject::connect(ui->MySql_User, &QLineEdit::textChanged, this, [=](QString user) { Write_Communicate_DB("MySql_User", user); });
@@ -2205,7 +2203,7 @@ void c_Robot_App_Widget::Work_Init()
 	QObject::connect(m_Work_Remote, &c_Work_Remote::actualStartTime, m_Emis_Remote, &c_Emis_Remote::actualStartTime);
 	QObject::connect(m_Work_Remote, &c_Work_Remote::precisScanStartTime, m_Emis_Remote, &c_Emis_Remote::precisScanStartTime);
 	QObject::connect(m_Work_Remote, &c_Work_Remote::precisScanEndTime, m_Emis_Remote, &c_Emis_Remote::precisScanEndTime);
-
+	QObject::connect(m_Work_Remote, &c_Work_Remote::actualReturnTime, m_Emis_Remote, &c_Emis_Remote::actualReturnTime);
 
 	c_Robot_App_Widget::Work_DB();
 	c_Robot_App_Widget::Work_Button();
@@ -2273,7 +2271,7 @@ void c_Robot_App_Widget::Work_Button()
 	QObject::connect(ui->actualStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actualStartTime);
 	QObject::connect(ui->precisScanStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precisScanStartTime);
 	QObject::connect(ui->precisScanEndTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precisScanEndTime);
-
+	QObject::connect(ui->actualReturnTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actualReturnTime);
 	// 2026-10-24 T92：Work 信号→Emis 已在 Work_Init 集中连接（2150-2152），此处原重复连接已删除（否则每时间点双报 EMIS）
 
 	QObject::connect(m_Work_Remote, &c_Work_Remote::RefreshMapList, ui->btn_RefreshMapList, &QPushButton::click);

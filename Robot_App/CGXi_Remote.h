@@ -56,8 +56,8 @@ signals:
 	void Read_HoldingRegisters(int addr, int size);					// 跨线程：读取保持寄存器
 
 private:
-	QThread *m_ModeBusTCP_Thread;			// ModBus TCP工作线程
-	c_ModeBusTCP_Client *m_ModeBusTCP;		// ModBus TCP客户端
+	QThread *m_ModeBusTCP_Thread = nullptr;	// 2026-10-24 C2：未初始化指针致 T25 重入保护误判（同 Magic_Remote C2）
+	c_ModeBusTCP_Client *m_ModeBusTCP = nullptr;
 	QElapsedTimer m_Time;					// 帧率计时器
 	int m_FPS = 0;							// 帧率计数器
 

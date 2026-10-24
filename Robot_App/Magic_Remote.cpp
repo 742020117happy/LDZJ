@@ -152,7 +152,7 @@ void c_Magic_Remote::Set_Token_Done(QString token)
 	m_ConsecutiveErrors = 0;
 	m_ReconnectAttempt = 0;
 	Stop_Reconnect();
-	m_PollTimer->start(200);
+	if (m_PollTimer) m_PollTimer->start(200);	// 2026-10-24 C2：Init 未执行时防空指针
 }
 void c_Magic_Remote::Disconnect_Device() {
 	c_Variable::getInstance().g_Magic.is_connected = false;
@@ -171,14 +171,14 @@ void c_Magic_Remote::Disconnect_Device() {
 // ======================== 自动重连（指数退避） ========================
 void c_Magic_Remote::Start_Reconnect() {
 	if (m_LastIP.isEmpty()) return;
-	m_PollTimer->stop();
+	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
 	int delay = qMin(1000 * (1 << m_ReconnectAttempt), 30000); // 1s,2s,4s,8s,16s,30s...
 	m_ReconnectAttempt++;
 	emit Status(QString("Magic遥控：%1秒后自动重连...").arg(delay / 1000));
-	m_ReconnectTimer->start(delay);
+	if (m_ReconnectTimer) m_ReconnectTimer->start(delay);	// 2026-10-24 C2 空指针防护
 }
 void c_Magic_Remote::Stop_Reconnect() {
-	m_ReconnectTimer->stop();
+	if (m_ReconnectTimer) m_ReconnectTimer->stop();	// 2026-10-24 C2 空指针防护
 	m_ReconnectAttempt = 0;
 }
 void c_Magic_Remote::Try_Reconnect() {
@@ -197,7 +197,7 @@ void c_Magic_Remote::Try_Reconnect() {
 void c_Magic_Remote::Login(QString userCode, QString password) {
 	m_LastUser = userCode;
 	m_LastPass = password;
-	m_PollTimer->stop();
+	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
 	QJsonObject body;
 	body["userCode"] = userCode;
 	body["password"] = password;

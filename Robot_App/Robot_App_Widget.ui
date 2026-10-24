@@ -5558,6 +5558,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="actualReturnTime">
+               <property name="text">
+                <string>更新巡检结束时间</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="Work_SubsysSpacer">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>

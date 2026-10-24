@@ -50,6 +50,8 @@ void c_Emis_Remote::actualReturnTime() {
 }
 void c_Emis_Remote::Update_Info(QString timeType)
 {
+	// 2026-10-24 C2：init 前槽调用防护（互斥锁惰性创建）
+	if (!m_Mutex) m_Mutex = new QMutex;
 	// 加锁保护构建请求的过程
 	QMutexLocker locker(m_Mutex);
 
