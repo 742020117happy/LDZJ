@@ -1,0 +1,332 @@
+/* ============================================================
+   轮对质检机器人 主题：robot_app_light（工业检测上位机浅色风）
+   文件：resources/themes/robot_app_light.qss
+   约束：Qt 5.12.1 / msvc2015_64 兼容；仅系统字体（微软雅黑/Consolas）；
+         objectName 选择器为主，避免全局污染；禁止 emoji；
+         不修改任何控件业务属性、objectName、信号槽。
+   版本：2026-10-24 UI_AUTONOMOUS_MODE 第 4 轮
+   ============================================================ */
+
+/* ---------- 全局基调 ---------- */
+QWidget {
+    font-family: "微软雅黑";
+    color: #202430;
+}
+QWidget#Robot_App_Widget {
+    background-color: #eef1f5;
+}
+QWidget#centralWidget {
+    background-color: #eef1f5;
+}
+
+/* ---------- 左侧深色导航 ---------- */
+QWidget#widget_10 {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #232f45, stop:0.55 #1f2a3d, stop:1 #1a2433);
+    border: none;
+    border-right: 1px solid #2a3a55;
+}
+QGroupBox#groupBox_5 {
+    background-color: transparent;
+    border: none;
+    margin-top: 16px;
+    font-size: 9pt;
+    color: #c7d0de;
+}
+QGroupBox#groupBox_5::title {
+    background: transparent;
+    color: #6f82a0;
+    font-size: 8pt;
+    font-weight: bold;
+    subcontrol-position: top center;
+    padding: 0 0 8px 0;
+}
+QPushButton#Show_Work_Widget,
+QPushButton#Show_Magic_Widget,
+QPushButton#Show_Pre_Scan_120_Widget,
+QPushButton#Show_CGXi_Widget,
+QPushButton#Show_IO_Widget {
+    background-color: #2b3a52;
+    color: #c7d0de;
+    border: 1px solid #3a4c6b;
+    border-radius: 6px;
+    padding: 10px 8px;
+    min-height: 40px;
+    text-align: center;
+    font-weight: normal;
+}
+QPushButton#Show_Work_Widget:hover,
+QPushButton#Show_Magic_Widget:hover,
+QPushButton#Show_Pre_Scan_120_Widget:hover,
+QPushButton#Show_CGXi_Widget:hover,
+QPushButton#Show_IO_Widget:hover {
+    background-color: #35496b;
+    border-color: #4a6ea8;
+    color: #ffffff;
+}
+QPushButton#Show_Work_Widget:pressed,
+QPushButton#Show_Magic_Widget:pressed,
+QPushButton#Show_Pre_Scan_120_Widget:pressed,
+QPushButton#Show_CGXi_Widget:pressed,
+QPushButton#Show_IO_Widget:pressed {
+    background-color: #233149;
+    border-color: #4a6ea8;
+}
+QPushButton#Show_Work_Widget:checked,
+QPushButton#Show_Magic_Widget:checked,
+QPushButton#Show_Pre_Scan_120_Widget:checked,
+QPushButton#Show_CGXi_Widget:checked,
+QPushButton#Show_IO_Widget:checked {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2d7cf6, stop:1 #4c96ff);
+    border: 1px solid #5c9dff;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* ---------- 内容区白色卡片 ---------- */
+QGroupBox {
+    background-color: #ffffff;
+    border: 1px solid #d5dbe3;
+    border-radius: 6px;
+    margin-top: 16px;
+    font-size: 9pt;
+    font-weight: bold;
+}
+QGroupBox::title {
+    background: transparent;
+    color: #2d7cf6;
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 4px;
+}
+
+/* ---------- 普通按钮（层级 1） ---------- */
+QPushButton {
+    background-color: #ffffff;
+    color: #202430;
+    border: 1px solid #c3c9d1;
+    border-radius: 4px;
+    padding: 5px 14px;
+    min-height: 14px;
+    font-weight: normal;
+}
+QPushButton:hover {
+    background-color: #f0f5ff;
+    border-color: #2d7cf6;
+    color: #2d7cf6;
+}
+QPushButton:pressed {
+    background-color: #dbe7ff;
+}
+QPushButton:disabled {
+    background-color: #eceff3;
+    color: #a4abb6;
+    border-color: #d5dbe3;
+}
+
+/* ---------- 任务页语义按钮（层级 2） ---------- */
+QPushButton#Work_Btn_Start {
+    background-color: #2f9e44;
+    color: #ffffff;
+    border: none;
+    font-weight: bold;
+}
+QPushButton#Work_Btn_Start:hover { background-color: #37b24d; }
+QPushButton#Work_Btn_Start:pressed { background-color: #2b8a3e; }
+QPushButton#Work_Btn_Start:disabled { background-color: #a9c9b2; color: #f0f5f1; }
+
+QPushButton#Work_Btn_Pause {
+    background-color: #f08c00;
+    color: #ffffff;
+    border: none;
+}
+QPushButton#Work_Btn_Pause:hover { background-color: #f59f00; }
+QPushButton#Work_Btn_Pause:pressed { background-color: #e67700; }
+QPushButton#Work_Btn_Pause:disabled { background-color: #e8cdA6; color: #f7f0e6; }
+
+QPushButton#Work_Btn_Resume {
+    background-color: #1971c2;
+    color: #ffffff;
+    border: none;
+}
+QPushButton#Work_Btn_Resume:hover { background-color: #1c7ed6; }
+QPushButton#Work_Btn_Resume:pressed { background-color: #1864ab; }
+QPushButton#Work_Btn_Resume:disabled { background-color: #a9c7e6; color: #eef4fa; }
+
+QPushButton#Work_Btn_Stop {
+    background-color: #e03131;
+    color: #ffffff;
+    border: none;
+    font-weight: bold;
+}
+QPushButton#Work_Btn_Stop:hover { background-color: #f03e3e; }
+QPushButton#Work_Btn_Stop:pressed { background-color: #c92a2a; }
+QPushButton#Work_Btn_Stop:disabled { background-color: #e8b3b3; color: #f8eded; }
+
+/* ---------- 输入框 ---------- */
+QLineEdit {
+    border: 1px solid #c3c9d1;
+    border-radius: 4px;
+    padding: 2px 6px;
+    background: #ffffff;
+    selection-background-color: #2d7cf6;
+}
+QLineEdit:focus {
+    border: 1px solid #2d7cf6;
+}
+QLineEdit[readOnly="true"] {
+    background-color: #f3f4f6;
+    color: #5a6472;
+    border-bottom: 1px dashed #c3c9d1;
+}
+QLineEdit:disabled {
+    background: #eceff3;
+    color: #a4abb6;
+}
+
+/* ---------- 日志（等宽字体） ---------- */
+QTextEdit#CGXi_Log,
+QTextEdit#IO_Log,
+QTextEdit#Voice_Log,
+QTextEdit#Prec_Scan_120_Cmd,
+QTextEdit#Work_List,
+QTextEdit#Work_Alarm,
+QTextEdit#Magic_Log,
+QTextBrowser#CGXi_Log,
+QTextBrowser#IO_Log,
+QTextBrowser#Voice_Log,
+QTextBrowser#Prec_Scan_120_Cmd,
+QTextBrowser#Work_List,
+QTextBrowser#Work_Alarm,
+QTextBrowser#Magic_Log {
+    font-family: Consolas, "微软雅黑";
+    font-size: 9pt;
+    color: #3a4352;
+    background-color: #fbfcfe;
+    border: 1px solid #d5dbe3;
+    border-radius: 4px;
+}
+
+/* ---------- 表格 ---------- */
+QTableWidget {
+    background-color: #ffffff;
+    border: 1px solid #d5dbe3;
+    gridline-color: #e3e7ec;
+    alternate-background-color: #f7f9fc;
+    selection-background-color: #d6e6ff;
+    selection-color: #202430;
+}
+QTableWidget#tableWidget_Joint,
+QTableWidget#tableWidget_TCP,
+QTableWidget#tableWidget_Robot,
+QTableWidget#table_NavPoints {
+    border-radius: 4px;
+}
+QHeaderView::section {
+    background-color: #eef3fa;
+    color: #202430;
+    border: none;
+    border-bottom: 1px solid #c3c9d1;
+    padding: 4px 6px;
+    font-weight: bold;
+}
+
+/* ---------- Tab ---------- */
+QTabWidget::pane {
+    border: 1px solid #d5dbe3;
+    background: #ffffff;
+    border-radius: 0 4px 4px 4px;
+}
+QTabBar::tab {
+    background: #e8edf3;
+    color: #5a6472;
+    border: 1px solid #d5dbe3;
+    border-bottom: none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding: 5px 16px;
+    margin-right: 2px;
+}
+QTabBar::tab:selected {
+    background: #ffffff;
+    color: #2d7cf6;
+    font-weight: bold;
+    border-bottom: 2px solid #2d7cf6;
+}
+QTabBar::tab:hover:!selected {
+    background: #f0f5ff;
+}
+
+/* ---------- 进度条 ---------- */
+QProgressBar {
+    border: 1px solid #c3c9d1;
+    border-radius: 6px;
+    text-align: center;
+    background: #f0f2f5;
+    color: #202430;
+}
+QProgressBar::chunk {
+    background-color: #2d7cf6;
+    border-radius: 5px;
+}
+
+/* ---------- 相机占位（深色图像区） ---------- */
+QLabel#label_FrontCamera,
+QLabel#label_RearCamera {
+    background-color: #1a1a1a;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    color: #9aa2ad;
+}
+
+/* ---------- 状态灯（c_Fr_Light 提升控件，仅尺寸约束，颜色由 C++ 控制） ---------- */
+QWidget#CGXi_Connected, QWidget#CGXi_Ready, QWidget#CGXi_auto_indicator,
+QWidget#CGXi_CO0_State, QWidget#CGXi_CO1_State, QWidget#CGXi_CO2_State,
+QWidget#CGXi_CO3_State, QWidget#CGXi_CO4_State, QWidget#CGXi_CO5_State,
+QWidget#CGXi_CO6_State, QWidget#CGXi_CO7_State, QWidget#CGXi_Prog_Index,
+QWidget#CGXi_program_status,
+QWidget#Pre_Scan_120_Remote_Light, QWidget#Pre_Scan_120_Monitor_Light,
+QWidget#Pre_Scan_120_Listen_Light, QWidget#Pre_Scan_120_Tran_Light,
+QWidget#Pre_Scan_120_MySql_Light,
+QWidget#Coils_1, QWidget#Coils_2, QWidget#Coils_3,
+QWidget#Coils_4, QWidget#Coils_5, QWidget#Coils_6,
+QWidget#IO_Connected, QWidget#IO_Ready {
+    min-width: 20px;
+    max-width: 20px;
+    min-height: 20px;
+    max-height: 20px;
+}
+
+/* ---------- 状态栏 ---------- */
+QStatusBar {
+    background: #f0f2f5;
+    color: #3a4352;
+}
+QStatusBar::item {
+    border: none;
+}
+
+/* ---------- 滚动条 ---------- */
+QScrollBar:vertical {
+    width: 10px;
+    background: #f0f2f5;
+    margin: 0;
+}
+QScrollBar::handle:vertical {
+    background: #b8bec7;
+    border-radius: 5px;
+    min-height: 30px;
+}
+QScrollBar::handle:vertical:hover { background: #8a92a0; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar:horizontal {
+    height: 10px;
+    background: #f0f2f5;
+    margin: 0;
+}
+QScrollBar::handle:horizontal {
+    background: #b8bec7;
+    border-radius: 5px;
+    min-width: 30px;
+}
+QScrollBar::handle:horizontal:hover { background: #8a92a0; }
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }

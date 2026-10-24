@@ -1,0 +1,18 @@
+function flush_recv_buffer()
+	while true do
+		local ok, data = pcall(socket_read_string, 8, 50);
+		if not ok or data == nil  or data == "" then
+			break
+		end
+		print("Flushed residual:" .. data)
+	end
+end
+
+local status = get_socket_connect_status(8)
+if status == 0 then
+	  flush_recv_buffer()
+      socket_send_string(8, "PHOTO&FINISH!")
+	  print("Send PHOTO&FINISH! successfully")
+else
+      print("Failed to connect to server")
+end

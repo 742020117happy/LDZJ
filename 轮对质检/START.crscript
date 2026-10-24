@@ -1,0 +1,44 @@
+function flush_recv_buffer()
+	while true do
+		local ok, data = pcall(socket_read_string, 8, 50);
+		if not ok or data == nil  or data == "" then
+			break
+		end
+		print("Flushed residual:" .. data)
+	end
+end
+
+local status = get_socket_connect_status(8)
+if status == 0 then
+	socket_disconnect(8)
+end
+
+wait(500)
+
+socket_connect("tcp","192.168.6.35",8,9000);
+
+local timeoveridecount = 20
+local connect_status = -1
+while timeoveridecount > 0 do
+      local connect_status = get_socket_connect_status(8)
+      if connect_status == 0 then
+           print("connect ok")
+           break
+      elseif connect_status == 1 then
+           print("connect fail")
+           break
+      elseif connect_status == 3 then
+           print("connect invalid")
+           break
+      end
+	  timeoveridecount = timeoveridecount -1
+	  wait(500)
+ end
+ if connect_status == 0 then
+	  flush_recv_buffer()
+      socket_send_string(8, "START&!")
+	  print("Send START&! successfully")
+	  socket_disconnect(8)
+else
+      print("Failed to connect to server")
+end
