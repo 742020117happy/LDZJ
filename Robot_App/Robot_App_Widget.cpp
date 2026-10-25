@@ -903,6 +903,8 @@ void c_Robot_App_Widget::Magic_Button()
 	QObject::connect(ui->btn_MoveForward, &QPushButton::pressed, this, [&]() {
 		m_MoveDirection = 1;
 		if (!m_MoveTimer->isActive()) m_MoveTimer->start();
+		// 2026-10-25 EE3：手动操作事件播报（PA012 手动前进）
+		QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA012", Qt::QueuedConnection);
 	});
 	QObject::connect(ui->btn_MoveForward, &QPushButton::released, this, [&]() {
 		m_MoveDirection = 0;
@@ -913,6 +915,8 @@ void c_Robot_App_Widget::Magic_Button()
 	QObject::connect(ui->btn_MoveBackward, &QPushButton::pressed, this, [&]() {
 		m_MoveDirection = 2;
 		if (!m_MoveTimer->isActive()) m_MoveTimer->start();
+		// 2026-10-25 EE3：手动操作事件播报（PA013 手动后退）
+		QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA013", Qt::QueuedConnection);
 	});
 	QObject::connect(ui->btn_MoveBackward, &QPushButton::released, this, [&]() {
 		m_MoveDirection = 0;
@@ -2118,7 +2122,8 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 		obstacle = (c_Variable::getInstance().g_Magic.ReadData.antiCollision != 0);
 	}
 	bool paused        = (c_Variable::getInstance().g_Work_DB.workState == 3);
-	bool collecting    = (c_Variable::getInstance().g_Work_DB.workState == 2) || (cgxi.data.robot_moving != 0);
+	bool inspecting    = (c_Variable::getInstance().g_Work_DB.workState == 2);	// 2026-10-25 EE1：巡检中（PA001）
+	bool armMoving     = (cgxi.data.robot_moving != 0);						// 2026-10-25 EE1：机械臂运行中（PA006）
 
 	int level;
 	QString voice;
@@ -2126,7 +2131,7 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 		level = 2;
 		voice = emergency ? "PA020" : (cameraFail ? "PA021" : (anyDisconn ? "PA007" : "PA003"));
 	}
-	else if (batteryLow || localizedLost || chargeFail || obstacle || chassisWarn || paused || collecting) {
+	else if (batteryLow || localizedLost || chargeFail || obstacle || chassisWarn || paused || inspecting || armMoving) {
 		level = 1;
 		if (batteryLow) voice = "PA004";
 		else if (localizedLost) voice = "PA022";
@@ -2134,7 +2139,8 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 		else if (obstacle) voice = "PA002";
 		else if (chassisWarn) voice = "PA009";
 		else if (paused) voice = "PA005";
-		else if (collecting) voice = "PA001";
+		else if (inspecting) voice = "PA001";		// 巡检中
+		else if (armMoving) voice = "PA006";		// 2026-10-25 EE1：机械臂运行中（非巡检）
 	}
 	else {
 		level = 0;	// 正常且静止：绿灯，语音无输出
@@ -2160,6 +2166,7 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	if (level == 1 && voice == "PA009") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA009", Qt::QueuedConnection);
 	if (level == 1 && voice == "PA005") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA005", Qt::QueuedConnection);
 	if (level == 1 && voice == "PA001") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA001", Qt::QueuedConnection);
+	if (level == 1 && voice == "PA006") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA006", Qt::QueuedConnection);	// 2026-10-25 EE1：机械臂运行中
 
 	emit Write_Work_List(QString("状态联动: %1 (%2)")
 		.arg(level == 0 ? "绿灯-正常静止" : (level == 1 ? "黄灯-警告/运行" : "红灯-报警"))

@@ -37,9 +37,6 @@
     <Filter Include="软件开发工具包">
       <UniqueIdentifier>{fc264588-08ea-4c8c-8d9d-a1312a2c2153}</UniqueIdentifier>
     </Filter>
-    <Filter Include="软件开发工具包\数据缓存工具包">
-      <UniqueIdentifier>{b12834e2-ee88-4947-ba7f-b671f105282c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="软件开发工具包\图标资源工具包">
       <UniqueIdentifier>{a2886b1e-d41a-456d-9f75-00824307bfcf}</UniqueIdentifier>
     </Filter>
@@ -82,6 +79,9 @@
     <Filter Include="业务层\EMIS接口">
       <UniqueIdentifier>{68813b5f-3b3c-445f-be24-c43c0ada7bf7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="业务层\数据缓存">
+      <UniqueIdentifier>{b12834e2-ee88-4947-ba7f-b671f105282c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Fr_Light.cpp">
@@ -100,7 +100,7 @@
       <Filter>通讯层\TcpServer</Filter>
     </ClCompile>
     <ClCompile Include="Variable.cpp">
-      <Filter>软件开发工具包\数据缓存工具包</Filter>
+      <Filter>业务层\数据缓存</Filter>
     </ClCompile>
     <ClCompile Include="ModeBusTCP_Client.cpp">
       <Filter>通讯层\ModeBusTCP</Filter>
@@ -159,7 +159,7 @@
       <Filter>通讯层\TcpServer</Filter>
     </QtMoc>
     <QtMoc Include="Variable.h">
-      <Filter>软件开发工具包\数据缓存工具包</Filter>
+      <Filter>业务层\数据缓存</Filter>
     </QtMoc>
     <QtMoc Include="ModeBusTCP_Client.h">
       <Filter>通讯层\ModeBusTCP</Filter>
@@ -226,7 +226,7 @@
       <Filter>运行文件</Filter>
     </None>
     <None Include="System_DB\Communicate_DB.json">
-      <Filter>软件开发工具包\数据缓存工具包</Filter>
+      <Filter>业务层\数据缓存</Filter>
     </None>
     <None Include="..\lib\CGXIZip.dll">
       <Filter>软件开发工具包\长广溪SDK</Filter>
