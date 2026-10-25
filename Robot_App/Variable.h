@@ -437,6 +437,25 @@ struct s_IO_DB {
 	quint16 write_HoldingRegisters[1000] = {0}; // 数据缓存区间
 };
 
+// ==================== 报警码定义（2026-10-25 EE5：报警码-语音-三色灯映射） ====================
+// 级别 2（红）：A01-A06；级别 1（黄）：A11-A21；事件播报：E01-E09
+// 完整映射表见 轮对质检/报警码-语音-三色灯映射表.md
+namespace AlarmCode {
+	static const char *A01_ESTOP        = "A01";	// 急停 → PA020
+	static const char *A02_DISCONNECT   = "A02";	// 通信断连 → PA007
+	static const char *A03_ROBOT_ERROR  = "A03";	// 机械臂错误 → PA003
+	static const char *A04_TASK_FAILED  = "A04";	// 任务失败 → PA003
+	static const char *A05_CAMERA_FAULT = "A05";	// 精扫相机故障 → PA021
+	static const char *A11_LOW_BATTERY  = "A11";	// 电量低 → PA004
+	static const char *A12_LOST_LOCAL   = "A12";	// 定位丢失 → PA022
+	static const char *A13_CHARGE_FAULT = "A13";	// 充电故障 → PA008（设备录音）
+	static const char *A14_OBSTACLE     = "A14";	// 障碍物 → PA002
+	static const char *A15_CHASSIS_WARN = "A15";	// 底盘警告 → PA009
+	static const char *A16_PAUSED       = "A16";	// 暂停 → PA005
+	static const char *A17_INSPECTING   = "A17";	// 巡检运行中 → PA001
+	static const char *A18_ARM_MOVING   = "A18";	// 机械臂运行中 → PA006
+}
+
 struct s_Voice_DB {
 	bool is_connected = false;     // Modbus RTU 连接状态
 	bool Ready = false;            // 在线标志（最近一次命令收到合法应答）

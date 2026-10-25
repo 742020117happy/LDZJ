@@ -2127,20 +2127,25 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 
 	int level;
 	QString voice;
+	QString alarmCode;	// 2026-10-25 EE5：报警码（日志/上报）
 	if (emergency || cameraFail || anyDisconn || robotError || taskError) {
 		level = 2;
-		voice = emergency ? "PA020" : (cameraFail ? "PA021" : (anyDisconn ? "PA007" : "PA003"));
+		if (emergency)          { voice = "PA020"; alarmCode = AlarmCode::A01_ESTOP; }
+		else if (cameraFail)    { voice = "PA021"; alarmCode = AlarmCode::A05_CAMERA_FAULT; }
+		else if (anyDisconn)    { voice = "PA007"; alarmCode = AlarmCode::A02_DISCONNECT; }
+		else if (robotError)    { voice = "PA003"; alarmCode = AlarmCode::A03_ROBOT_ERROR; }
+		else                    { voice = "PA003"; alarmCode = AlarmCode::A04_TASK_FAILED; }
 	}
 	else if (batteryLow || localizedLost || chargeFail || obstacle || chassisWarn || paused || inspecting || armMoving) {
 		level = 1;
-		if (batteryLow) voice = "PA004";
-		else if (localizedLost) voice = "PA022";
-		else if (chargeFail) voice = "PA008";
-		else if (obstacle) voice = "PA002";
-		else if (chassisWarn) voice = "PA009";
-		else if (paused) voice = "PA005";
-		else if (inspecting) voice = "PA001";		// 巡检中
-		else if (armMoving) voice = "PA006";		// 2026-10-25 EE1：机械臂运行中（非巡检）
+		if (batteryLow)         { voice = "PA004"; alarmCode = AlarmCode::A11_LOW_BATTERY; }
+		else if (localizedLost) { voice = "PA022"; alarmCode = AlarmCode::A12_LOST_LOCAL; }
+		else if (chargeFail)    { voice = "PA008"; alarmCode = AlarmCode::A13_CHARGE_FAULT; }
+		else if (obstacle)      { voice = "PA002"; alarmCode = AlarmCode::A14_OBSTACLE; }
+		else if (chassisWarn)   { voice = "PA009"; alarmCode = AlarmCode::A15_CHASSIS_WARN; }
+		else if (paused)        { voice = "PA005"; alarmCode = AlarmCode::A16_PAUSED; }
+		else if (inspecting)    { voice = "PA001"; alarmCode = AlarmCode::A17_INSPECTING; }
+		else if (armMoving)     { voice = "PA006"; alarmCode = AlarmCode::A18_ARM_MOVING; }
 	}
 	else {
 		level = 0;	// 正常且静止：绿灯，语音无输出
@@ -2168,9 +2173,17 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	if (level == 1 && voice == "PA001") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA001", Qt::QueuedConnection);
 	if (level == 1 && voice == "PA006") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA006", Qt::QueuedConnection);	// 2026-10-25 EE1：机械臂运行中
 
-	emit Write_Work_List(QString("状态联动: %1 (%2)")
-		.arg(level == 0 ? "绿灯-正常静止" : (level == 1 ? "黄灯-警告/运行" : "红灯-报警"))
-		.arg(voice.isEmpty() ? "无语音" : voice));
+	// 2026-10-25 EE5：报警日志带报警码（红/黄档进入时记录，供 WEB 上报与现场排查）
+	if (level != 0 && !alarmCode.isEmpty()) {
+		QString levelName = (level == 2) ? "红灯-报警" : "黄灯-警告/运行";
+		emit Write_Work_List(QString("状态联动: %1 (报警码%2 语音%3)")
+			.arg(levelName).arg(alarmCode).arg(voice.isEmpty() ? "无" : voice));
+		// 报警类（红档）写入报警列表（最近 10 条 + WEB recentAlarms）
+		if (level == 2) {
+			QString alarmMsg = QString("报警码%1 %2").arg(alarmCode).arg(voice.isEmpty() ? "" : voice);
+			Write_Worry_List(alarmMsg);
+		}
+	}
 }
 /*************************************************************************************************************************************************
 **Function:写入IO模块日志 - 追加到 IO_Log QTextBrowser
