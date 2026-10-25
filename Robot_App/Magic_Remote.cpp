@@ -201,6 +201,8 @@ void c_Magic_Remote::Start_Reconnect() {
 	if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：重连等待期停相机轮询
 	int delay = qMin(1000 * (1 << m_ReconnectAttempt), 30000); // 1s,2s,4s,8s,16s,30s...
 	m_ReconnectAttempt++;
+	// 2026-10-25 LL2：断线自动重连（只记录，不改变退避序列）
+	c_Log::Warn("CHASSIS", "Reconnect", QString("schedule attempt=%1 delay=%2ms").arg(m_ReconnectAttempt).arg(delay));
 	emit Status(QString("Magic遥控：%1秒后自动重连...").arg(delay / 1000));
 	if (m_ReconnectTimer) m_ReconnectTimer->start(delay);	// 2026-10-24 C2 空指针防护
 }
@@ -209,6 +211,8 @@ void c_Magic_Remote::Stop_Reconnect() {
 	m_ReconnectAttempt = 0;
 }
 void c_Magic_Remote::Try_Reconnect() {
+	// 2026-10-25 LL2：重连执行（只记录，不改变凭证重读与连接流程）
+	c_Log::Info("CHASSIS", "Reconnect", "exec");
 	emit Status("Magic遥控：正在自动重连...");
 	// 从 Communicate_DB 读取最新凭证（用户可能在断线期间修改过配置）
 	// 2026-10-24 CC：读侧持锁 + 直接访问（禁止局部引用别名）
@@ -884,6 +888,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// ================= 2. 失败/鉴权处理 =================
 	if (!successed) {
 		if (errCode == 401) {
+			// 2026-10-25 LL2：401 自动重登（只记录，不改变重登链路）
+			c_Log::Warn("CHASSIS", "Login", "token_expired=401 auto_relogin=1000ms");
 			emit Status("Magic遥控：Token已过期或无效(401)，自动重新登录");
 			c_Variable::getInstance().g_Magic.token = "";	// 2026-10-24 C1：外层写锁已覆盖，勿再嵌套加锁
 			emit Signal_Set_Token("");

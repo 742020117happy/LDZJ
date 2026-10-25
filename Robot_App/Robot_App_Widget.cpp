@@ -244,6 +244,21 @@ void c_Robot_App_Widget::Variable_DB()
 	c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
 	// 2026-10-25 L：配置加载成功（不打印任何字段值，防敏感信息泄露）
 	c_Log::Info("CFG", "Config_Load", QString("file=System_DB/Communicate_DB.json keys=%1").arg(DB_Doc.object().size()));
+	// 2026-10-25 LL1：日志等级配置化——Log_Level 键（DEBUG/INFO/WARN/ERROR/FATAL，缺失默认 DEBUG，不合法回退 DEBUG）
+	{
+		QString lv = DB_Doc.object().value("Log_Level").toString("DEBUG").toUpper();
+		c_Log::Level level = c_Log::LV_DEBUG;
+		if      (lv == "INFO")  level = c_Log::LV_INFO;
+		else if (lv == "WARN")  level = c_Log::LV_WARN;
+		else if (lv == "ERROR") level = c_Log::LV_ERROR;
+		else if (lv == "FATAL") level = c_Log::LV_FATAL;
+		else if (lv != "DEBUG") {
+			c_Log::Warn("LOG", "Config", QString("invalid level=%1 fallback=DEBUG").arg(lv));
+			lv = "DEBUG";
+		}
+		c_Log::Set_Log_Level(level);
+		c_Log::Info("LOG", "Config", QString("level=%1").arg(lv));
+	}
 }
 
 /*************************************************************************************************************************************************

@@ -62,9 +62,13 @@ void c_Robot_Server::New_Connection()
 	QTcpSocket *Socket = m_Server->nextPendingConnection();
 	if (!Socket) { return; }
 	m_SocketList.append(Socket);
+	// 2026-10-25 LL2：客户端接入（只记录 IP 与连接数，不改变服务流程）
+	c_Log::Info("WEB", "Client", QString("connected ip=%1 count=%2").arg(Socket->peerAddress().toString()).arg(m_SocketList.size()));
 	emit Connect_Done();
 
 	QObject::connect(Socket, &QTcpSocket::disconnected, this, [Socket, this]() {
+		// 2026-10-25 LL2：客户端断开（只记录）
+		c_Log::Warn("WEB", "Client", QString("disconnected ip=%1").arg(Socket->peerAddress().toString()));
 		m_SocketList.removeOne(Socket);
 		Socket->deleteLater();
 		if (m_SocketList.isEmpty()) { emit Disconnect_Done(); }
