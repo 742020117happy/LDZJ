@@ -91,6 +91,8 @@ void c_Lczh_Remote::Init()
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Scan_Remote_Connect(QString ip, quint16 port)
 {
+	// 2026-10-25 L：相机连接请求（只记录，不改变三通道连接流程）
+	c_Log::Info("SCAN", "Connect", QString("request ip=%1 port=%2").arg(ip).arg(port));
 	m_CameraIP = ip;
 	m_CameraPort = port;
 	emit Signal_Remote_Connect(m_CameraIP, m_CameraPort);
@@ -134,6 +136,11 @@ void c_Lczh_Remote::Start_Scan()
 			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
 			.arg(c_Variable::getInstance().g_Work_DB.taskId);
 	}
+	// 2026-10-25 L：START 指令发送（只打印允许字段：任务ID/轮对号/车轴号，不打印完整命令串）
+	c_Log::Info("SCAN", "Cmd", QString("send START task_id=%1 wheel=%2 axle=%3")
+		.arg(c_Variable::getInstance().g_Work_DB.taskId)
+		.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
+		.arg(c_Variable::getInstance().g_Work_DB.axleNo));
 	emit Signal_Remote_Write(m_CameraIP, m_CameraPort, cmd);
 }
 
@@ -153,6 +160,8 @@ void c_Lczh_Remote::Collector()
 			.arg(m_LastPhotoName);
 	}
 	emit Signal_Remote_Write(m_CameraIP, m_CameraPort, cmd);
+	// 2026-10-25 L：PHOTO 指令发送（照片文件名允许打印）
+	c_Log::Info("SCAN", "Cmd", QString("send PHOTO name=%1").arg(m_LastPhotoName));
 	emit Photo_Written(m_LastPhotoName);
 }
 
@@ -193,7 +202,9 @@ void c_Lczh_Remote::Change_GAIN(QString gain)
 void c_Lczh_Remote::Scan_Remote_Connect_Done()
 {
 	c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected = true;
-	if (c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected) {
+	// 2026-10-25 L：相机连接成功（只记录，不改变 Set_Working 联动）
+	c_Log::Info("SCAN", "Connect", "success");
+	if (c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen) {
 		emit Set_Working();
 	}
 }
@@ -204,6 +215,8 @@ void c_Lczh_Remote::Scan_Remote_Connect_Done()
 void c_Lczh_Remote::Scan_Remote_Disconnect_Done()
 {
 	c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected = false;
+	// 2026-10-25 L：相机断开（只记录，不改变 Set_Default 联动）
+	c_Log::Warn("SCAN", "Disconnect", "state=disconnected");
 	emit Set_Default();
 }
 
@@ -255,6 +268,8 @@ void c_Lczh_Remote::Scan_Tran_Disconnect_Done()
 void c_Lczh_Remote::Scan_Tran_Listen_Done()
 {
 	c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen = true;
+	// 2026-10-25 L：转发监听状态（只记录，不改变监听逻辑）
+	c_Log::Info("SCAN", "Listen", "state=true");
 }
 
 /*************************************************************************************************************************************************
@@ -442,6 +457,8 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 	if (msg.isEmpty()) { emit Status(m_Camera_num + "相机反馈：空消息"); return; }
 
 	if (msg == "PHOTO&COMPLETE") {
+		// 2026-10-25 L：采集完成（只记录，不改变转发/计数逻辑）
+		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
 		{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
@@ -450,10 +467,13 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 		emit Photo_Completed(m_LastPhotoName);	// 2026-08-19 修复：精确匹配分支补齐 MySQL 入库回调
 	}
 	else if (msg == "PHOTO&ERROR") {
+		// 2026-10-25 L：采集失败 ERROR（只记录）
+		c_Log::Error("SCAN", "Feedback", QString("recv PHOTO&ERROR name=%1").arg(m_LastPhotoName));
 		emit Status(m_Camera_num + "相机反馈：采集失败");
 	}
 	else if (msg.startsWith("PHOTO&COMPLETE")) {
 		// 带有额外后缀的 COMPLETE（如含文件名），仍视为成功
+		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE* name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
 		{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
@@ -462,9 +482,12 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 		emit Photo_Completed(m_LastPhotoName);
 	}
 	else if (msg.startsWith("PHOTO&ERROR")) {
+		c_Log::Error("SCAN", "Feedback", QString("recv PHOTO&ERROR* name=%1").arg(m_LastPhotoName));
 		emit Status(m_Camera_num + "相机反馈：采集错误");
 	}
 	else {
+		// 2026-10-25 L：未知消息 WARN（只记录；msg 为相机反馈短消息，无敏感内容）
+		c_Log::Warn("SCAN", "Feedback", "recv unknown");
 		emit Status(m_Camera_num + "相机反馈：未知消息 -> " + msg);
 	}
 }
