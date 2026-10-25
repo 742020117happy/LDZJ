@@ -186,11 +186,11 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 	};
 	static const ControlMap table[] = {
 		// 2026-08-19 修复：Cancel_Task 按协议§2.5 允许 IDLE/READY/COMPLETED/ERROR（不允许采集中/暂停中取消）
-		{ "Cancel_Task",    SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR, &c_Server_Remote::Cancel_Task_Cmd },
-		{ "Pause",          SM_COLLECTING,                                   &c_Server_Remote::Pause_Task_Cmd },
-		{ "Resume",         SM_PAUSED,                                       &c_Server_Remote::Resume_Task_Cmd },
-		{ "Emergency_Stop", SM_ANY,                                          &c_Server_Remote::Emergency_Stop_Cmd },
-		{ "Return_Home",    SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR,    &c_Server_Remote::Return_Home_Cmd },
+		{ "Cancel_Task", SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR, &c_Server_Remote::Cancel_Task_Cmd },
+		{ "Pause", SM_COLLECTING, &c_Server_Remote::Pause_Task_Cmd },
+		{ "Resume", SM_PAUSED, &c_Server_Remote::Resume_Task_Cmd },
+		{ "Emergency_Stop", SM_ANY, &c_Server_Remote::Emergency_Stop_Cmd },
+		{ "Return_Home", SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR, &c_Server_Remote::Return_Home_Cmd },
 	};
 	for (const auto &entry : table) {
 		if (cmd == entry.name) {
@@ -214,77 +214,77 @@ QJsonObject c_Server_Remote::Build_System_Status()
 	QJsonObject root;
 	auto &all = c_Variable::getInstance();
 
-	root["status"]    = "OK";
-	root["timestamp"] = QDateTime::currentDateTime().toString("yyyyMMddHHmmss");
+	root.insert("status", "OK");
+	root.insert("timestamp", QDateTime::currentDateTime().toString("yyyyMMddHHmmss"));
 
 	// 2. 任务进度（2026-10-24 T87：g_Work_DB 跨线程写，读侧持读锁快照）
 	QJsonObject task;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		const auto &work = all.g_Work_DB;
-		task["taskId"]           = work.taskId;
-		task["workState"]        = work.workState;
-		task["currentTaskIndex"] = work.currentTaskIndex;
-		task["taskCount"]        = work.taskCount;
-		task["currentPos"]       = work.currentPos;
-		task["totalImages"]      = work.totalImages;
+		task.insert("taskId", work.taskId);
+		task.insert("workState", work.workState);
+		task.insert("currentTaskIndex", work.currentTaskIndex);
+		task.insert("taskCount", work.taskCount);
+		task.insert("currentPos", work.currentPos);
+		task.insert("totalImages", work.totalImages);
 	}
-	root["task"] = task;
+	root.insert("task", task);
 
 	// 3. AMR 底盘
 	QJsonObject chassis;
 	auto &m = all.g_Magic;
-	chassis["connected"]     = m.is_connected;
-	chassis["localized"]     = m.ReadData.localized;
-	chassis["battery"]       = m.ReadData.battery;
-	chassis["chargeStatus"]  = m.ReadData.chargeStatus;
-	chassis["emergencyStop"] = m.ReadData.emergencyStop;
-	chassis["workingMode"]   = m.ReadData.workingMode;
-	chassis["errorCode"]     = m.ReadData.errorCode;
+	chassis.insert("connected", m.is_connected);
+	chassis.insert("localized", m.ReadData.localized);
+	chassis.insert("battery", m.ReadData.battery);
+	chassis.insert("chargeStatus", m.ReadData.chargeStatus);
+	chassis.insert("emergencyStop", m.ReadData.emergencyStop);
+	chassis.insert("workingMode", m.ReadData.workingMode);
+	chassis.insert("errorCode", m.ReadData.errorCode);
 	QJsonObject pos;
-	pos["x"]     = m.ReadData.worldX;
-	pos["y"]     = m.ReadData.worldY;
-	pos["angle"] = m.ReadData.angle;
-	chassis["position"] = pos;
-	root["chassis"] = chassis;
+	pos.insert("x", m.ReadData.worldX);
+	pos.insert("y", m.ReadData.worldY);
+	pos.insert("angle", m.ReadData.angle);
+	chassis.insert("position", pos);
+	root.insert("chassis", chassis);
 
 	// 4. 机械臂
 	QJsonObject arm;
 	auto &c = all.g_CGXi;
-	arm["connected"]           = c.Connected;
-	arm["mode"]                = c.data.robot_mode;
-	arm["programStatus"]       = c.data.program_status;
-	arm["moving"]              = (c.data.robot_moving != 0);
-	arm["errorCode"]           = c.data.last_error_code;
-	arm["currentProgramIndex"] = c.data.current_program_index;
-	arm["speedRatio"]          = c.data.speed_ratio;
-	arm["powered"]             = (c.data.robot_power_on_indicator != 0);
+	arm.insert("connected", c.Connected);
+	arm.insert("mode", c.data.robot_mode);
+	arm.insert("programStatus", c.data.program_status);
+	arm.insert("moving", (c.data.robot_moving != 0));
+	arm.insert("errorCode", c.data.last_error_code);
+	arm.insert("currentProgramIndex", c.data.current_program_index);
+	arm.insert("speedRatio", c.data.speed_ratio);
+	arm.insert("powered", (c.data.robot_power_on_indicator != 0));
 	QJsonObject tcp;
-	tcp["x"] = c.data.tcp_actual_position[0];
-	tcp["y"] = c.data.tcp_actual_position[1];
-	tcp["z"] = c.data.tcp_actual_position[2];
-	tcp["rx"] = c.data.tcp_actual_position[3];
-	tcp["ry"] = c.data.tcp_actual_position[4];
-	tcp["rz"] = c.data.tcp_actual_position[5];
-	arm["tcpPose"] = tcp;
-	root["arm"] = arm;
+	tcp.insert("x", c.data.tcp_actual_position[0]);
+	tcp.insert("y", c.data.tcp_actual_position[1]);
+	tcp.insert("z", c.data.tcp_actual_position[2]);
+	tcp.insert("rx", c.data.tcp_actual_position[3]);
+	tcp.insert("ry", c.data.tcp_actual_position[4]);
+	tcp.insert("rz", c.data.tcp_actual_position[5]);
+	arm.insert("tcpPose", tcp);
+	root.insert("arm", arm);
 
 	// 5. 相机
 	QJsonObject camera;
 	auto &scan = all.g_Prec_Scan_120;
-	camera["remoteConnected"]  = scan.Remote_Connected;
-	camera["monitorConnected"] = scan.Monitor_Connected;
-	camera["tranConnected"]    = scan.Tran_Connected;
-	camera["tranListen"]       = scan.Tran_Listen;
-	root["camera"] = camera;
+	camera.insert("remoteConnected", scan.Remote_Connected);
+	camera.insert("monitorConnected", scan.Monitor_Connected);
+	camera.insert("tranConnected", scan.Tran_Connected);
+	camera.insert("tranListen", scan.Tran_Listen);
+	root.insert("camera", camera);
 
 	// 6. WEB 服务自身
 	QJsonObject svr;
 	auto &s = all.g_Server;
-	svr["clientConnected"] = s.Tran_Connected;
-	svr["listening"]       = s.Tran_Listen;
-	svr["clientCount"]     = s.num;
-	root["server"] = svr;
+	svr.insert("clientConnected", s.Tran_Connected);
+	svr.insert("listening", s.Tran_Listen);
+	svr.insert("clientCount", s.num);
+	root.insert("server", svr);
 
 	// 7. 最近报警（2026-10-24 T83：g_Worry_List 跨线程写入，读侧持读锁快照）
 	QJsonArray warns;
@@ -294,7 +294,7 @@ QJsonObject c_Server_Remote::Build_System_Status()
 		for (int i = 0; i < n; ++i)
 			warns.append(all.g_Worry_List[i].toString());
 	}
-	root["recentAlarms"] = warns;
+	root.insert("recentAlarms", warns);
 
 	return root;
 }
@@ -371,7 +371,7 @@ bool c_Server_Remote::Check_State(const QString &cmd, int allowedMask)
 void c_Server_Remote::Write_Json_With_Checksum(QJsonObject &obj)
 {
 	if (!m_LastChecksum.isEmpty())
-		obj["Checksum"] = m_LastChecksum;
+		obj.insert("Checksum", m_LastChecksum);
 	emit Write_Json(obj);
 }
 
@@ -381,12 +381,12 @@ void c_Server_Remote::Write_Json_With_Checksum(QJsonObject &obj)
 void c_Server_Remote::Reply_Error(const QString &cmd, const QString &reason)
 {
 	QJsonObject rsp;
-	rsp["Cmd_Name"] = cmd;
-	rsp["Result"]   = "Error";
-	rsp["Reason"]   = reason;
+	rsp.insert("Cmd_Name", cmd);
+	rsp.insert("Result", "Error");
+	rsp.insert("Reason", reason);
 	{   // 2026-10-24 T83：taskId 跨线程写入，读侧持读锁快照
 		QReadLocker locker(&c_Variable::g_lock);
-		rsp["taskId"] = c_Variable::getInstance().g_Work_DB.taskId;
+		rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
 	}
 	Write_Json_With_Checksum(rsp);
 	emit Status(QString::number(m_Port) + "->服务：" + reason);
@@ -398,11 +398,11 @@ void c_Server_Remote::Reply_Error(const QString &cmd, const QString &reason)
 void c_Server_Remote::Reply_Ok(const QString &cmd)
 {
 	QJsonObject rsp;
-	rsp["Cmd_Name"] = cmd;
-	rsp["Result"]   = "Executing";
+	rsp.insert("Cmd_Name", cmd);
+	rsp.insert("Result", "Executing");
 	{   // 2026-10-24 T83：taskId 跨线程写入，读侧持读锁快照
 		QReadLocker locker(&c_Variable::g_lock);
-		rsp["taskId"] = c_Variable::getInstance().g_Work_DB.taskId;
+		rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
 	}
 	Write_Json_With_Checksum(rsp);
 	emit Status(QString::number(m_Port) + "->服务：" + cmd + " 已执行");
@@ -415,11 +415,11 @@ void c_Server_Remote::Send_Accepted()
 {
 	auto &w = c_Variable::getInstance().g_Work_DB;
 	QJsonObject rsp;
-	rsp["status"] = "ACCEPTED";
+	rsp.insert("status", "ACCEPTED");
 	QJsonArray ids;
 	for (int i = 0; i < w.tasks.size(); i++)
 		ids.append(w.tasks[i].toObject().value("taskId").toString());
-	rsp["taskIds"] = ids;
+	rsp.insert("taskIds", ids);
 	Write_Json_With_Checksum(rsp);
 }
 
@@ -430,10 +430,10 @@ void c_Server_Remote::Send_Ready()
 {
 	auto &w = c_Variable::getInstance().g_Work_DB;
 	QJsonObject rsp;
-	rsp["status"]            = "READY";
-	rsp["taskId"]            = w.taskId;
-	rsp["currentTaskIndex"]  = w.currentTaskIndex;
-	rsp["taskCount"]         = w.taskCount;
+	rsp.insert("status", "READY");
+	rsp.insert("taskId", w.taskId);
+	rsp.insert("currentTaskIndex", w.currentTaskIndex);
+	rsp.insert("taskCount", w.taskCount);
 	Write_Json_With_Checksum(rsp);
 }
 
@@ -444,11 +444,11 @@ void c_Server_Remote::Send_Completed(int totalImages)
 {
 	auto &w = c_Variable::getInstance().g_Work_DB;
 	QJsonObject rsp;
-	rsp["status"]            = "COMPLETED";
-	rsp["taskId"]            = w.taskId;
-	rsp["currentTaskIndex"]  = w.currentTaskIndex;
-	rsp["taskCount"]         = w.taskCount;
-	rsp["totalImages"]       = totalImages;
+	rsp.insert("status", "COMPLETED");
+	rsp.insert("taskId", w.taskId);
+	rsp.insert("currentTaskIndex", w.currentTaskIndex);
+	rsp.insert("taskCount", w.taskCount);
+	rsp.insert("totalImages", totalImages);
 	Write_Json_With_Checksum(rsp);
 }
 
@@ -459,11 +459,11 @@ void c_Server_Remote::Send_Error(int errorCode, QString desc)
 {
 	auto &w = c_Variable::getInstance().g_Work_DB;
 	QJsonObject rsp;
-	rsp["status"]            = "ERROR";
-	rsp["taskId"]            = w.taskId;
-	rsp["currentTaskIndex"]  = w.currentTaskIndex;
-	rsp["taskCount"]         = w.taskCount;
-	rsp["errorCode"]         = errorCode;
-	rsp["Reason"]            = desc;
+	rsp.insert("status", "ERROR");
+	rsp.insert("taskId", w.taskId);
+	rsp.insert("currentTaskIndex", w.currentTaskIndex);
+	rsp.insert("taskCount", w.taskCount);
+	rsp.insert("errorCode", errorCode);
+	rsp.insert("Reason", desc);
 	Write_Json_With_Checksum(rsp);
 }

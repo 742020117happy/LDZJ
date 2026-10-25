@@ -627,32 +627,32 @@ void c_Robot_App_Widget::Magic_Button()
 			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
 		}
 		QJsonObject taskData;
-		taskData["map_name"] = curMap;
-		taskData["loop"] = false;
-		taskData["loop_count"] = c_Variable::getInstance().g_Magic.WriteData.loopCount;
+		taskData.insert("map_name", curMap);
+		taskData.insert("loop", false);
+		taskData.insert("loop_count", c_Variable::getInstance().g_Magic.WriteData.loopCount);
 		QJsonArray tasks;
 		QJsonObject task;
 		switch (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex) {
 		case 0:
-			task["name"] = "NavigationPointTask";
-			task["start_param"] = QJsonObject{ { "position_name", c_Variable::getInstance().g_Magic.WriteData.taskName } };
+			task.insert("name", "NavigationPointTask");
+			task.insert("start_param", QJsonObject{ { "position_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
 			tasks.append(task);
 			break;
 		case 1:
-			task["name"] = "PlayGraphPathTask";
-			task["start_param"] = QJsonObject{ { "graph_name", c_Variable::getInstance().g_Magic.WriteData.taskName } };
+			task.insert("name", "PlayGraphPathTask");
+			task.insert("start_param", QJsonObject{ { "graph_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
 			tasks.append(task);
 			break;
 		case 2:
-			task["name"] = "PlayPathTask";
-			task["start_param"] = QJsonObject{ { "path_name", c_Variable::getInstance().g_Magic.WriteData.taskName } };
+			task.insert("name", "PlayPathTask");
+			task.insert("start_param", QJsonObject{ { "path_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
 			tasks.append(task);
 			break;
 		case 3:
-			taskData["name"] = c_Variable::getInstance().g_Magic.WriteData.taskName;
+			taskData.insert("name", c_Variable::getInstance().g_Magic.WriteData.taskName);
 			break;
 		}
-		if (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex != 3) taskData["tasks"] = tasks;
+		if (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex != 3) taskData.insert("tasks", tasks);
 		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection,
 			Q_ARG(QJsonObject, taskData));
 	});
@@ -670,32 +670,32 @@ void c_Robot_App_Widget::Magic_Button()
 			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
 		}
 		QJsonObject taskData;
-		taskData["map_name"] = curMap;
-		taskData["loop"] = true;
-		taskData["loop_count"] = c_Variable::getInstance().g_Magic.WriteData.loopCount;
+		taskData.insert("map_name", curMap);
+		taskData.insert("loop", true);
+		taskData.insert("loop_count", c_Variable::getInstance().g_Magic.WriteData.loopCount);
 		QJsonArray tasks;
 		QJsonObject task;
 		switch (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex) {
 		case 0:
-			task["name"] = "NavigationPointTask";
-			task["start_param"] = QJsonObject{ { "position_name", c_Variable::getInstance().g_Magic.WriteData.taskName } };
+			task.insert("name", "NavigationPointTask");
+			task.insert("start_param", QJsonObject{ { "position_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
 			tasks.append(task);
 			break;
 		case 1:
-			task["name"] = "PlayGraphPathTask";
-			task["start_param"] = QJsonObject{ { "graph_name", c_Variable::getInstance().g_Magic.WriteData.taskName } };
+			task.insert("name", "PlayGraphPathTask");
+			task.insert("start_param", QJsonObject{ { "graph_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
 			tasks.append(task);
 			break;
 		case 2:
-			task["name"] = "PlayPathTask";
-			task["start_param"] = QJsonObject{ { "path_name", c_Variable::getInstance().g_Magic.WriteData.taskName } };
+			task.insert("name", "PlayPathTask");
+			task.insert("start_param", QJsonObject{ { "path_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
 			tasks.append(task);
 			break;
 		case 3:
-			taskData["name"] = c_Variable::getInstance().g_Magic.WriteData.taskName;
+			taskData.insert("name", c_Variable::getInstance().g_Magic.WriteData.taskName);
 			break;
 		}
-		if (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex != 3) taskData["tasks"] = tasks;
+		if (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex != 3) taskData.insert("tasks", tasks);
 		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection,
 			Q_ARG(QJsonObject, taskData));
 	});
@@ -733,36 +733,36 @@ void c_Robot_App_Widget::Magic_Button()
 			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
 		}
 		QJsonObject taskData;
-		taskData["map_name"] = curMap;
-		taskData["loop"] = false;
-		taskData["loop_count"] = 1;
+		taskData.insert("map_name", curMap);
+		taskData.insert("loop", false);
+		taskData.insert("loop_count", 1);
 		QJsonObject dest;
-		dest["angle"] = c_Variable::getInstance().g_Magic.WriteData.fixedNavAngle;
-		dest["gridPosition"] = QJsonObject{ { "x", c_Variable::getInstance().g_Magic.WriteData.fixedNavX },{ "y", c_Variable::getInstance().g_Magic.WriteData.fixedNavY } };
+		dest.insert("angle", c_Variable::getInstance().g_Magic.WriteData.fixedNavAngle);
+		dest.insert("gridPosition", QJsonObject{ { "x", c_Variable::getInstance().g_Magic.WriteData.fixedNavX },{ "y", c_Variable::getInstance().g_Magic.WriteData.fixedNavY } });
 		QJsonArray tasks;
 		QJsonObject task;
-		task["name"] = "NavigationPositionTask";
-		task["start_param"] = QJsonObject{ { "destination", dest } };
+		task.insert("name", "NavigationPositionTask");
+		task.insert("start_param", QJsonObject{ { "destination", dest } });
 		tasks.append(task);
-		taskData["tasks"] = tasks;
+		taskData.insert("tasks", tasks);
 		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection,
 			Q_ARG(QJsonObject, taskData));
 	});
 
 	QObject::connect(ui->btn_FixedNavLoop, &QPushButton::clicked, this, [&]() {
 		QJsonObject taskData;
-		taskData["map_name"] =  c_Variable::getInstance().g_Magic.ReadData.currentMap;
-		taskData["loop"] = true;
-		taskData["loop_count"] = c_Variable::getInstance().g_Magic.WriteData.loopCount;
+		taskData.insert("map_name", c_Variable::getInstance().g_Magic.ReadData.currentMap);
+		taskData.insert("loop", true);
+		taskData.insert("loop_count", c_Variable::getInstance().g_Magic.WriteData.loopCount);
 		QJsonObject dest;
-		dest["angle"] = c_Variable::getInstance().g_Magic.WriteData.fixedNavAngle;
-		dest["gridPosition"] = QJsonObject{ { "x", c_Variable::getInstance().g_Magic.WriteData.fixedNavX },{ "y", c_Variable::getInstance().g_Magic.WriteData.fixedNavY } };
+		dest.insert("angle", c_Variable::getInstance().g_Magic.WriteData.fixedNavAngle);
+		dest.insert("gridPosition", QJsonObject{ { "x", c_Variable::getInstance().g_Magic.WriteData.fixedNavX },{ "y", c_Variable::getInstance().g_Magic.WriteData.fixedNavY } });
 		QJsonArray tasks;
 		QJsonObject task;
-		task["name"] = "NavigationPositionTask";
-		task["start_param"] = QJsonObject{ { "destination", dest } };
+		task.insert("name", "NavigationPositionTask");
+		task.insert("start_param", QJsonObject{ { "destination", dest } });
 		tasks.append(task);
-		taskData["tasks"] = tasks;
+		taskData.insert("tasks", tasks);
 		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection,
 			Q_ARG(QJsonObject, taskData));
 	});
@@ -772,10 +772,10 @@ void c_Robot_App_Widget::Magic_Button()
 		auto &w = c_Variable::getInstance().g_Magic.WriteData;
 		QJsonObject setting;
 		QJsonObject speed;
-		speed["goal_follow"] = w.maxSpeedGoal;
-		speed["graph_follow"] = w.maxSpeedGraph;
-		speed["record_follow"] = w.maxSpeedRecord;
-		setting["max_speed"] = speed;
+		speed.insert("goal_follow", w.maxSpeedGoal);
+		speed.insert("graph_follow", w.maxSpeedGraph);
+		speed.insert("record_follow", w.maxSpeedRecord);
+		setting.insert("max_speed", speed);
 		QMetaObject::invokeMethod(m_Magic_Remote, "Update_Robot_Setting", Qt::QueuedConnection,
 			Q_ARG(QJsonObject, setting));
 	});
@@ -2136,9 +2136,9 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	m_Last_Light_Level = level;
 
 	// 驱动三色灯（2026-10-24 T46：IO 侧 Set_Alarm_* 已互斥（置位前自动关另两路），此处仅置位目标）
-	if (level == 2) QMetaObject::invokeMethod(m_IO_Remote, "Set_Alarm_Red",    Qt::QueuedConnection);
+	if (level == 2) QMetaObject::invokeMethod(m_IO_Remote, "Set_Alarm_Red", Qt::QueuedConnection);
 	if (level == 1) QMetaObject::invokeMethod(m_IO_Remote, "Set_Alarm_Yellow", Qt::QueuedConnection);
-	if (level == 0) QMetaObject::invokeMethod(m_IO_Remote, "Set_Alarm_Green",  Qt::QueuedConnection);
+	if (level == 0) QMetaObject::invokeMethod(m_IO_Remote, "Set_Alarm_Green", Qt::QueuedConnection);
 
 	// 语音联动：进入红/黄档播对应语音一次；绿档无输出
 	if (level == 2 && voice == "PA020") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA020", Qt::QueuedConnection);
@@ -2324,9 +2324,9 @@ void c_Robot_App_Widget::Work_Button()
 			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
 		}
 		QJsonObject taskData;
-		taskData["map_name"] = curMap;
-		taskData["loop"] = false;
-		taskData["loop_count"] = 1;
+		taskData.insert("map_name", curMap);
+		taskData.insert("loop", false);
+		taskData.insert("loop_count", 1);
 		QJsonArray tasks;
 		QJsonObject task;
 		QJsonObject start_param;
@@ -2339,7 +2339,7 @@ void c_Robot_App_Widget::Work_Button()
 
 		tasks.append(task);
 
-		taskData["tasks"] = tasks;
+		taskData.insert("tasks", tasks);
 		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection, Q_ARG(QJsonObject, taskData));
 	});
 

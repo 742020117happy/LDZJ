@@ -199,13 +199,13 @@ void c_Magic_Remote::Login(QString user_code, QString password) {
 	m_LastPass = password;
 	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
 	QJsonObject body;
-	body["userCode"] = user_code;
-	body["password"] = password;
+	body.insert("userCode", user_code);
+	body.insert("password", password);
 	emit Signal_Send_POST("/auth/token", body, QJsonObject());
 }
 /** @brief 4.1.2 刷新Token | GET /auth/token/refresh | Query: token */
 void c_Magic_Remote::Refresh_Token(QString refresh_token) {
-	QJsonObject p; p["token"] = refresh_token;
+	QJsonObject p; p.insert("token", refresh_token);
 	emit Signal_Send_GET("/auth/token/refresh", p, QJsonObject());
 }
 // ======================== 4.2 地图模块 ========================
@@ -229,13 +229,13 @@ void c_Magic_Remote::Cancel_Scan_Map() {
 /** @brief 4.2.5 获取地图图片 | GET /data/get_map_png | Query: map_name */
 void c_Magic_Remote::Get_Map_Png(QString map_name) {
 	// 4.2.5 获取地图PNG
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/data/get_map_png", p, QJsonObject());
 }
 /** @brief 4.2.6 修改地图名称 | GET /cmd/rename_map | Query: origin_map_name, new_map_name */
 void c_Magic_Remote::Rename_Map(QString o, QString n) {
 	// 4.2.6 修改地图名称
-	QJsonObject p; p["origin_map_name"] = o; p["new_map_name"] = n;
+	QJsonObject p; p.insert("origin_map_name", o); p.insert("new_map_name", n);
 	emit Signal_Send_GET("/cmd/rename_map", p, QJsonObject());
 }
 /** @brief 4.2.7 获取地图列表 | GET /data/list_maps */
@@ -246,7 +246,7 @@ void c_Magic_Remote::Get_Map_List() {
 /** @brief 4.2.8 显示指定地图信息 | GET /data/single_map_info | Query: map_name */
 void c_Magic_Remote::Get_Single_Map_Info(QString map_name) {
 	// 4.2.8 显示指定地图信息
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/data/single_map_info", p, QJsonObject());
 }
 /** @brief 4.2.11 切换地图 | POST /cmd/use_map | Query: map_name */
@@ -258,7 +258,7 @@ void c_Magic_Remote::Use_Map(QString map_name) {
 /** @brief 4.2.10 删除地图 | GET /cmd/delete_map | Query: map_name */
 void c_Magic_Remote::Delete_Map(QString map_name) {
 	// 4.2.10 删除地图
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/cmd/delete_map", p, QJsonObject());
 }
 /** @brief 4.2.12 绘制特殊区域 | POST /obstacle | Query: map_name, Body: 区域数据Object */
@@ -270,7 +270,7 @@ void c_Magic_Remote::Set_Obstacle(QString map_name, QJsonObject obstacle_data) {
 /** @brief 4.2.13 获取特殊区域数据 | GET /obstacle | Query: map_name */
 void c_Magic_Remote::Get_Obstacle(QString map_name) {
 	// 4.2.13 获取特殊区域数据：URL 是 /obstacle
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/obstacle", p, QJsonObject());
 }
 /** @brief 4.2.14 原图编辑 | POST /cmd/edit_map | Query: map_name, Body: 编辑数据Array */
@@ -289,7 +289,7 @@ void c_Magic_Remote::Dynamic_Init_Pose(QString map_name, QString point_name) {
 void c_Magic_Remote::Temp_Point_Init_Pose(QString map_name, int grid_x, int grid_y, double angle, int type) {
 	// 4.2.16 使用栅格坐标初始化：参数在 Body
 	QJsonObject b;
-	b["mapName"] = map_name; b["gridX"] = grid_x; b["gridY"] = grid_y; b["angle"] = angle; b["type"] = type;
+	b.insert("mapName", map_name); b.insert("gridX", grid_x); b.insert("gridY", grid_y); b.insert("angle", angle); b.insert("type", type);
 	emit Signal_Send_POST("/real_time_data/temp_point_init_pose", b, QJsonObject());
 }
 /** @brief 4.2.18 获取初始化结果 | GET /real_time_data/init_pose_result */
@@ -308,7 +308,7 @@ void c_Magic_Remote::Query_Default_Map() {
 }
 /** @brief 4.2.x 恢复地图 | GET /cmd/recover_map | Query: map_name */
 void c_Magic_Remote::Recover_Map(QString map_name) {
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/cmd/recover_map", p, QJsonObject());
 }
 // ======================== 4.3 路径与点管理 ========================
@@ -325,14 +325,14 @@ void c_Magic_Remote::Edit_Pos(QJsonObject pos_data) {
 /** @brief 4.3.3 删除导航点 | DELETE /cmd/pos | Query: map_name, position_name */
 void c_Magic_Remote::Delete_Pos(QString map_name, QString position_name) {
 	// 4.3.3 删除导航点：必须是 DELETE，URL 是 /cmd/pos
-	QJsonObject p; p["map_name"] = map_name; p["position_name"] = position_name;
+	QJsonObject p; p.insert("map_name", map_name); p.insert("position_name", position_name);
 	emit Signal_Send_DELETE("/cmd/pos", p, QJsonObject());
 }
 /** @brief 4.3.4 获取导航点列表 | GET /data/poslist | Query: map_name, type(可选) */
 void c_Magic_Remote::Get_Pos_List(QString map_name, int type) {
 	// 4.3.4 获取导航点列表
-	QJsonObject p; p["map_name"] = map_name;
-	if (type >= 0) p["type"] = type;
+	QJsonObject p; p.insert("map_name", map_name);
+	if (type >= 0) p.insert("type", type);
 	emit Signal_Send_GET("/data/poslist", p, QJsonObject());
 }
 /** @brief 4.3.5 生成手绘路径 | POST /cmd/graph | Body: 路径数据 */
@@ -348,25 +348,25 @@ void c_Magic_Remote::Edit_Graph(QJsonObject graph_data) {
 /** @brief 4.3.7 删除手绘路径 | DELETE /cmd/graph | Query: map_name, graph_path_name */
 void c_Magic_Remote::Delete_Graph(QString map_name, QString graph_path_name) {
 	// 4.3.7 删除手绘路径：必须是 DELETE，URL 是 /cmd/graph
-	QJsonObject p; p["map_name"] = map_name; p["graph_path_name"] = graph_path_name;
+	QJsonObject p; p.insert("map_name", map_name); p.insert("graph_path_name", graph_path_name);
 	emit Signal_Send_DELETE("/cmd/graph", p, QJsonObject());
 }
 /** @brief 4.3.8 手绘路径列表 | GET /data/graph_list | Query: map_name */
 void c_Magic_Remote::Get_Graph_List(QString map_name) {
 	// 4.3.8 手绘路径列表
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/data/graph_list", p, QJsonObject());
 }
 /** @brief 4.3.9 获取手绘路径 | GET /data/graph_path | Query: map_name, path_name, contains_details */
 void c_Magic_Remote::Get_Graph_Path(QString map_name, QString path_name, bool contains_details) {
 	// 4.3.9 获取手绘路径
-	QJsonObject p; p["map_name"] = map_name; p["path_name"] = path_name; p["contains_details"] = contains_details ? "True" : "False";
+	QJsonObject p; p.insert("map_name", map_name); p.insert("path_name", path_name); p.insert("contains_details", contains_details ? "True" : "False");
 	emit Signal_Send_GET("/data/graph_path", p, QJsonObject());
 }
 /** @brief 4.3.10 重命名手绘路径 | GET /cmd/update_graph_path_name | Query: map_name, origin_name, new_name */
 void c_Magic_Remote::Rename_Graph_Path(QString map_name, QString origin_name, QString new_name) {
 	// 4.3.10 重命名手绘路径：URL 是 /cmd/update_graph_path_name
-	QJsonObject p; p["map_name"] = map_name; p["origin_name"] = origin_name; p["new_name"] = new_name;
+	QJsonObject p; p.insert("map_name", map_name); p.insert("origin_name", origin_name); p.insert("new_name", new_name);
 	emit Signal_Send_GET("/cmd/update_graph_path_name", p, QJsonObject());
 }
 /** @brief 4.3.11 检测两点生成线段 | POST /cmd/graph_check_point | Body: 点数据 */
@@ -391,7 +391,7 @@ void c_Magic_Remote::Stop_Record_Path() {
 /** @brief 4.3.19 获取录制路径列表 | GET /data/record_list | Query: map_name */
 void c_Magic_Remote::Get_Record_List(QString map_name) {
 	// 4.3.19 获取录制路径列表
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/data/record_list", p, QJsonObject());
 }
 /** @brief 4.3.15 取消录制路径 | GET /cmd/cancel_record_path */
@@ -402,7 +402,7 @@ void c_Magic_Remote::Cancel_Record_Path() {
 /** @brief 4.3.16 获取录制路径 | GET /data/record_path | Query: map_name, path_name, contains_details */
 void c_Magic_Remote::Get_Record_Path(QString map_name, QString path_name, bool contains_details) {
 	// 4.3.16 获取录制路径
-	QJsonObject p; p["map_name"] = map_name; p["path_name"] = path_name; p["contains_details"] = contains_details ? "True" : "False";
+	QJsonObject p; p.insert("map_name", map_name); p.insert("path_name", path_name); p.insert("contains_details", contains_details ? "True" : "False");
 	emit Signal_Send_GET("/data/record_path", p, QJsonObject());
 }
 /** @brief 4.3.17 编辑录制路径动作点 | PUT /cmd/record_path_points | Body: 点数据 */
@@ -413,7 +413,7 @@ void c_Magic_Remote::Edit_Record_Path_Points(QJsonObject point_data) {
 /** @brief 4.3.18 删除录制路径 | DELETE /cmd/record_path | Query: map_name, path_name */
 void c_Magic_Remote::Delete_Record_Path(QString map_name, QString path_name) {
 	// 4.3.18 删除录制路径：必须是 DELETE，URL 是 /cmd/record_path
-	QJsonObject p; p["map_name"] = map_name; p["path_name"] = path_name;
+	QJsonObject p; p.insert("map_name", map_name); p.insert("path_name", path_name);
 	emit Signal_Send_DELETE("/cmd/record_path", p, QJsonObject());
 }
 /** @brief 4.3.20 重命名录制路径 | PUT /cmd/update_rec_path_name | Query: map_name, origin_path_name, new_path_name */
@@ -425,7 +425,7 @@ void c_Magic_Remote::Rename_Record_Path(QString map_name, QString origin_path_na
 /** @brief 4.3.21 验证手绘路径名称 | GET /cmd/graph_check_path_name | Query: map_id, name */
 void c_Magic_Remote::Check_Graph_Path_Name(QString map_id, QString path_name) {
 	// 4.3.21 验证手绘路径名称：必须是 GET，URL 是 /cmd/graph_check_path_name
-	QJsonObject p; p["map_id"] = map_id; p["name"] = path_name;
+	QJsonObject p; p.insert("map_id", map_id); p.insert("name", path_name);
 	emit Signal_Send_GET("/cmd/graph_check_path_name", p, QJsonObject());
 }
 // ======================== 4.4 任务模块 ========================
@@ -463,7 +463,7 @@ void c_Magic_Remote::Stop_Current_Task() {
 /** @brief 4.4.6 查询路径组合是否存在 | GET /task_queue/exist | Query: map_name, queue_name */
 void c_Magic_Remote::Check_Task_Queue_Exist(QString map_name, QString queue_name) {
 	// 4.4.6 查询路径组合是否存在：必须是 GET
-	QJsonObject p; p["map_name"] = map_name; p["queue_name"] = queue_name;
+	QJsonObject p; p.insert("map_name", map_name); p.insert("queue_name", queue_name);
 	emit Signal_Send_GET("/task_queue/exist", p, QJsonObject());
 }
 /** @brief 4.4.7 添加保存路径组合 | POST /task_queue | Body: 组合数据 */
@@ -479,19 +479,19 @@ void c_Magic_Remote::Update_Task_Queue(QJsonObject queue_data) {
 /** @brief 4.4.9 获取路径组合列表 | GET /task_queue/list | Query: map_name */
 void c_Magic_Remote::Get_Task_Queue_List(QString map_name) {
 	// 4.4.9 获取路径组合列表
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/task_queue/list", p, QJsonObject());
 }
 /** @brief 4.4.13 查询任务队列详情 | GET /task_queue/detail | Query: map_name, queue_name */
 void c_Magic_Remote::Get_Task_Queue_Detail(QString map_name, QString queue_name) {
 	// 4.4.13 查询任务队列详情
-	QJsonObject p; p["map_name"] = map_name; p["queue_name"] = queue_name;
+	QJsonObject p; p.insert("map_name", map_name); p.insert("queue_name", queue_name);
 	emit Signal_Send_GET("/task_queue/detail", p, QJsonObject());
 }
 /** @brief 4.4.10 删除任务队列 | DELETE /task_queue | Query: map_name, task_queue_name */
 void c_Magic_Remote::Delete_Task_Queue(QString map_name, QString task_queue_name) {
 	// 4.4.10 删除任务队列：必须是 DELETE，URL 是 /task_queue
-	QJsonObject p; p["map_name"] = map_name; p["task_queue_name"] = task_queue_name;
+	QJsonObject p; p.insert("map_name", map_name); p.insert("task_queue_name", task_queue_name);
 	emit Signal_Send_DELETE("/task_queue", p, QJsonObject());
 }
 /** @brief 4.4.11 当前任务是否完成 | GET /task_queue/task/is_finished */
@@ -512,7 +512,7 @@ void c_Magic_Remote::Get_Task_Process_Status() {
 /** @brief 4.4.14 获取任务日志 | GET /task_queue/log | Query: start_time, end_time, map_name */
 void c_Magic_Remote::Get_Task_Log(QString start_time, QString end_time, QString map_name) {
 	// 4.4.14 获取任务日志
-	QJsonObject p; p["start_time"] = start_time; p["end_time"] = end_time; p["map_name"] = map_name;
+	QJsonObject p; p.insert("start_time", start_time); p.insert("end_time", end_time); p.insert("map_name", map_name);
 	emit Signal_Send_GET("/task_queue/log", p, QJsonObject());
 }
 /** @brief 4.4.15 获取当前正在执行的任务 | GET /task_queue/current */
@@ -523,26 +523,26 @@ void c_Magic_Remote::Get_Task_Current() {
 /** @brief 4.4.17 上传任务图片 | POST /task_queue/upload_task_image | Body: image(base64) */
 void c_Magic_Remote::Upload_Task_Image(QString base64_data) {
 	// 4.4.17 上传任务图片
-	QJsonObject b; b["image"] = base64_data;
+	QJsonObject b; b.insert("image", base64_data);
 	emit Signal_Send_POST("/task_queue/upload_task_image", b, QJsonObject());
 }
 /** @brief 4.4.18 获取任务报告图片 | GET /task_queue/down_task_image | Query: task_id */
 void c_Magic_Remote::Down_Task_Image(QString task_id) {
 	// 4.4.18 获取任务报告图片
-	QJsonObject p; p["task_id"] = task_id;
+	QJsonObject p; p.insert("task_id", task_id);
 	emit Signal_Send_GET("/task_queue/down_task_image", p, QJsonObject());
 }
 /** @brief 4.4.19 重命名路径组合 | PUT /task_queue/rename | Body: map_name, old_name, new_name */
 void c_Magic_Remote::Rename_Task_Queue(QString map_name, QString old_name, QString new_name) {
 	// 4.4.19 重命名路径组合：必须是 PUT，Body 传参
-	QJsonObject b; b["map_name"] = map_name; b["old_name"] = old_name; b["new_name"] = new_name;
+	QJsonObject b; b.insert("map_name", map_name); b.insert("old_name", old_name); b.insert("new_name", new_name);
 	emit Signal_Send_PUT("/task_queue/rename", b, QJsonObject());
 }
 // ======================== 4.5 自主充电 ========================
 /** @brief 4.5.1 自主回充 | POST /cmd/recharge | Body: map_name, point_name */
 void c_Magic_Remote::Start_Recharge(QString map_name, QString point_name) {
 	// 4.5.1 自主回充
-	QJsonObject b; b["map_name"] = map_name; b["point_name"] = point_name;
+	QJsonObject b; b.insert("map_name", map_name); b.insert("point_name", point_name);
 	emit Signal_Send_POST("/cmd/recharge", b, QJsonObject());
 }
 /** @brief 4.5.2 充电状态反馈 | GET /data/recharge/status */
@@ -681,10 +681,10 @@ void c_Magic_Remote::Get_Ultrasonic() {
 void c_Magic_Remote::Robot_Move(double linear_speed, double angular_speed, double slip_angle) {
 	// 4.7.1 设置移动控制数据：API v1.4.4 需包含 slip_angle(-2.14~2.14)
 	QJsonObject speed;
-	speed["linearSpeed"] = linear_speed;
-	speed["slip_angle"] = slip_angle;
-	speed["angularSpeed"] = angular_speed;
-	QJsonObject b; b["speed"] = speed;
+	speed.insert("linearSpeed", linear_speed);
+	speed.insert("slip_angle", slip_angle);
+	speed.insert("angularSpeed", angular_speed);
+	QJsonObject b; b.insert("speed", speed);
 	emit Signal_Send_POST("/cmd/robot_move", b, QJsonObject());
 }
 /** @brief 4.7.2 关闭移动控制 | POST /cmd/robot_move_stop */
@@ -696,22 +696,22 @@ void c_Magic_Remote::Robot_Move_Stop() {
 void c_Magic_Remote::Move_With_Params(double lv, double av, double td, double ta, int mode) {
 	// 4.7.3 定距离/定角度移动: mode=1定距(target_distance), mode=2定角度(target_angle)
 	QJsonObject b;
-	b["linear_velocity"] = lv;
-	b["slip_angle"] = 0.0;
-	b["angular_velocity"] = av;
+	b.insert("linear_velocity", lv);
+	b.insert("slip_angle", 0.0);
+	b.insert("angular_velocity", av);
 	if (mode == 1) {
-		b["target_distance"] = td;
+		b.insert("target_distance", td);
 	}
 	else if (mode == 2) {
-		b["target_angle"] = ta;
+		b.insert("target_angle", ta);
 	}
-	b["mode"] = mode;
+	b.insert("mode", mode);
 	emit Signal_Send_POST("/cmd/move_with_params", b, QJsonObject());
 }
 /** @brief 4.7.4 取消定距离/定角度移动 | POST /cmd/cancel_move_with_params | Body: cancel=true */
 void c_Magic_Remote::Cancel_Move_With_Params() {
 	// 4.7.4 取消定距离/定角度移动
-	QJsonObject b; b["cancel"] = true;
+	QJsonObject b; b.insert("cancel", true);
 	emit Signal_Send_POST("/cmd/cancel_move_with_params", b, QJsonObject());
 }
 // ======================== 4.8 & 4.9 系统与文件 ========================
@@ -733,7 +733,7 @@ void c_Magic_Remote::Reset_Robot_Default() {
 }
 /** @brief 4.8.5 下载地图文件 | GET /data/download_map | Query: map_name */
 void c_Magic_Remote::Download_Map(QString map_name) {
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/data/download_map", p, QJsonObject());
 }
 /** @brief 4.8.6 上传地图文件 | POST /data/upload_map | Query: map_name, Body: 文件数据 */
@@ -743,7 +743,7 @@ void c_Magic_Remote::Upload_Map(QString map_name, QJsonObject map_data) {
 }
 /** @brief 4.8.7 下载地图PNG格式图片 | GET /data/down_map_png | Query: map_name */
 void c_Magic_Remote::Down_Map_Png(QString map_name) {
-	QJsonObject p; p["map_name"] = map_name;
+	QJsonObject p; p.insert("map_name", map_name);
 	emit Signal_Send_GET("/data/down_map_png", p, QJsonObject());
 }
 /** @brief 4.8.8 获取APP Logo图片 | GET /file/logo */
@@ -784,8 +784,8 @@ void c_Magic_Remote::Get_Local_Sys_Info() {
 /** @brief 4.9.6 修改APP主页标题 | POST /cmd/update_local_sys_info | Body: mian_page{title} */
 void c_Magic_Remote::Update_Local_Sys_Info(QString title) {
 	// 4.9.6 修改APP主页标题：必须是 POST，URL 是 /cmd/update_local_sys_info，Body 需嵌套 mian_page
-	QJsonObject mian_page; mian_page["title"] = title;
-	QJsonObject b; b["mian_page"] = mian_page;
+	QJsonObject mian_page; mian_page.insert("title", title);
+	QJsonObject b; b.insert("mian_page", mian_page);
 	emit Signal_Send_POST("/cmd/update_local_sys_info", b, QJsonObject());
 }
 /** @brief 4.9.7 获取关于我们 | GET /data/robot_about_us */
@@ -800,17 +800,17 @@ void c_Magic_Remote::Get_Robot_Show() {
 }
 /** @brief 4.9.9 获取日志列表 | GET /log/get_all_logs | Query: log_type */
 void c_Magic_Remote::Get_All_Logs(QString log_type) {
-	QJsonObject p; p["log_type"] = log_type;
+	QJsonObject p; p.insert("log_type", log_type);
 	emit Signal_Send_GET("/log/get_all_logs", p, QJsonObject());
 }
 /** @brief 4.9.10 下载日志 | GET /log/down_logs | Query: log_type, file_name */
 void c_Magic_Remote::Down_Logs(QString log_type, QString file_name) {
-	QJsonObject p; p["log_type"] = log_type; p["file_name"] = file_name;
+	QJsonObject p; p.insert("log_type", log_type); p.insert("file_name", file_name);
 	emit Signal_Send_GET("/log/down_logs", p, QJsonObject());
 }
 /** @brief 4.9.11 删除日志 | GET /log/drop_logs | Query: log_type, file_name */
 void c_Magic_Remote::Drop_Logs(QString log_type, QString file_name) {
-	QJsonObject p; p["log_type"] = log_type; p["file_name"] = file_name;
+	QJsonObject p; p.insert("log_type", log_type); p.insert("file_name", file_name);
 	emit Signal_Send_GET("/log/drop_logs", p, QJsonObject());
 }
 /** @brief 4.9.12 获取导航配置 | GET /data/robot_get_setting */

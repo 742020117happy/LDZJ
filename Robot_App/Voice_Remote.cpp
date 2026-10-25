@@ -196,7 +196,7 @@ void c_Voice_Remote::SetVolume(int vol) {
 	c_Variable::getInstance().g_Voice.Volume = vol;
 	{
 		QWriteLocker locker(&c_Variable::g_lock);	// 2026-10-24 重构 T01：g_Communicate_DB 写侧持锁（多线程无锁读写 UB）
-		c_Variable::getInstance().g_Communicate_DB["Voice_Volume"] = vol;
+		c_Variable::getInstance().g_Communicate_DB.insert("Voice_Volume", vol);
 	}
 	Write_HoldingRegisters_1(vol);
 	Persist_Volume();
@@ -221,7 +221,7 @@ void c_Voice_Remote::Play_With_Volume(int index, int vol) {
 	c_Variable::getInstance().g_Voice.Volume = vol;
 	{
 		QWriteLocker locker(&c_Variable::g_lock);	// 2026-10-24 重构 T01：g_Communicate_DB 写侧持锁（多线程无锁读写 UB）
-		c_Variable::getInstance().g_Communicate_DB["Voice_Volume"] = vol;
+		c_Variable::getInstance().g_Communicate_DB.insert("Voice_Volume", vol);
 	}
 
 	int serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
