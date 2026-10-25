@@ -20,6 +20,13 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 		this->setStyleSheet(strQss);
 
 		File.close();
+		// 2026-10-25 L：QSS 主题加载结果（只记录，不改变加载逻辑）
+		if (File.error() == QFileDevice::NoError) {
+			c_Log::Info("UI", "QSS_Load", QString("file=Robot_App/stuqss.css size=%1").arg(strQss.size()));
+		}
+		else {
+			c_Log::Error("UI", "QSS_Load", QString("failed file=Robot_App/stuqss.css err=%1").arg(File.errorString()));
+		}
 	}
 
 	// 2026-10-24 T69：导航按钮互斥高亮（可选中态 + 页面切换联动，仅视觉态，不改变 clicked 触发行为）
@@ -61,6 +68,8 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	ui->Magic_Log->document()->setMaximumBlockCount(3000);
 	ui->CGXi_Log->document()->setMaximumBlockCount(3000);
 	ui->IO_Log->document()->setMaximumBlockCount(3000);
+	ui->Voice_Log->document()->setMaximumBlockCount(3000);			// 2026-10-25 L：界面日志行数上限补齐（3000 行，超删最早）
+	ui->Prec_Scan_120_Cmd->document()->setMaximumBlockCount(3000);	// 2026-10-25 L：界面日志行数上限补齐
 	//初始化系统变量
 	QTimer::singleShot(100, this, &c_Robot_App_Widget::Variable_Init);
 	QTimer::singleShot(200, this, &c_Robot_App_Widget::Magic_Init);
@@ -73,6 +82,8 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	QTimer::singleShot(750, this, &c_Robot_App_Widget::IO_Init);
 	//系统轮询
 	QTimer::singleShot(1000, this, &c_Robot_App_Widget::System_Scan);
+	// 2026-10-25 L：模块初始化错峰调度记录（只记录，不改变时序）
+	c_Log::Info("APP", "Init_Order", "variable=100ms magic=200ms cgxi=300ms scan=400ms mysql=500ms server=600ms work=650ms voice=700ms io=750ms scan=1000ms");
 
 	// Communicate_DB 写入防抖定时器（200ms合并连续写入）
 	m_FlushTimer = new QTimer(this);
@@ -207,20 +218,30 @@ void c_Robot_App_Widget::Variable_DB()
 	File.setFileName(QDir::currentPath() + "/System_DB/Communicate_DB.json");
 	if (!File.open(QFile::ReadOnly | QIODevice::Text)) {
 		c_Variable::getInstance().g_Communicate_DB = QJsonObject(); // 文件不存在时使用空配置
+		// 2026-10-25 L：配置加载失败（只记录，不改变空对象兜底行为）
+		c_Log::Error("CFG", "Config_Load", QString("failed file=System_DB/Communicate_DB.json err=%1").arg(File.errorString()));
 		return;
 	}
 	//读取文件
 	QByteArray Data = File.readAll();
 	File.close();
+	// 2026-10-25 L：解析前剥离 UTF-8 BOM（EF BB BF），防解析失败（规范 §一-3）
+	if (Data.size() >= 3 && static_cast<uchar>(Data.at(0)) == 0xEF
+		&& static_cast<uchar>(Data.at(1)) == 0xBB && static_cast<uchar>(Data.at(2)) == 0xBF) {
+		Data.remove(0, 3);
+	}
 	//转换JSON (增加解析错误处理)
 	QJsonParseError parseError;
 	QJsonDocument DB_Doc = QJsonDocument::fromJson(Data, &parseError);
 	if (parseError.error != QJsonParseError::NoError || !DB_Doc.isObject()) {
 		c_Variable::getInstance().g_Communicate_DB = QJsonObject();
-		c_Log::Write("系统", QString("Communicate_DB.json 解析失败: %1").arg(parseError.errorString()));	// 2026-10-24 T62：qDebug 生产残留转统一日志
+		// 2026-10-25 L：解析失败升级 ERROR 级（保留原文信息）
+		c_Log::Error("CFG", "Config_Parse_Error", QString("file=System_DB/Communicate_DB.json err=%1").arg(parseError.errorString()));
 		return;
 	}
 	c_Variable::getInstance().g_Communicate_DB = DB_Doc.object();
+	// 2026-10-25 L：配置加载成功（不打印任何字段值，防敏感信息泄露）
+	c_Log::Info("CFG", "Config_Load", QString("file=System_DB/Communicate_DB.json keys=%1").arg(DB_Doc.object().size()));
 }
 
 /*************************************************************************************************************************************************
@@ -2626,10 +2647,14 @@ void c_Robot_App_Widget::Do_Flush_Communicate_DB()
 {
 	QFile File;
 	File.setFileName(QDir::currentPath() + "/System_DB/Communicate_DB.json");
-	// 2026-10-24 重构 T15 附带：WriteOnly+Truncate（原 ReadWrite 不截断，新 JSON 短于旧内容会残留尾巴）
-	File.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
+	// 2026-10-24 重构 T15：改 WriteOnly+Truncate（原 ReadWrite 不截断，JSON 内容超短后残留尾部导致异常）
+	if (!File.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+		// 2026-10-25 L：配置写盘失败（只记录，不改变防抖流程）
+		c_Log::Error("CFG", "Config_Save", QString("failed file=System_DB/Communicate_DB.json err=%1").arg(File.errorString()));
+		return;
+	}
 
-	// 2026-10-24 重构 T01：序列化全程读锁（与 Voice 线程写锁配对，防序列化中结构变更）
+	// 2026-10-24 重构 T01：序列化全程锁内快照（Voice 线程写触发，避免锁内阻塞与结构撕裂）
 	QByteArray jsonBytes;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
@@ -2638,8 +2663,13 @@ void c_Robot_App_Widget::Do_Flush_Communicate_DB()
 		jsonBytes = DB_Doc.toJson();
 	}
 
-	File.write(jsonBytes);
+	// 2026-10-25 L：写回保留 UTF-8 BOM（规范 §一-4；QJsonDocument::toJson 本身无 BOM）
+	QByteArray out = jsonBytes;
+	out.prepend("\xEF\xBB\xBF");
+	File.write(out);
 	File.close();
+	// 2026-10-25 L：配置保存成功（不打印任何字段值，防敏感信息泄露）
+	c_Log::Info("CFG", "Config_Save", QString("file=System_DB/Communicate_DB.json size=%1").arg(out.size()));
 }
 /*************************************************************************************************************************************************
 **Function:写入报警日志 - 追加到Work_Alarm控件并写入文件

@@ -292,8 +292,17 @@ void c_Voice_Remote::Persist_Volume() {
 	QFile File;
 	File.setFileName(QDir::currentPath() + "/System_DB/Communicate_DB.json");
 	if (File.open(QIODevice::WriteOnly | QIODevice::Text)) {
-		File.write(QJsonDocument(c_Variable::getInstance().g_Communicate_DB).toJson());
+		// 2026-10-25 L：写回保留 UTF-8 BOM（规范 §一-4，与 Widget Do_Flush 一致）
+		QByteArray out = QJsonDocument(c_Variable::getInstance().g_Communicate_DB).toJson();
+		out.prepend("\xEF\xBB\xBF");
+		File.write(out);
 		File.close();
+		// 2026-10-25 L：音量持久化成功（只记录，不打印配置值）
+		c_Log::Info("CFG", "Config_Save", "source=voice_persist_volume file=System_DB/Communicate_DB.json");
+	}
+	else {
+		// 2026-10-25 L：音量持久化失败（只记录，不改变业务）
+		c_Log::Error("CFG", "Config_Save", QString("failed source=voice_persist_volume err=%1").arg(File.errorString()));
 	}
 }
 

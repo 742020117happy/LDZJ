@@ -12,6 +12,9 @@ int main(int argc, char *argv[])
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	QApplication Application(argc, argv);
 
+	// 2026-10-25 日志体系完善（L 系列）：程序启动
+	c_Log::Info("APP", "Start", "launch highdpi=true");
+
 	// 2026-10-24 T81：单实例守卫——已运行时误触多开仅弹窗提醒并退出新实例
 	// （信号量串行化检查消除双实例同时启动的竞争；Windows 下崩溃后共享内存由系统自动回收）
 	QSystemSemaphore instSem("RobotApp_SingleInstance_Sem", 1, QSystemSemaphore::Open);
@@ -21,6 +24,8 @@ int main(int argc, char *argv[])
 	if (!alreadyRunning) { instMem.create(1); }
 	instSem.release();
 	if (alreadyRunning) {
+		// 2026-10-25 L：多开被拦截（仅日志记录，不改变弹窗行为）
+		c_Log::Warn("APP", "SingleInstance", "already_running=true ignored");
 		QMessageBox::warning(nullptr, "提示",
 			"智能底部巡检机器人控制平台已在运行，请勿重复打开！");
 		return 0;
@@ -38,8 +43,13 @@ int main(int argc, char *argv[])
 		else { basePt = 11; }                   // 4K
 		QFont baseFont("微软雅黑", basePt);
 		Application.setFont(baseFont);
+		// 2026-10-25 L：多分辨率适配结果
+		c_Log::Info("APP", "Font", QString("screen_height=%1 base_pt=%2").arg(h).arg(basePt));
 	}
 
 	c_Robot_App_Widget w;
-	return Application.exec();
+	int ret = Application.exec();
+	// 2026-10-25 L：程序退出
+	c_Log::Info("APP", "Exit", QString("code=%1").arg(ret));
+	return ret;
 }
