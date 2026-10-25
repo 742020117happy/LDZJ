@@ -17,7 +17,7 @@
  *               → 01 10 00 03 00 02 B1 C8(短确认帧)
  *
  * 在线判定（协议约定）：
- *   - 状态查询作为心跳，每 1.5 秒一次；
+ *   - 状态查询作为心跳，每 2 秒一次（2026-10-25 防通讯报警：1.5s→2s）；
  *   - 连续收到合法应答 → 在线，计数清零；
  *   - 连续 3 次无应答 → 通信异常（Ready=false，心跳继续探活）；
  *   - 状态 0002 → 在线但播放出错。
@@ -85,7 +85,7 @@ void c_Voice_Remote::Init() {
 	/* ---- T74：帧日志开关桥接（心跳查询期间静默，命令/播放帧日志保留） ---- */
 	QObject::connect(this, &c_Voice_Remote::Signal_Frame_Log_Enable, m_Voice_Remote, &c_ModeBusRTU_Master::Set_Frame_Log_Enabled);
 
-	/* ---- 心跳定时器：状态查询每 1.5s 一次（协议 1~2 秒） ---- */
+	/* ---- 心跳定时器：状态查询每 2s 一次（协议 1~2 秒，2026-10-25 取上限防通讯报警） ---- */
 	m_HeartbeatTimer = new QTimer(this);
 	m_HeartbeatTimer->setInterval(VoiceProtocol::HEARTBEAT_MS);
 	QObject::connect(m_HeartbeatTimer, &QTimer::timeout, this, &c_Voice_Remote::Query_Status);
@@ -240,7 +240,7 @@ void c_Voice_Remote::Play_With_Volume(int index, int vol) {
 }
 
 /*************************************************************************************************************************************************
-**Function:心跳状态查询 - 单次读 HR 0x0005（01 03 00 05 00 01 94 0B），心跳定时器每 1.5s 调用
+**Function:心跳状态查询 - 单次读 HR 0x0005（01 03 00 05 00 01 94 0B），心跳定时器每 2s 调用（2026-10-25 防通讯报警）
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Query_Status() {
 	if (!c_Variable::getInstance().g_Voice.is_connected) return;
@@ -310,7 +310,7 @@ void c_Voice_Remote::Write_HoldingRegisters_Done() {
 }
 
 /*************************************************************************************************************************************************
-**Function:心跳应答 - 合法应答 → 在线计数清零；仅在状态变化时输出日志（避免 1.5s 刷屏）
+**Function:心跳应答 - 合法应答 → 在线计数清零；仅在状态变化时输出日志（避免 2s 刷屏）
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Read_HoldingRegisters_Done(s_ModBus_DB data) {
 	emit Signal_Frame_Log_Enable(true);	/* 2026-10-24 T74：心跳响应处理完毕，恢复帧日志 */

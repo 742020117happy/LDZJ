@@ -25,8 +25,9 @@ namespace VoiceProtocol {
 	static const int STATUS_PLAYING = 1;	/* 播放中（设备在线） */
 	static const int STATUS_ERROR   = 2;	/* 播放出错（设备在线，如播放不存在的文件夹） */
 
-	/* ---- 心跳：把状态查询当心跳，间隔 1~2 秒（取 1.5s） ---- */
-	static const int HEARTBEAT_MS = 1500;
+	/* ---- 心跳：把状态查询当心跳，协议约定 1~2 秒（2026-10-25 HH 系列前取 1.5s 偏紧，
+	        设备播放语音期间应答延迟易致误报 → 取上限 2s 防通讯报警） ---- */
+	static const int HEARTBEAT_MS = 2000;
 	/* ---- 连续无应答判定通信异常的次数（实测约定 3 次） ---- */
 	static const int FAIL_LIMIT = 3;
 }
@@ -46,7 +47,7 @@ namespace VoiceProtocol {
  *             → 01 10 00 03 00 02 B1 C8 (短确认帧)
  *
  * 在线判定（协议约定）：
- *   - 状态查询作为心跳，每 1.5 秒发送一次；
+ *   - 状态查询作为心跳，每 2 秒发送一次（2026-10-25 防通讯报警：1.5s→2s，协议 1~2 秒取上限）；
  *   - 连续收到合法应答（写回声/状态响应）→ 设备在线，计数清零；
  *   - 连续 3 次没有应答 → 判定通信异常（Ready=false，继续心跳探活）；
  *   - 收到状态 0002 → 设备在线，但播放出错（DeviceStatus=2）。
@@ -89,7 +90,7 @@ private:
 	/* ---- 线程与主站 ---- */
 	QThread *m_Voice_Remote_Thread = nullptr;
 	c_ModeBusRTU_Master *m_Voice_Remote = nullptr;
-	QTimer *m_HeartbeatTimer = nullptr;			/* 心跳定时器（1.5s 状态查询） */
+	QTimer *m_HeartbeatTimer = nullptr;			/* 心跳定时器（2s 状态查询，2026-10-25 防通讯报警） */
 
 	/* ---- 运行状态 ---- */
 	int m_Volume = VoiceProtocol::VOLUME_MED;	/* 当前音量 0-28 */
