@@ -1,6 +1,6 @@
 ﻿# Robot_App 轮对质检机器人上位机软件操作手册
 
-> 版本：V1.2（2026-10-25）　适用软件：Robot_App（64 位）
+> 版本：V1.3（2026-10-25）　适用软件：Robot_App（64 位）
 > 运行平台：研华 MIC-770 工控机（Windows）
 
 ---
@@ -275,7 +275,25 @@ Robot_App.exe 同目录下有 Work_DB 文件夹，内含两个巡检数据文件
 
 ---
 
+
 ## 8. 常见故障排查
+
+> **日志定位方法**：所有模块日志统一写入 exe 同目录 Debug_DB\软件操作日志_yyyyMMdd.log，格式为 [时间][等级][模块][事件] key=value。排查故障时优先按等级过滤：
+> - 故障/报警：搜索 [ERROR]（如 [ERROR][ARM][CoilWrite] failed count=1/5）
+> - 异常但可恢复：搜索 [WARN]（超时/重试/配置缺失）
+> - 巡检过程追踪：搜索 [INFO][WORK][Flow]（start/finish/cancel 节点含任务ID与轮对号）
+> - 通讯追踪：[INFO][CHASSIS][Connect]、[VOICE][Heartbeat]、[HTTP][Request]（HTTP 帧为 DEBUG 级，需 Log_Level=DEBUG）
+> - 敏感字段（Token/密码/Base64）不会出现在日志中，属正常现象
+
+
+
+> **日志定位方法**：所有模块日志统一写入 exe 同目录 `Debug_DB\软件操作日志_yyyyMMdd.log`，格式为
+> `[时间][等级][模块][事件] key=value`。排查故障时优先按等级过滤：
+> - 故障/报警：搜索 `[ERROR]`（如 `[ERROR][ARM][CoilWrite] failed count=1/5`）
+> - 异常但可恢复：搜索 `[WARN]`（超时/重试/配置缺失）
+> - 巡检过程追踪：搜索 `[INFO][WORK][Flow]`（start/finish/cancel 节点含任务ID与轮对号）
+> - 通讯追踪：`[INFO][CHASSIS][Connect]`、`[VOICE][Heartbeat]`、`[HTTP][Request]`（DEBUG 级需 Log_Level=DEBUG）
+> - 敏感字段（Token/密码/Base64）不会出现在日志中，属正常现象
 
 | 现象 | 排查步骤 |
 |------|---------|
@@ -319,3 +337,151 @@ Robot_App.exe 同目录下有 Work_DB 文件夹，内含两个巡检数据文件
 | 12 | 底盘报错 | 黄 | PA009 底盘故障 |
 
 > 附加验证：灯色切换时另两路灯同步熄灭（三色互斥）；语音试播 PA001~PA025 全部正常。
+
+## 11. 附录：全部配置键速查（Communicate_DB.json）
+
+> 位置：Robot_App.exe 同目录 System_DB\Communicate_DB.json；修改后保存并重启软件生效；UTF-8 编码。
+
+### 相机/采集
+- Camera_IP = 192.168.6.35
+- Camera_Num_120 = T1
+- Camera_Num_121 = T2
+- Camera_Port = 8001
+- Collector_Ip = 192.168.3.34
+- Collector_Ip_2 = 192.168.110.34
+- Fast_Scan_Collector_Port = 6100
+- Fast_Scan_Local_Port = 6101
+- Hikvision_20_Ip = 192.168.110.20
+- Hikvision_20_Pass = bjtds2024
+- Hikvision_20_Port = 8000
+- Hikvision_20_Tran_Port = 524
+- Hikvision_20_User = admin
+- Hikvision_21_Ip = 192.168.110.21
+- Hikvision_21_Pass = bjtds2024
+- Hikvision_21_Port = 8000
+- Hikvision_21_Tran_Port = 523
+- Hikvision_21_User = admin
+- Hikvision_Collector_Port = 6400
+- Hikvision_Local_Port = 6200
+- Hypersen_30_Id = 0
+- Hypersen_30_Ip = 192.168.3.30
+- Hypersen_30_Port = 12345
+- Hypersen_30_Type = 4
+- Hypersen_31_Id = 1
+- Hypersen_31_Ip = 192.168.3.31
+- Hypersen_31_Port = 12345
+- Hypersen_31_Type = 4
+- Jaka_120_Ip = 192.168.3.120
+- Jaka_121_Ip = 192.168.3.121
+- Jaka_Monitor_Port = 10000
+- Jaka_Remote_Port = 10001
+- Left_Scan_Gain_Value = 25
+- Local_Ip = 192.168.3.35
+- Local_Ip_2 = 192.168.110.35
+- Local_Monitor_Port = 520
+- Local_Remote_Port = 521
+- max_point_1_30 = 0.4
+- max_point_1_31 = 0.4
+- max_point_2_30 = 0.8
+- max_point_2_31 = 0.8
+- max_point_3_30 = 5.5
+- max_point_3_31 = 5.5
+- max_point_4_30 = 1
+- max_point_4_31 = 1
+- Mcgs_Ip = 192.168.3.11
+- Mcgs_Port = 502
+- Meijidenki_20_Id = 0
+- Meijidenki_20_Ip = 192.168.3.20
+- Meijidenki_20_Port = 2112
+- Meijidenki_21_Id = 1
+- Meijidenki_21_Ip = 192.168.3.21
+- Meijidenki_21_Port = 2112
+- min_point_1_30 = -0.4
+- min_point_1_31 = -0.4
+- min_point_2_30 = -0.1
+- min_point_2_31 = -0.1
+- min_point_3_30 = 0.6
+- min_point_3_31 = 0.6
+- min_point_4_30 = 1
+- min_point_4_31 = 1
+- Pre_Scan_120_Monitor_Port = 8000
+- Pre_Scan_120_Tran_Port = 9000
+- Prec_Scan_120_Collector_Port = 8001
+- Prec_Scan_120_Jaka_Port = 7000
+- Prec_Scan_120_Local_Port = 8000
+- Prec_Scan_120_Tran_Port = 7001
+- Prec_Scan_121_Collector_Port = 8101
+- Prec_Scan_121_Jaka_Port = 7100
+- Prec_Scan_121_Local_Port = 8100
+- Prec_Scan_121_Tran_Port = 7101
+- RGV_Ip = 192.168.3.10
+- RGV_Port = 502
+- Right_Scan_Gain_Value = 20
+- Safe_Distance_30 = 0
+- Safe_Distance_31 = 0
+- Safe_Num_30 = 1500
+- Safe_Num_31 = 1500
+
+### WEB/EMIS
+- Ai_Server_Ip = 192.168.0.201
+- Ai_Server_Port = 6301
+- App_Server_Ip = 192.168.0.133
+- App_Server_Port = 522
+- EMIS_Url = http://192.168.0.107:80/robot/robot-service/emis/task/reportTime
+- Web_Server_Ip = 192.168.0.107
+
+### 机械臂 CGXi
+- CGXi_Ip = 192.168.6.6
+- CGXi_Port = 502
+- CGXi_SDK_Port = 2323
+
+### 远程 IO
+- IO_AO_Addr = 0
+- IO_AO_Rb_Addr = 8192
+- IO_AO_Size = 4
+- IO_Coils_Addr = 0
+- IO_Coils_Size = 16
+- IO_DiscreteInputs_Addr = 0
+- IO_DiscreteInputs_Size = 16
+- IO_DO_Addr = 12288
+- IO_DO_Mode = 1
+- IO_DO_Rb_Addr = 16384
+- IO_DO_Size = 16
+- IO_Fault_Addr = 24576
+- IO_Fault_Size = 64
+- IO_HoldingRegisters_Addr = 0
+- IO_HoldingRegisters_Size = 4
+- IO_InputRegisters_Addr = 0
+- IO_InputRegisters_Size = 0
+- IO_IP = 192.168.6.10
+- IO_Port = 502
+
+### 底盘 Magic
+- Magic_IP = 192.168.6.102
+- Magic_Pass = admin123
+- Magic_Port = 8888
+- Magic_User = admin
+
+### 日志/其它
+- HoldingRegisters = 
+- Light_Auto = True
+- Log_Level = DEBUG
+- Read_DiscreteInputs_Size = 500
+- Read_InputRegisters_Size = 620
+- Work_State = False
+- Write_Coils_Size = 500
+- Write_HoldingRegisters_Size = 620
+
+### 数据库
+- MySql_Database = robot
+- MySql_Password = bjtds2023
+- MySql_Port = 3306
+- MySql_User = root
+
+### 语音
+- Voice_Addr = 1
+- Voice_Baud = 9600
+- Voice_Com = COM1
+- Voice_Enable = True
+- Voice_Parity = 0
+- Voice_Volume = 5
