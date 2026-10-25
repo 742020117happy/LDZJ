@@ -140,6 +140,9 @@ QNetworkReply *c_HTTP_Client::Send_Request(const QString &api, const QString &ht
 		reply = m_Manager->deleteResource(request);
 	}
 
+	// 2026-10-25 L：请求开始（只打印方法与 API 路径；请求体可能含 password/图像 Base64，一律不打印——规范 §六）
+	c_Log::Debug("HTTP", "Request", QString("send method=%1 api=%2").arg(httpMethod).arg(api));
+
 	if (reply) {
 		reply->setProperty("api", api);
 		reply->setProperty("respType", static_cast<int>(respType));  // 2026-10-24 T58：C 风格转换改 static_cast
@@ -210,16 +213,20 @@ void c_HTTP_Client::Read_Ready(QNetworkReply *reply) {
 			reply->deleteLater();
 			return;
 		}
-		QString errMsg = reply->errorString();
-		if (reply->error() == QNetworkReply::OperationCanceledError)
-			errMsg = "请求超时或已取消 (5s)";
-		emit Response_Error(api, errMsg);
-		reply->deleteLater();
-		return;
+	QString errMsg = reply->errorString();
+	if (reply->error() == QNetworkReply::OperationCanceledError)
+		errMsg = "超时或被取消 (5s)";
+	// 2026-10-25 L：请求失败/超时（只打印 API 与错误信息，不打印请求内容）
+	c_Log::Error("HTTP", "Response", QString("failed api=%1 err=%2").arg(api).arg(errMsg));
+	emit Response_Error(api, errMsg);
+	reply->deleteLater();
+	return;
 	}
 
 	QByteArray buffer = reply->readAll();
 	reply->deleteLater();
+	// 2026-10-25 L：响应成功（只打印 API/大小；Base64 图像等内容不打印——规范 §六/§七 DEBUG 分级）
+	c_Log::Debug("HTTP", "Response", QString("success api=%1 size=%2").arg(api).arg(buffer.size()));
 	if (buffer.isEmpty()) return;
 
 	// 二进制响应：直接返回原始数据（图片/文件下载场景）
