@@ -155,16 +155,22 @@ void c_Magic_Remote::Connect_Device(QString ip, quint16 port) {
 	m_ReconnectAttempt = 0;
 	m_ConsecutiveErrors = 0;
 	Stop_Reconnect();
+	// 2026-10-25 L：连接请求键值对（只记录）
+	c_Log::Info("CHASSIS", "Connect", QString("request ip=%1 port=%2").arg(ip).arg(port));
 	emit Signal_Connect(ip, port, "yhs-robot");
 	emit Status("Magic遥控：正在连接 " + ip + ":" + QString::number(port));
 }
 void c_Magic_Remote::Connect_Done(QString url) {
 	c_Variable::getInstance().g_Magic.is_connected = true;
+	// 2026-10-25 L：HTTP 连接成功（url 为服务标识，无敏感内容）
+	c_Log::Info("CHASSIS", "Connect", QString("success url=%1").arg(url));
 	emit Status("Magic遥控：成功创建 " + url);
 }
 void c_Magic_Remote::Set_Token_Done(QString token)
 {
-	emit Status(QString("Magic遥控：登录成功，Token={%1}").arg(token));
+	// 2026-10-25 L：登录成功——Token 脱敏打印（规范 §六：token=abc123****；原完整打印为敏感泄露风险）
+	emit Status(QString("Magic遥控：登录成功，Token={%1}").arg(c_Log::Mask(token)));
+	c_Log::Info("CHASSIS", "Login", QString("result=success token=%1").arg(c_Log::Mask(token)));
 	m_ConsecutiveErrors = 0;
 	m_ReconnectAttempt = 0;
 	Stop_Reconnect();
@@ -173,6 +179,8 @@ void c_Magic_Remote::Set_Token_Done(QString token)
 }
 void c_Magic_Remote::Disconnect_Device() {
 	c_Variable::getInstance().g_Magic.is_connected = false;
+	// 2026-10-25 L：断开（只记录，不改变清理流程）
+	c_Log::Warn("CHASSIS", "Disconnect", "state=disconnected");
 	{	// 2026-10-24 T84：token 跨线程读取（GUI），写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Magic.token = "";
@@ -221,6 +229,8 @@ void c_Magic_Remote::Login(QString user_code, QString password) {
 	m_LastPass = password;
 	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
 	if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：重登等待期停相机轮询
+	// 2026-10-25 L：登录请求（只打印用户名，密码仅字段名不打印值——规范 §六）
+	c_Log::Info("CHASSIS", "Login", QString("request user=%1 password=******").arg(user_code));
 	QJsonObject body;
 	body.insert("userCode", user_code);
 	body.insert("password", password);
@@ -274,7 +284,9 @@ void c_Magic_Remote::Get_Single_Map_Info(QString map_name) {
 }
 /** @brief 4.2.11 切换地图 | POST /cmd/use_map | Query: map_name */
 void c_Magic_Remote::Use_Map(QString map_name) {
-	// 4.2.11 切换地图：注意是 POST，且 map_name 在 Query 中
+	// 4.2.11 切换地图（注意：POST，map_name 在 Query 中）
+	// 2026-10-25 L：地图切换请求（只记录，地图名允许打印）
+	c_Log::Info("CHASSIS", "Map", QString("switch request name=%1").arg(map_name));
 	QString url = QString("/cmd/use_map?map_name=%1").arg(map_name);
 	emit Signal_Send_POST(url, QJsonObject(), QJsonObject());
 }
@@ -570,6 +582,8 @@ void c_Magic_Remote::Rename_Task_Queue(QString map_name, QString old_name, QStri
 /** @brief 4.5.1 自主回充 | POST /cmd/recharge | Body: map_name, point_name */
 void c_Magic_Remote::Start_Recharge(QString map_name, QString point_name) {
 	// 4.5.1 自主回充
+	// 2026-10-25 L：回充请求（只记录，地图/充电点名允许打印）
+	c_Log::Info("CHASSIS", "Charge", QString("start map=%1 point=%2").arg(map_name).arg(point_name));
 	QJsonObject b; b.insert("map_name", map_name); b.insert("point_name", point_name);
 	emit Signal_Send_POST("/cmd/recharge", b, QJsonObject());
 }
@@ -983,12 +997,14 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QUrl url(api);
 		QUrlQuery query(url.query());
 		if (query.hasQueryItem("map_name")) {
-			// POST 切换地图响应
-			QString map_name = query.queryItemValue("map_name");
-			if (!map_name.isEmpty()) {
-				c_Variable::getInstance().g_Magic.ReadData.currentMap = map_name;
-				emit Status(QString("Magic遥控：当前地图已切换为 %1").arg(map_name));
-			}
+		// POST 切换地图响应
+		QString map_name = query.queryItemValue("map_name");
+		if (!map_name.isEmpty()) {
+			c_Variable::getInstance().g_Magic.ReadData.currentMap = map_name;
+			// 2026-10-25 L：地图切换成功（只记录，地图名允许打印）
+			c_Log::Info("CHASSIS", "Map", QString("switch success name=%1").arg(map_name));
+			emit Status(QString("Magic遥控：当前地图已切换为 %1").arg(map_name));
+		}
 			else {
 				emit Status("Magic遥控：切换地图响应中未获取到地图名");
 				return;
@@ -1474,17 +1490,20 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 
 	// --- 4.2.18 初始化结果 ---
 	if (path == "/real_time_data/init_pose_result") {
-		bool initOk = (dataVal.isBool() && dataVal.toBool()) || (dataVal.toString() == "true");
-		emit Status(QString("Magic遥控：初始化结果 -> %1").arg(initOk ? "成功" : "失败"));
-		if (initOk) {
-			// 2026-10-24 新增：通知 Work_Remote 动态初始化完成（修复 wait_DynamicInit 无退出源挂死）
-			emit DynamicInit_Done();
-			// 初始化成功后再次检查定位状态
-			QTimer::singleShot(2000, this, [this]() { Get_Robot_Local_Status(); });
-		}
-		else {
-			// 2026-10-25 NN2：初始化结果失败 → 通知工作流退出等待（原失败无信号致永久阻塞）
-			emit DynamicInit_Failed();
+	bool initOk = (dataVal.isBool() && dataVal.toBool()) || (dataVal.toString() == "true");
+	emit Status(QString("Magic遥控：初始化结果 -> %1").arg(initOk ? "成功" : "失败"));
+	if (initOk) {
+		// 2026-10-24 新增：通知 Work_Remote 动态初始化完成（修复 wait_DynamicInit 无退出源挂死）
+		// 2026-10-25 L：动态初始化结果（只记录，不改变通知链路）
+		c_Log::Info("CHASSIS", "DynamicInit", "result=success");
+		emit DynamicInit_Done();
+		// 初始化成功后再次检查定位状态
+		QTimer::singleShot(2000, this, [this]() { Get_Robot_Local_Status(); });
+	}
+	else {
+		// 2026-10-25 NN2：初始化结果失败 → 通知工作流退出等待（原失败无信号致永久阻塞）
+		c_Log::Error("CHASSIS", "DynamicInit", "result=failed");
+		emit DynamicInit_Failed();
 		}
 		return;
 	}
@@ -1550,10 +1569,14 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		c_Variable::getInstance().g_Magic.ReadData.chargeStatus = status;
 		c_Variable::getInstance().g_Magic.ReadData.charging = (status == 4);
 		if (status == 4) {
+			// 2026-10-25 L：回充成功（只记录，不改变信号链路）
+			c_Log::Info("CHASSIS", "Charge", "status=success");
 			emit StartRecharge_Done();
 		}
 		// 2026-10-24 T44：回充失败提前通知（原仅靠 600s 超时兜底；官方状态机 1请先下发/2去桩/3失败/4成功）
 		if (status == 3) {
+			// 2026-10-25 L：回充失败（只记录）
+			c_Log::Error("CHASSIS", "Charge", "status=failed");
 			emit StartRecharge_Failed();
 		}
 		emit update_RobotStatus();
