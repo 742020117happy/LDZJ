@@ -37,7 +37,7 @@
 
 **P1（加固）**：
 - ~~D-007：HTTP 断开取消竞态~~ ✅ 已修复（代数丢弃）
-- D-008：m_ConsecutiveErrors 清零策略明确化
+- ~~D-008：m_ConsecutiveErrors 清零策略明确化~~ ✅ 已修复（成功即清零）
 - D-010：Debug/Release SDK 一致性
 - D-017：宏定义风险复查
 
@@ -58,3 +58,4 @@
 | 第 2 轮 | D-005b 全项目 15 处 CWD 依赖清零（Widget/Voice/Variable） | ✅ 修复，编译 0 错误 |
 | 第 3 轮 | D-006 10 个 wait_* 悬空 lambda → exit-code 模式 | ✅ 修复，编译 0 错误 |
 | 第 4 轮 | D-007 HTTP 断开取消竞态 → 连接代数 generation 丢弃旧代回调 | ✅ 修复，编译 0 错误 |
+| 第 5 轮 | D-008 连续错误计数成功响应清零（防假重连） | ✅ 修复，编译 0 错误 |

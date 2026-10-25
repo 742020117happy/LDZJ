@@ -914,6 +914,10 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		return;
 	}
 
+	// 2026-10-25 D-008：连续错误计数清零策略明确化——成功响应即清零（"连续"语义），
+	// 原仅在连接/登录时清零，长期运行中偶发网络抖动会永久累积计数 → 凑满 3 次触发假自动重连
+	m_ConsecutiveErrors = 0;
+
 	// ================= 3. 按API路径分类解析 =================
 
 	// --- 4.1 登录认证 ---
