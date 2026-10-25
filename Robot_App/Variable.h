@@ -414,10 +414,9 @@ struct Magic_ReadData {
 	QVector<QPointF> localGridPlanPath;  // 全局规划路径（栅格坐标）
 };
 // ==================== 全局 Magic 数据库 ====================
-// 注意：g_Magic 由HTTP线程写入(On_Response_Done)，主线程只读(Magic_Scan/Lidar_View)。
-// 当前设计无锁：读到的数据可能是上一帧或当前帧的不完整快照，但用于UI刷新可接受。
-// QVector/QString 等非平凡类型的并发读写理论上有UB风险，实践中x64下运行稳定。
-// 如需严格线程安全，改用 QReadWriteLock 保护 ReplaceData 或采用双缓冲方案。
+// 注意：g_Magic 由HTTP线程写入(On_Response_Done 整函数持 QWriteLocker)，主线程只读。
+// 2026-10-25 QQ2：读侧已全量持 QReadLocker 快照（Widget 3 lambda/状态机合并快照/按钮 T98/
+// 视图 T52/Server Build_System_Status 合并快照/Work MM1）——原"无锁设计"注释作废。
 struct s_Magic_DB {
 	bool is_connected = false;
 	QString token = "";

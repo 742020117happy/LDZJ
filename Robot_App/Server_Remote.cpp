@@ -239,48 +239,50 @@ QJsonObject c_Server_Remote::Build_System_Status()
 	}
 	root.insert("task", task);
 
-	// 3. AMR 底盘（2026-10-24 CC：直接访问）
+	// 3. AMR 底盘 + 4. 机械臂 + 5. 相机（2026-10-25 QQ2：合并单次读锁快照，原三节无锁直读为技术债）
 	QJsonObject chassis;
-	chassis.insert("connected", c_Variable::getInstance().g_Magic.is_connected);
-	chassis.insert("localized", c_Variable::getInstance().g_Magic.ReadData.localized);
-	chassis.insert("battery", c_Variable::getInstance().g_Magic.ReadData.battery);
-	chassis.insert("chargeStatus", c_Variable::getInstance().g_Magic.ReadData.chargeStatus);
-	chassis.insert("emergencyStop", c_Variable::getInstance().g_Magic.ReadData.emergencyStop);
-	chassis.insert("workingMode", c_Variable::getInstance().g_Magic.ReadData.workingMode);
-	chassis.insert("errorCode", c_Variable::getInstance().g_Magic.ReadData.errorCode);
-	QJsonObject pos;
-	pos.insert("x", c_Variable::getInstance().g_Magic.ReadData.worldX);
-	pos.insert("y", c_Variable::getInstance().g_Magic.ReadData.worldY);
-	pos.insert("angle", c_Variable::getInstance().g_Magic.ReadData.angle);
-	chassis.insert("position", pos);
-	root.insert("chassis", chassis);
-
-	// 4. 机械臂（2026-10-24 CC：直接访问）
 	QJsonObject arm;
-	arm.insert("connected", c_Variable::getInstance().g_CGXi.Connected);
-	arm.insert("mode", c_Variable::getInstance().g_CGXi.data.robot_mode);
-	arm.insert("programStatus", c_Variable::getInstance().g_CGXi.data.program_status);
-	arm.insert("moving", (c_Variable::getInstance().g_CGXi.data.robot_moving != 0));
-	arm.insert("errorCode", c_Variable::getInstance().g_CGXi.data.last_error_code);
-	arm.insert("currentProgramIndex", c_Variable::getInstance().g_CGXi.data.current_program_index);
-	arm.insert("speedRatio", c_Variable::getInstance().g_CGXi.data.speed_ratio);
-	arm.insert("powered", (c_Variable::getInstance().g_CGXi.data.robot_power_on_indicator != 0));
-	QJsonObject tcp;
-	tcp.insert("x", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[0]);
-	tcp.insert("y", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[1]);
-	tcp.insert("z", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[2]);
-	tcp.insert("rx", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[3]);
-	tcp.insert("ry", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[4]);
-	tcp.insert("rz", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[5]);
-	arm.insert("tcpPose", tcp);
-	root.insert("arm", arm);
-
-	// 5. 相机（2026-10-24 CC：直接访问）
 	QJsonObject camera;
-	camera.insert("remoteConnected", c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected);
-	camera.insert("monitorConnected", c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected);
-	camera.insert("tranConnected", c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
-	camera.insert("tranListen", c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen);
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+
+		chassis.insert("connected", c_Variable::getInstance().g_Magic.is_connected);
+		chassis.insert("localized", c_Variable::getInstance().g_Magic.ReadData.localized);
+		chassis.insert("battery", c_Variable::getInstance().g_Magic.ReadData.battery);
+		chassis.insert("chargeStatus", c_Variable::getInstance().g_Magic.ReadData.chargeStatus);
+		chassis.insert("emergencyStop", c_Variable::getInstance().g_Magic.ReadData.emergencyStop);
+		chassis.insert("workingMode", c_Variable::getInstance().g_Magic.ReadData.workingMode);
+		chassis.insert("errorCode", c_Variable::getInstance().g_Magic.ReadData.errorCode);
+		QJsonObject pos;
+		pos.insert("x", c_Variable::getInstance().g_Magic.ReadData.worldX);
+		pos.insert("y", c_Variable::getInstance().g_Magic.ReadData.worldY);
+		pos.insert("angle", c_Variable::getInstance().g_Magic.ReadData.angle);
+		chassis.insert("position", pos);
+
+		arm.insert("connected", c_Variable::getInstance().g_CGXi.Connected);
+		arm.insert("mode", c_Variable::getInstance().g_CGXi.data.robot_mode);
+		arm.insert("programStatus", c_Variable::getInstance().g_CGXi.data.program_status);
+		arm.insert("moving", (c_Variable::getInstance().g_CGXi.data.robot_moving != 0));
+		arm.insert("errorCode", c_Variable::getInstance().g_CGXi.data.last_error_code);
+		arm.insert("currentProgramIndex", c_Variable::getInstance().g_CGXi.data.current_program_index);
+		arm.insert("speedRatio", c_Variable::getInstance().g_CGXi.data.speed_ratio);
+		arm.insert("powered", (c_Variable::getInstance().g_CGXi.data.robot_power_on_indicator != 0));
+		QJsonObject tcp;
+		tcp.insert("x", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[0]);
+		tcp.insert("y", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[1]);
+		tcp.insert("z", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[2]);
+		tcp.insert("rx", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[3]);
+		tcp.insert("ry", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[4]);
+		tcp.insert("rz", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[5]);
+		arm.insert("tcpPose", tcp);
+
+		camera.insert("remoteConnected", c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected);
+		camera.insert("monitorConnected", c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected);
+		camera.insert("tranConnected", c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
+		camera.insert("tranListen", c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen);
+	}
+	root.insert("chassis", chassis);
+	root.insert("arm", arm);
 	root.insert("camera", camera);
 
 	// 6. WEB 服务自身（2026-10-24 CC：直接访问）

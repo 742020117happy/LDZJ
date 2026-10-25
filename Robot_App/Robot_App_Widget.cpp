@@ -276,7 +276,12 @@ void c_Robot_App_Widget::Magic_Init()
 
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::Status, this, &c_Robot_App_Widget::Write_Magic_List);
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_MapList, this, [this]() {
-		const Magic_ReadData r = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照
+		// 2026-10-25 QQ2：g_Magic.ReadData 跨线程读（HTTP 线程写），值拷贝快照加读锁（原无锁读技术债）
+		Magic_ReadData r;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			r = c_Variable::getInstance().g_Magic.ReadData;
+		}
 		ui->comboBox_MapList->blockSignals(true);
 		QString current = ui->comboBox_MapList->currentText();
 		ui->comboBox_MapList->clear();
@@ -288,7 +293,12 @@ void c_Robot_App_Widget::Magic_Init()
 	});
 
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_NavPointList, this, [this]() {
-		const Magic_ReadData r = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照
+		// 2026-10-25 QQ2：读锁快照（原无锁读技术债）
+		Magic_ReadData r;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			r = c_Variable::getInstance().g_Magic.ReadData;
+		}
 		ui->table_NavPoints->setRowCount(r.navPoints.size());
 		for (int i = 0; i < r.navPoints.size(); ++i) {
 			QJsonObject obj = r.navPoints[i];
@@ -404,7 +414,12 @@ void c_Robot_App_Widget::Magic_DB()
 		this, [this](int idx) {
 		// 2026-10-24 CC：直接访问（原 write 别名已消除）
 		c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex = idx;
-		const Magic_ReadData r = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照
+		// 2026-10-25 QQ2：读锁快照（原无锁读技术债）
+		Magic_ReadData r;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			r = c_Variable::getInstance().g_Magic.ReadData;
+		}
 		ui->combo_TaskName->blockSignals(true);
 		QString curTask = ui->combo_TaskName->currentText();
 		ui->combo_TaskName->clear();
@@ -2164,10 +2179,13 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	}
 	if (!lightAuto) return;
 
-	// 读侧快照（T13 模式：标量加锁读）
-	// 2026-10-24 CC：全局变量直接访问（原 magic 别名已消除）
+	// 读侧快照（2026-10-25 QQ2：合并为单次读锁快照——原 cameraFail/anyDisconn/taskError/chargeFail/paused 等散落无锁读为技术债）
+	// 2026-10-24 CC：全局变量直接访问（原 magic/work/scan 别名已消除）
 	s_CGXi_DB cgxi;
 	bool emergency, localizedLost, batteryLow, chassisWarn;
+	bool cameraFail, anyDisconn, chargeFail, obstacle;
+	bool ioConnected;
+	int workState;
 	bool magicConn = c_Variable::getInstance().g_Magic.is_connected;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
@@ -2176,24 +2194,19 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 		localizedLost = magicConn && !c_Variable::getInstance().g_Magic.ReadData.localized;
 		batteryLow    = magicConn && c_Variable::getInstance().g_Magic.ReadData.battery > 0 && c_Variable::getInstance().g_Magic.ReadData.battery < 20;
 		chassisWarn   = magicConn && c_Variable::getInstance().g_Magic.ReadData.errorCode != 0;
+		chargeFail    = (c_Variable::getInstance().g_Magic.ReadData.chargeStatus == 3);
+		obstacle      = (c_Variable::getInstance().g_Magic.ReadData.antiCollision != 0);
+		workState     = c_Variable::getInstance().g_Work_DB.workState;
+		ioConnected   = c_Variable::getInstance().g_IO.Connected;
+		cameraFail    = !(c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected && c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
 	}
-	// 2026-10-24 CC：全局变量直接访问（原 work 别名已消除）
-	// 2026-10-24 CC：全局变量直接访问（原 scan 别名已消除）
 
 	// 原因标志（2026-10-24 T48 扩展：相机故障/充电故障/障碍物，依据语音内容 xlsx）
-	bool cameraFail    = !(c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected && c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
-	bool anyDisconn    = !magicConn || !cgxi.Connected
-		|| !c_Variable::getInstance().g_IO.Connected;
+	anyDisconn    = !magicConn || !cgxi.Connected || !ioConnected;
 	bool robotError    = (cgxi.data.last_error_code != 0);
-	bool taskError     = (c_Variable::getInstance().g_Work_DB.workState == 5);
-	bool chargeFail    = (c_Variable::getInstance().g_Magic.ReadData.chargeStatus == 3);
-	bool obstacle      = false;
-	{
-		QReadLocker locker(&c_Variable::g_lock);
-		obstacle = (c_Variable::getInstance().g_Magic.ReadData.antiCollision != 0);
-	}
-	bool paused        = (c_Variable::getInstance().g_Work_DB.workState == 3);
-	bool inspecting    = (c_Variable::getInstance().g_Work_DB.workState == 2);	// 2026-10-25 EE1：巡检中（PA001）
+	bool taskError     = (workState == 5);
+	bool paused        = (workState == 3);
+	bool inspecting    = (workState == 2);	// 2026-10-25 EE1：巡检中（PA001）
 	bool armMoving     = (cgxi.data.robot_moving != 0);						// 2026-10-25 EE1：机械臂运行中（PA006）
 
 	int level;
