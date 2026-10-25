@@ -330,7 +330,15 @@ void c_Voice_Remote::Read_HoldingRegisters_Done(s_ModBus_DB data) {
 		emit Status("语音播报器：状态-播放中（设备在线）");
 		break;
 	case VoiceProtocol::STATUS_ERROR:
-		emit Status("语音播报器：状态-播放出错（设备在线，可能播放了不存在的文件夹）");
+		// 2026-10-25 LL1：指名缺失文件夹并给出部署指引（设备自报 0002=播放了不存在的文件夹）
+		if (c_Variable::getInstance().g_Voice.PlayIndex > 0) {
+			emit Status(QString("语音播报器：状态-播放出错（设备在线）——PA%1 文件夹可能不存在，"
+				"请用 MicroUSB 连接电脑，将 语音报警 目录下 PA001~PA025 文件夹整体拷入播报器内置储存根目录")
+				.arg(c_Variable::getInstance().g_Voice.PlayIndex, 3, 10, QChar('0')));
+		}
+		else {
+			emit Status("语音播报器：状态-播放出错（设备在线，可能播放了不存在的文件夹）");
+		}
 		break;
 	default:
 		emit Status("语音播报器：状态-未知(" + QString::number(status) + ")");
