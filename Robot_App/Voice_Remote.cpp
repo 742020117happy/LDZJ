@@ -106,11 +106,11 @@ void c_Voice_Remote::Connect() {
 
 	if (portName.isEmpty()) { portName = "COM1"; }
 
-	auto &voice = c_Variable::getInstance().g_Voice;
-	voice.ComPort = portName;
-	voice.BaudRate = baudRate;
-	voice.ServerAddress = serverAddress;
-	voice.Volume = m_Volume;
+	// 2026-10-24 CC：全局变量直接访问（禁止局部引用别名）
+	c_Variable::getInstance().g_Voice.ComPort = portName;
+	c_Variable::getInstance().g_Voice.BaudRate = baudRate;
+	c_Variable::getInstance().g_Voice.ServerAddress = serverAddress;
+	c_Variable::getInstance().g_Voice.Volume = m_Volume;
 
 	emit Status("语音播报器：" + portName + " 波特率=" + QString::number(baudRate)
 		+ " 校验= 无 从站地址=" + QString::number(serverAddress));
@@ -152,10 +152,9 @@ void c_Voice_Remote::Disconnect_Done() {
 *************************************************************************************************************************************************/
 void c_Voice_Remote::On_No_Reply() {
 	emit Signal_Frame_Log_Enable(true);	/* 2026-10-24 T74：心跳无应答处理完毕，恢复帧日志 */
-	auto &voice = c_Variable::getInstance().g_Voice;
 	m_FailCount = qMin(m_FailCount + 1, VoiceProtocol::FAIL_LIMIT);
-	if (m_FailCount == VoiceProtocol::FAIL_LIMIT && voice.Ready) {
-		voice.Ready = false;
+	if (m_FailCount == VoiceProtocol::FAIL_LIMIT && c_Variable::getInstance().g_Voice.Ready) {
+		c_Variable::getInstance().g_Voice.Ready = false;
 		emit Status(QString("语音播报器：连续%1次无应答，判定通信异常").arg(VoiceProtocol::FAIL_LIMIT));
 	}
 }
@@ -303,9 +302,9 @@ void c_Voice_Remote::Persist_Volume() {
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Write_HoldingRegisters_Done() {
 	m_FailCount = 0;
-	auto &voice = c_Variable::getInstance().g_Voice;
-	if (!voice.Ready) {
-		voice.Ready = true;
+	// 2026-10-24 CC：全局变量直接访问（禁止局部引用别名）
+	if (!c_Variable::getInstance().g_Voice.Ready) {
+		c_Variable::getInstance().g_Voice.Ready = true;
 		emit Status("语音播报器：通信恢复（设备在线）");
 	}
 }
@@ -316,12 +315,12 @@ void c_Voice_Remote::Write_HoldingRegisters_Done() {
 void c_Voice_Remote::Read_HoldingRegisters_Done(s_ModBus_DB data) {
 	emit Signal_Frame_Log_Enable(true);	/* 2026-10-24 T74：心跳响应处理完毕，恢复帧日志 */
 	m_FailCount = 0;
-	auto &voice = c_Variable::getInstance().g_Voice;
+	// 2026-10-24 CC：全局变量直接访问（禁止局部引用别名）
 	int status = data.read_HoldingRegisters[VoiceProtocol::REG_STATUS];
 
-	voice.Ready = true;	/* 收到合法应答 → 设备在线 */
-	if (status == voice.DeviceStatus) return;	/* 状态未变化不输出 */
-	voice.DeviceStatus = status;
+	c_Variable::getInstance().g_Voice.Ready = true;	/* 收到合法应答 → 设备在线 */
+	if (status == c_Variable::getInstance().g_Voice.DeviceStatus) return;	/* 状态未变化不输出 */
+	c_Variable::getInstance().g_Voice.DeviceStatus = status;
 
 	switch (status) {
 	case VoiceProtocol::STATUS_IDLE:

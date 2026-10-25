@@ -117,10 +117,9 @@ void c_Lczh_Remote::Scan_Tran_Connect(QString ip, quint16 port)
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Start_Scan()
 {
-	auto &work = c_Variable::getInstance().g_Work_DB;
 	{	// 2026-10-24 T86：workState 跨线程读（Server/GUI），写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
-		work.workState = 2;
+		c_Variable::getInstance().g_Work_DB.workState = 2;	// 2026-10-24 CC：直接访问
 	}
 	m_LastGain = -1;
 	// 2026-10-24 T97：g_Work_DB 字段跨线程写，读侧持读锁快照后拼命令
@@ -128,12 +127,12 @@ void c_Lczh_Remote::Start_Scan()
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		cmd = QString("START&%1&%2&%3&%4%5&%6")
-			.arg(work.sendUnit)
-			.arg(work.startTime.left(8))
-			.arg(work.startTime.right(4))
-			.arg(work.wheelsetNo)
-			.arg(work.axleNo)
-			.arg(work.taskId);
+			.arg(c_Variable::getInstance().g_Work_DB.sendUnit)
+			.arg(c_Variable::getInstance().g_Work_DB.startTime.left(8))
+			.arg(c_Variable::getInstance().g_Work_DB.startTime.right(4))
+			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
+			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
+			.arg(c_Variable::getInstance().g_Work_DB.taskId);
 	}
 	emit Signal_Remote_Write(m_CameraIP, m_CameraPort, cmd);
 }
@@ -143,13 +142,15 @@ void c_Lczh_Remote::Start_Scan()
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Collector()
 {
-	auto &work = c_Variable::getInstance().g_Work_DB;
 	m_LastPhotoName = Build_Photo_Filename();
 	// 2026-10-24 T97：wheelsetNo/axleNo 读侧快照
 	QString cmd;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		cmd = QString("PHOTO&%1%2&%3").arg(work.wheelsetNo, work.axleNo, m_LastPhotoName);
+		cmd = QString("PHOTO&%1%2&%3")
+			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
+			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
+			.arg(m_LastPhotoName);
 	}
 	emit Signal_Remote_Write(m_CameraIP, m_CameraPort, cmd);
 	emit Photo_Written(m_LastPhotoName);
@@ -265,7 +266,7 @@ QString c_Lczh_Remote::Build_Photo_Filename()
 	QString name;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		auto &work = c_Variable::getInstance().g_Work_DB;
+		const auto &work = c_Variable::getInstance().g_Work_DB;	// 2026-10-24 CC：锁内常量别名（仅为可读性，作用域即锁）
 		name = QString("N-T1-%1-%2-%3-%4-%5-%6-%7-%8-%9")
 			.arg(work.startTime)
 			.arg(work.repairLevel)
@@ -316,24 +317,35 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 	QString msg = QString::fromUtf8(buffer).trimmed();
 	if (msg.isEmpty()) { emit Status(m_Camera_num + "CGXi消息：UTF-8解码失败"); return; }
 
-	auto &work = c_Variable::getInstance().g_Work_DB;
-
 	if (msg == "START&!") {
-		work.workState = 2;
+		{	// 2026-10-24 CC/T86：workState 写侧持锁（原无锁别名写为数据竞争）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.workState = 2;
+		}
 		m_LastGain = -1;
+		// 2026-10-24 CC：读侧持锁字段快照（禁止别名引用）
+		QString sendUnit, startTime, wheelsetNo, axleNo, taskId;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			sendUnit   = c_Variable::getInstance().g_Work_DB.sendUnit;
+			startTime  = c_Variable::getInstance().g_Work_DB.startTime;
+			wheelsetNo = c_Variable::getInstance().g_Work_DB.wheelsetNo;
+			axleNo     = c_Variable::getInstance().g_Work_DB.axleNo;
+			taskId     = c_Variable::getInstance().g_Work_DB.taskId;
+		}
 
-		if (work.sendUnit.isEmpty() || work.startTime.isEmpty() || work.wheelsetNo.isEmpty() || work.axleNo.isEmpty() || work.taskId.isEmpty()) {
+		if (sendUnit.isEmpty() || startTime.isEmpty() || wheelsetNo.isEmpty() || axleNo.isEmpty() || taskId.isEmpty()) {
 			emit Status(m_Camera_num + "CGXi消息：START指令缺少WEB任务参数");
 			return;
 		}
 
 		QString cmd = QString("START&%1&%2&%3&%4%5&%6")
-			.arg(work.sendUnit)
-			.arg(work.startTime.left(8))
-			.arg(work.startTime.right(4))
-			.arg(work.wheelsetNo)
-			.arg(work.axleNo)
-			.arg(work.taskId);
+			.arg(sendUnit)
+			.arg(startTime.left(8))
+			.arg(startTime.right(4))
+			.arg(wheelsetNo)
+			.arg(axleNo)
+			.arg(taskId);
 		emit Signal_Remote_Write(m_CameraIP, m_CameraPort, cmd);
 	}
 	else if (msg.startsWith("CHANG&GAIN&")) {
@@ -351,7 +363,10 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		bool gainOk = false;
 		int gain = parts[2].toInt(&gainOk);
 		if (!gainOk || gain < 0 || gain > 100) { emit Status(m_Camera_num + "CGXi消息：增益值无效"); return; }
-		work.currentGain = gain;
+		{	// 2026-10-24 CC/T86：currentGain 写侧持锁
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.currentGain = gain;
+		}
 
 		// 校验：PHOTO参数段 (prog-part1-part2-point)
 		QStringList photo = parts[4].split('-');
@@ -366,34 +381,53 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			return;
 		}
 
-		work.currentProg = prog;
-		work.currentPart1 = photo[1];
-		work.currentPart2 = photo[2];
-		work.currentPointStr = photo[3];
+		{	// 2026-10-24 CC/T86：采集参数写侧持锁
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.currentProg = prog;
+			c_Variable::getInstance().g_Work_DB.currentPart1 = photo[1];
+			c_Variable::getInstance().g_Work_DB.currentPart2 = photo[2];
+			c_Variable::getInstance().g_Work_DB.currentPointStr = photo[3];
+		}
 
-		if (work.currentGain != m_LastGain) {
-			m_LastGain = work.currentGain;
-			emit Signal_Remote_Write(m_CameraIP, m_CameraPort, 
-				QString("CHANGE&GAIN&%1").arg(work.currentGain));
+		// 2026-10-24 CC：读侧持锁字段快照
+		int curGain;
+		QString wheelsetNo, axleNo, startTime, repairLevel, sendUnit;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			curGain    = c_Variable::getInstance().g_Work_DB.currentGain;
+			wheelsetNo = c_Variable::getInstance().g_Work_DB.wheelsetNo;
+			axleNo     = c_Variable::getInstance().g_Work_DB.axleNo;
+			startTime  = c_Variable::getInstance().g_Work_DB.startTime;
+			repairLevel = c_Variable::getInstance().g_Work_DB.repairLevel;
+			sendUnit   = c_Variable::getInstance().g_Work_DB.sendUnit;
+		}
+
+		if (curGain != m_LastGain) {
+			m_LastGain = curGain;
+			emit Signal_Remote_Write(m_CameraIP, m_CameraPort,
+				QString("CHANGE&GAIN&%1").arg(curGain));
 		}
 
 		// 校验：文件名参数完整性
-		if (work.startTime.isEmpty() || work.repairLevel.isEmpty() || work.sendUnit.isEmpty() ||
-			work.wheelsetNo.isEmpty() || work.axleNo.isEmpty()) {
+		if (startTime.isEmpty() || repairLevel.isEmpty() || sendUnit.isEmpty() ||
+			wheelsetNo.isEmpty() || axleNo.isEmpty()) {
 			emit Status(m_Camera_num + "CGXi消息：PHOTO指令缺少WEB任务参数");
 			return;
 		}
 
 		m_LastPhotoName = Build_Photo_Filename();
 
-		emit Signal_Remote_Write(m_CameraIP, m_CameraPort, 
-			QString("PHOTO&%1%2&%3").arg(work.wheelsetNo, work.axleNo, m_LastPhotoName));
+		emit Signal_Remote_Write(m_CameraIP, m_CameraPort,
+			QString("PHOTO&%1%2&%3").arg(wheelsetNo, axleNo, m_LastPhotoName));
 		emit Photo_Written(m_LastPhotoName);
 	}
 	else if (msg == "PHOTO&FINISH!") {
 		// 无需额外校验，直接转发
 		emit Signal_Remote_Write(m_CameraIP, m_CameraPort, "PHOTO&FINISH");
-		work.currentPos++;
+		{	// 2026-10-24 CC/T86：currentPos 写侧持锁（原无锁别名写为数据竞争）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.currentPos++;
+		}
 	}
 	else {
 		emit Status(m_Camera_num + "CGXi消息：未知指令 -> " + msg);

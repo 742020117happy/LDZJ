@@ -38,12 +38,17 @@ void c_Sql_Remote::init()
 *************************************************************************************************************************************************/
 void c_Sql_Remote::connect_mysql()
 {
-	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
-	QString HOST = cfg.value("Web_Server_Ip").toString();
-	int PORT = cfg.value("MySql_Port").toInt();
-	QString USER = cfg.value("MySql_User").toString();
-	QString PASSWORD = cfg.value("MySql_Password").toString();
-	QString DATABASE = cfg.value("MySql_Database").toString();
+	// 2026-10-24 CC：g_Communicate_DB 读侧持锁快照（禁止局部引用别名）
+	QString HOST, USER, PASSWORD, DATABASE;
+	int PORT;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		HOST     = c_Variable::getInstance().g_Communicate_DB.value("Web_Server_Ip").toString();
+		PORT     = c_Variable::getInstance().g_Communicate_DB.value("MySql_Port").toInt();
+		USER     = c_Variable::getInstance().g_Communicate_DB.value("MySql_User").toString();
+		PASSWORD = c_Variable::getInstance().g_Communicate_DB.value("MySql_Password").toString();
+		DATABASE = c_Variable::getInstance().g_Communicate_DB.value("MySql_Database").toString();
+	}
 
 	if (!c_Object::QtPing(HOST)) {
 		emit Status("MySQL 网络未准备好！");
