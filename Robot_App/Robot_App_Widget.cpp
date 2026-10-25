@@ -2416,6 +2416,14 @@ void c_Robot_App_Widget::Work_Button()
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::SwitchMap_Confirmed, m_Work_Remote, &c_Work_Remote::SwitchMap_Done);
 	// 2026-10-25 MM1：切换地图失败桥接（原无失败信号致 wait_SwitchMap 永久阻塞）
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::SwitchMap_Failed, m_Work_Remote, &c_Work_Remote::SwitchMap_Failed);
+	// 2026-10-25 NN2：等待链失败信号桥接（MM1 同款断裂修复）
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::RefreshMapList_Failed, m_Work_Remote, &c_Work_Remote::RefreshMapList_Failed);
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::RefreshNavPoints_Failed, m_Work_Remote, &c_Work_Remote::RefreshNavPoints_Failed);
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::DynamicInit_Failed, m_Work_Remote, &c_Work_Remote::DynamicInit_Failed);
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::StartTask_Failed, m_Work_Remote, &c_Work_Remote::StartTask_Failed);
+	// 2026-10-25 NN3：设备断开桥接（wait_* 等待期防永久阻塞；IO 用既有 Set_Default 断开通知信号）
+	QObject::connect(m_IO_Remote, &c_IO_Remote::Set_Default, m_Work_Remote, &c_Work_Remote::IO_Disconnected);
+	QObject::connect(m_CGXi_Remote, &c_CGXi_Remote::Signal_Disconnected, m_Work_Remote, &c_Work_Remote::CGXi_Disconnected);
 	// 2026-10-24 修复：update_NavPointList 原误接 SwitchMap_Done，导致 wait_RefreshNavPoints 挂死
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_NavPointList, m_Work_Remote, &c_Work_Remote::RefreshNavPoints_Done);
 	// 2026-10-24 新增：动态初始化完成回发（修复 wait_DynamicInit 无退出源挂死）

@@ -35,6 +35,14 @@ signals:
 	void update_MapList_Done();//刷新地图列表完成
 	void SwitchMap_Done();//加载地图完成
 	void SwitchMap_Failed();//2026-10-25 MM1：加载地图失败（Widget 桥自 Magic SwitchMap_Failed）
+	// 2026-10-25 NN2：等待链失败信号（Widget 桥自 Magic，供 wait_* 失败退出）
+	void RefreshMapList_Failed();//刷新地图列表失败
+	void RefreshNavPoints_Failed();//刷新导航点失败
+	void DynamicInit_Failed();//动态初始化失败
+	void StartTask_Failed();//导航任务启动失败
+	// 2026-10-25 NN3：设备断开信号（Widget 桥自 IO/CGXi Disconnect_Done，供 wait_* 防永久阻塞）
+	void IO_Disconnected();//远程 IO 站断开
+	void CGXi_Disconnected();//机械臂断开
 	void RefreshNavPoints_Done();//刷新导航点列表完成
 	void DynamicInit_Done();//动态初始化完成
 	void StartTask_Done();//导航点移动运行完成

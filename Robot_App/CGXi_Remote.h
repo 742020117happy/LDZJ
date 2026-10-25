@@ -50,6 +50,7 @@ public slots:
 signals:
 	void Connect_Device(QString ip, int port);			// 跨线程：连接设备
 	void Disconnect_Device();							// 跨线程：断开设备
+	void Signal_Disconnected();							// 2026-10-25 NN3：断开完成通知（桥接 Work 等待链退出，原仅私有槽无对外信号）
 
 	void Write_Coils(int addr, int size, s_ModBus_DB data);			// 跨线程：写入线圈
 	void Write_HoldingRegisters(int addr, int size, s_ModBus_DB data);	// 跨线程：写入保持寄存器

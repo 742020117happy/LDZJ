@@ -96,6 +96,7 @@ void c_CGXi_Remote::Connect_Done() {
 *************************************************************************************************************************************************/
 void c_CGXi_Remote::Disconnect_Done() {
 	c_Variable::getInstance().g_CGXi.Connected = false;
+	emit Signal_Disconnected();	// 2026-10-25 NN3：断开完成通知（Work 等待链退出）
 }
 
 // ================= 状态机流转 =================

@@ -886,6 +886,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (api.contains("/cmd/use_map") && api.contains("map_name")) {
 			emit SwitchMap_Failed();
 		}
+		// 2026-10-25 NN2：等待链失败信号（MM1 同款断裂修复）
+		if (api.contains("/data/list_maps")) emit RefreshMapList_Failed();
+		if (api.contains("/data/poslist")) emit RefreshNavPoints_Failed();
+		if (api.contains("/real_time_data/dynamic_init_pose")) emit DynamicInit_Failed();
+		if (api.contains("/task_queue/start")) emit StartTask_Failed();
 		return;
 	}
 
@@ -1477,6 +1482,10 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			// 初始化成功后再次检查定位状态
 			QTimer::singleShot(2000, this, [this]() { Get_Robot_Local_Status(); });
 		}
+		else {
+			// 2026-10-25 NN2：初始化结果失败 → 通知工作流退出等待（原失败无信号致永久阻塞）
+			emit DynamicInit_Failed();
+		}
 		return;
 	}
 
@@ -2000,6 +2009,11 @@ void c_Magic_Remote::On_Response_Error(QString api, QString error_msg) {
 	if (api.contains("/cmd/use_map") && api.contains("map_name")) {
 		emit SwitchMap_Failed();
 	}
+	// 2026-10-25 NN2：等待链失败信号（MM1 同款断裂修复）
+	if (api.contains("/data/list_maps")) emit RefreshMapList_Failed();
+	if (api.contains("/data/poslist")) emit RefreshNavPoints_Failed();
+	if (api.contains("/real_time_data/dynamic_init_pose")) emit DynamicInit_Failed();
+	if (api.contains("/task_queue/start")) emit StartTask_Failed();
 
 	m_ConsecutiveErrors++;
 	if (m_ConsecutiveErrors >= 3 && !m_ReconnectTimer->isActive()

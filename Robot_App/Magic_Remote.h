@@ -301,6 +301,11 @@ signals:
 	void DynamicInit_Done();	// 2026-10-24 新增：动态初始化成功（init_pose_result=true），桥接 Work_Remote::DynamicInit_Done
 	void SwitchMap_Confirmed();	// 2026-10-24 重构 T03：切换地图确认（/cmd/use_map POST 应答），替代 update_MapStatus 充当 SwitchMap_Done
 	void SwitchMap_Failed();	// 2026-10-25 MM1：切换地图失败（POST 失败/网络错误），供 wait_SwitchMap 退出（原无失败信号致永久阻塞）
+	// 2026-10-25 NN2：等待链失败信号补全（MM1 同款断裂修复，供 wait_* 失败退出）
+	void RefreshMapList_Failed();	// GET /data/list_maps 失败
+	void RefreshNavPoints_Failed();	// GET /data/poslist 失败
+	void DynamicInit_Failed();		// init_pose_result=false 或 POST /real_time_data/dynamic_init_pose 失败
+	void StartTask_Failed();		// POST /task_queue/start 失败
 
 	private slots:
 	void On_Response_Done(QString api, QJsonObject body);
