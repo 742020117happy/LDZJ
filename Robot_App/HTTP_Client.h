@@ -53,6 +53,7 @@ private:
 	// 进行中的请求列表（用于断开时取消）
 	QList<QNetworkReply*> m_PendingReplies;
 	bool m_Disconnecting = false;	// 2026-10-24 T53：断开中标志（abort 取消错误静默）
+	int m_Generation = 0;			// 2026-10-25 D-007：连接代数——断开递增，旧代回调按代数丢弃（防断开/重连竞态）
 
 	// 构建通用请求头（Authorization + 自定义头 + Content-Type）
 	QNetworkRequest Prepare_Request(const QUrl &url, const QJsonObject &headers, const char *contentType = nullptr);

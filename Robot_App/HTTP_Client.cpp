@@ -42,6 +42,9 @@ void c_HTTP_Client::Connect_Device(QString ip, quint16 port, QString url) {
 void c_HTTP_Client::Disconnect_Device() {
 	// 2026-10-24 T53：断开标志（abort 触发的取消错误在 Read_Ready 静默）
 	m_Disconnecting = true;
+	// 2026-10-25 D-007：代数递增——abort 是异步的，其 finished 回调在 m_Disconnecting 复位后才投递；
+	// 旧代回调（含已发出但未完成的成功响应）按代数丢弃，防"取消错误误报网络错误触发假重连"与"旧响应污染新连接数据"
+	m_Generation++;
 	// 取消所有进行中的请求，防止断开后仍有回调触发
 	for (QNetworkReply *reply : m_PendingReplies) {
 		if (reply && reply->isRunning()) {
@@ -146,6 +149,7 @@ QNetworkReply *c_HTTP_Client::Send_Request(const QString &api, const QString &ht
 	if (reply) {
 		reply->setProperty("api", api);
 		reply->setProperty("respType", static_cast<int>(respType));  // 2026-10-24 T58：C 风格转换改 static_cast
+		reply->setProperty("generation", m_Generation);	// 2026-10-25 D-007：记录请求所属代数
 		m_PendingReplies.append(reply);
 		Setup_Timeout(reply);
 	}
@@ -201,6 +205,13 @@ void c_HTTP_Client::Send_DELETE_Request(QString api, QJsonObject params, QJsonOb
 // =====================================================================
 void c_HTTP_Client::Read_Ready(QNetworkReply *reply) {
 	if (!reply) return;
+	// 2026-10-25 D-007：代数校验——断开/重连后旧代回调（abort 取消、迟到的成功响应）一律丢弃，
+	// 防"取消错误在 m_Disconnecting 复位后误报为网络错误→Magic 连续错误计数→假重连"与"旧响应污染新连接"
+	int gen = reply->property("generation").toInt();
+	if (gen != m_Generation) {
+		reply->deleteLater();
+		return;
+	}
 	QString api = reply->property("api").toString();
 	int respType = reply->property("respType").toInt();
 
