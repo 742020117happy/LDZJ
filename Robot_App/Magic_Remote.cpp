@@ -1034,7 +1034,14 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 				emit Status("Magic遥控：地图图片数据过大(>50MB)，跳过加载");
 				return;
 			}
-			if (read.mapImage.loadFromData(imgData)) {
+			// 2026-10-24 AA2：GUI 线程禁止长时间锁阻塞——base64 解码为重 CPU 操作，
+			// 移至锁外解码（本地 QImage），锁内仅做隐式共享赋值（O(1)）
+			QImage decoded;
+			locker.unlock();
+			decoded.loadFromData(imgData);
+			locker.relock();
+			if (!decoded.isNull()) {
+				read.mapImage = decoded;
 				read.mapLoaded = true;
 				if (read.gridWidth == 0 || read.gridHeight == 0) {
 					read.gridWidth = read.mapImage.width();
@@ -1318,9 +1325,15 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (!b64.isEmpty()) {
 			if (b64.contains(",")) b64 = b64.split(",").last();
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
-			if (imgData.size() < 50000000 && read.frontCameraImage.loadFromData(imgData))
+			// 2026-10-24 AA2：解码移出锁，锁内仅赋值
+			QImage decoded;
+			locker.unlock();
+			decoded.loadFromData(imgData);
+			locker.relock();
+			if (imgData.size() < 50000000 && !decoded.isNull()) {
+				read.frontCameraImage = decoded;
 				emit update_DriveStatus();
-	
+			}
 		}
 		return;
 	}
@@ -1329,9 +1342,15 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (!b64.isEmpty()) {
 			if (b64.contains(",")) b64 = b64.split(",").last();
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
-			if (imgData.size() < 50000000 && read.rearCameraImage.loadFromData(imgData))
+			// 2026-10-24 AA2：解码移出锁，锁内仅赋值
+			QImage decoded;
+			locker.unlock();
+			decoded.loadFromData(imgData);
+			locker.relock();
+			if (imgData.size() < 50000000 && !decoded.isNull()) {
+				read.rearCameraImage = decoded;
 				emit update_DriveStatus();
-	
+			}
 		}
 		return;
 	}
@@ -1340,9 +1359,15 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (!b64.isEmpty()) {
 			if (b64.contains(",")) b64 = b64.split(",").last();
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
-			if (imgData.size() < 50000000 && read.frontDepthImage.loadFromData(imgData))
+			// 2026-10-24 AA2：解码移出锁，锁内仅赋值
+			QImage decoded;
+			locker.unlock();
+			decoded.loadFromData(imgData);
+			locker.relock();
+			if (imgData.size() < 50000000 && !decoded.isNull()) {
+				read.frontDepthImage = decoded;
 				emit update_DriveStatus();
-	
+			}
 		}
 		return;
 	}
@@ -1351,9 +1376,15 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (!b64.isEmpty()) {
 			if (b64.contains(",")) b64 = b64.split(",").last();
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
-			if (imgData.size() < 50000000 && read.rearDepthImage.loadFromData(imgData))
+			// 2026-10-24 AA2：解码移出锁，锁内仅赋值
+			QImage decoded;
+			locker.unlock();
+			decoded.loadFromData(imgData);
+			locker.relock();
+			if (imgData.size() < 50000000 && !decoded.isNull()) {
+				read.rearDepthImage = decoded;
 				emit update_DriveStatus();
-	
+			}
 		}
 		return;
 	}
