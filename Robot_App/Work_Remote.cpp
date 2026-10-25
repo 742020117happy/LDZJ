@@ -1148,12 +1148,17 @@ bool c_Work_Remote::wait_StartTask(QString task_name)
 bool c_Work_Remote::wait_Dis_Recharge()
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
+	// 2026-10-24 DD5：链路补全——T45 的 Dis_Recharge_Failed 已发但等待侧未接，脱离失败将永久阻塞
+	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::Dis_Recharge_Done, &loop, &QEventLoop::quit);
+	QObject::connect(this, &c_Work_Remote::Dis_Recharge_Failed, &loop, &QEventLoop::quit);
+	QObject::connect(this, &c_Work_Remote::Dis_Recharge_Failed, this, [&failed]() { failed = true; });
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待脱离充电桩");
 	emit Dis_Recharge();
 	loop.exec();
+	if (failed) { emit Status("脱离充电桩失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1164,12 +1169,17 @@ bool c_Work_Remote::wait_Dis_Recharge()
 bool c_Work_Remote::wait_StartRecharge(QString point)
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
+	// 2026-10-24 DD5：链路补全——T44 的 StartRecharge_Failed 已发但等待侧未接，回充失败将永久阻塞
+	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::StartRecharge_Done, &loop, &QEventLoop::quit);
+	QObject::connect(this, &c_Work_Remote::StartRecharge_Failed, &loop, &QEventLoop::quit);
+	QObject::connect(this, &c_Work_Remote::StartRecharge_Failed, this, [&failed]() { failed = true; });
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待回充");
 	emit StartRecharge(point);
 	loop.exec();
+	if (failed) { emit Status("回充失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
