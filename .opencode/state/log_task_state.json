@@ -1,7 +1,7 @@
 {
   "project": "D:\\Robot_App",
   "baseline": "ef82aa1",
-  "phase": 4,
+  "phase": 5,
   "tasks": [
     {
       "id": "L0",
@@ -78,43 +78,43 @@
     {
       "id": "L4-9",
       "name": "轮9 DB 数据库",
-      "status": "in_progress",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-10",
       "name": "轮10 WEB/EMIS",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-11",
       "name": "轮11 UI 用户操作日志",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-12",
       "name": "轮12 报警日志与 Work_Alarm 联动",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-13",
       "name": "轮13 限流/脱敏/等级过滤优化",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-14",
       "name": "轮14 编译验证+运行自检+最终报告",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L5",
       "name": "阶段5 最终报告",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     }
   ],

@@ -35,6 +35,8 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 		<< ui->Show_Pre_Scan_120_Widget << ui->Show_CGXi_Widget << ui->Show_IO_Widget;
 	for (QPushButton *b : navBtns) { b->setCheckable(true); b->setChecked(false); }
 	auto navTo = [this, navBtns](QPushButton *btn, QWidget *page) {
+		// 2026-10-25 L：页面切换（只记录，不改变导航行为）
+		c_Log::Info("UI", "Nav_Page", QString("switch page=%1").arg(page ? page->objectName() : "?"));
 		ui->stackedWidget->setCurrentWidget(page);
 		for (QPushButton *b : navBtns) { b->setChecked(b == btn); }
 	};
@@ -2230,6 +2232,13 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	// 2026-10-25 EE5：报警日志带报警码（红/黄档进入时记录，供 WEB 上报与现场排查）
 	if (level != 0 && !alarmCode.isEmpty()) {
 		QString levelName = (level == 2) ? "红灯-报警" : "黄灯-警告/运行";
+		// 2026-10-25 L：报警产生（只记录；红档 ERROR / 黄档 WARN，报警码与语音号允许打印）
+		if (level == 2) {
+			c_Log::Error("WORK", "Alarm", QString("raise code=%1 voice=%2").arg(alarmCode).arg(voice.isEmpty() ? "-" : voice));
+		}
+		else {
+			c_Log::Warn("WORK", "Alarm", QString("raise code=%1 voice=%2").arg(alarmCode).arg(voice.isEmpty() ? "-" : voice));
+		}
 		emit Write_Work_List(QString("状态联动: %1 (报警码%2 语音%3)")
 			.arg(levelName).arg(alarmCode).arg(voice.isEmpty() ? "无" : voice));
 		// 报警类（红档）写入报警列表（最近 10 条 + WEB recentAlarms）
