@@ -62,7 +62,7 @@ void c_CGXi_Remote::Init() {
 **Function:连接CGXi机械臂 - 从全局配置读取IP/端口并发起ModBus TCP连接
 *************************************************************************************************************************************************/
 void c_CGXi_Remote::Connect() {
-	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁（GUI 线程可能并发写配置）
+	// 2026-10-24 BB1：g_Communicate_DB 加锁读取（GUI 线程可能并发写入），
 	QString ip;
 	int port;
 	{
@@ -70,6 +70,8 @@ void c_CGXi_Remote::Connect() {
 		ip = c_Variable::getInstance().g_Communicate_DB.value("CGXi_Ip").toString();
 		port = c_Variable::getInstance().g_Communicate_DB.value("CGXi_Port").toInt();
 	}
+	// 2026-10-25 L：连接请求键值对日志（只记录，不改变连接流程）
+	c_Log::Info("ARM", "Connect", QString("request ip=%1 port=%2").arg(ip).arg(port));
 	emit Status("CGXi遥控：" + ip + "：" + QString::number(port));
 	emit Connect_Device(ip, port);
 }
@@ -88,6 +90,8 @@ void c_CGXi_Remote::Connect_Loop() {
 void c_CGXi_Remote::Connect_Done() {
 	m_Time.start();
 	c_Variable::getInstance().g_CGXi.Connected = true;
+	// 2026-10-25 L：连接成功（只记录，不改变批读启动）
+	c_Log::Info("ARM", "Connect", "success");
 	emit Read_HoldingRegisters(0, 124);
 }
 
@@ -96,6 +100,8 @@ void c_CGXi_Remote::Connect_Done() {
 *************************************************************************************************************************************************/
 void c_CGXi_Remote::Disconnect_Done() {
 	c_Variable::getInstance().g_CGXi.Connected = false;
+	// 2026-10-25 L：断开（只记录，不改变断开通知链路）
+	c_Log::Warn("ARM", "Disconnect", "state=disconnected");
 	emit Signal_Disconnected();	// 2026-10-25 NN3：断开完成通知（Work 等待链退出）
 }
 
@@ -173,6 +179,8 @@ void c_CGXi_Remote::Write_Coils_Done()
 void c_CGXi_Remote::Write_Coils_Error()
 {
 	m_WriteFailCount++;
+	// 2026-10-25 L：线圈写失败 ERROR 键值对（只记录，不改变重试计数逻辑）
+	c_Log::Error("ARM", "CoilWrite", QString("failed count=%1/5").arg(m_WriteFailCount));
 	emit Status(QString("CGXi遥控：线圈写失败（%1/5）").arg(m_WriteFailCount));
 	if (m_WriteFailCount >= 5) {
 		emit Status("CGXi遥控：线圈写连续失败 5 次，请检查连接");
@@ -183,11 +191,15 @@ void c_CGXi_Remote::Write_HoldingRegisters_Error()
 {
 	m_WriteFailCount++;
 	if (m_WriteFailCount >= 5) {
+		// 2026-10-25 L：寄存器写失败 5 次放弃（只记录）
+		c_Log::Error("ARM", "RegWrite", "failed count=5/5 abandon=true");
 		emit Status("CGXi遥控：保持寄存器写连续失败 5 次，放弃该次写入");
 		memset(m_Set_HoldingRegisters, false, sizeof(m_Set_HoldingRegisters));
 		m_WriteFailCount = 0;
 		return;
 	}
+	// 2026-10-25 L：寄存器写失败（只记录，不改变下一轮询重试逻辑）
+	c_Log::Error("ARM", "RegWrite", QString("failed count=%1/5 retry_next=true").arg(m_WriteFailCount));
 	emit Status(QString("CGXi遥控：保持寄存器写失败（%1/5），下一轮询重试").arg(m_WriteFailCount));
 }
 /*************************************************************************************************************************************************
@@ -460,12 +472,16 @@ void c_CGXi_Remote::Set_HoldingRegisters_63() { m_Set_HoldingRegisters[63] = tru
 void c_CGXi_Remote::Set_HoldingRegisters_64() { m_Set_HoldingRegisters[64] = true; }  // 清除机器人警告(脉冲)
 void c_CGXi_Remote::Set_HoldingRegisters_88() { m_Set_HoldingRegisters[88] = true; }  // 目标程序索引
 void c_CGXi_Remote::Set_HoldingRegisters_89() {
-	// 2026-10-24 走查 T32：程序操作值域校验（手册 89：1-启动/恢复 2-暂停 3-停止）
+	// 2026-10-24 审查 T32：写入值域校验（手册 89：1-启动/恢复 2-暂停 3-停止）
 	int op = static_cast<int>(c_Variable::getInstance().g_CGXi.Transfer.target_program_operation);
 	if (op < 1 || op > 3) {
-		emit Status(QString("CGXi遥控：程序操作值越界 %1（有效 1/2/3），已拒绝").arg(op));
+		// 2026-10-25 L：值域越界 WARN（只记录，不改变拒绝行为）
+		c_Log::Warn("ARM", "RegWrite", QString("rejected reg=89 value=%1 range=1-3").arg(op));
+		emit Status(QString("CGXi遥控：操作值越界 %1（有效 1/2/3），已拒绝").arg(op));
 		return;
 	}
+	// 2026-10-25 L：目标操作写请求（只记录；1=启动 2=暂停 3=停止）
+	c_Log::Info("ARM", "Prog", QString("request reg=89 value=%1").arg(op));
 	m_Set_HoldingRegisters[89] = true;
 } // 目标程序操作 (1-启动 2-暂停 3-停止)
 void c_CGXi_Remote::Set_HoldingRegisters_700() { m_Set_HoldingRegisters[700] = true; } // tcp相对法兰偏移 (700-711)
@@ -475,9 +491,13 @@ void c_CGXi_Remote::Set_HoldingRegisters_800() {
 	// 2026-10-24 走查 T32：点动类型值域校验（手册 0-28：0直线/1关节/2-13 TCP±/14-25 Joint±/26回零位/27回初始位/28 Z轴对齐）
 	int jog = static_cast<int>(c_Variable::getInstance().g_CGXi.Transfer.jog_type);
 	if (jog < 0 || jog > 28) {
+		// 2026-10-25 L：点动类型越界 WARN（只记录，不改变拒绝行为）
+		c_Log::Warn("ARM", "Jog", QString("rejected reg=800 value=%1 range=0-28").arg(jog));
 		emit Status(QString("CGXi遥控：点动类型越界 %1（有效 0-28），已拒绝").arg(jog));
 		return;
 	}
+	// 2026-10-25 L：点动请求（只记录；级联写 800/801/803/810 顺序不变）
+	c_Log::Info("ARM", "Jog", QString("request reg=800 type=%1").arg(jog));
 	m_Set_HoldingRegisters[800] = true; // 点动类型 (同时触发运动)
 	m_Set_HoldingRegisters[801] = true; // 点动速度比例 (级联写入,下周期处理)
 	m_Set_HoldingRegisters[803] = true; // 点动坐标系
