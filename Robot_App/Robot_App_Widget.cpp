@@ -1,6 +1,7 @@
 ﻿#pragma execution_character_set("utf-8")
 #include "Robot_App_Widget.h"
 #include <QInputDialog>
+#include <QCoreApplication>	// 2026-10-25 D-005b：applicationDirPath
 #include <QScreen>	// 2026-10-24 T66：兜底拉伸取可用屏幕尺寸	// 2026-10-24 T64：导航点编辑对话框（getText/getItem/getDouble）补 include
 /*************************************************************************************************************************************************
 **Function:构造函数
@@ -13,7 +14,7 @@ c_Robot_App_Widget::c_Robot_App_Widget(QWidget * parent) : QMainWindow(parent) {
 	this->showMaximized();
 	{
 		QFile File;
-		File.setFileName(QDir::currentPath() + "/Robot_App/stuqss.css");
+		File.setFileName(QCoreApplication::applicationDirPath() + "/Robot_App/stuqss.css");	// 2026-10-25 D-005b：exe 目录定位（防 CWD 依赖）
 		File.open(QIODevice::ReadOnly);
 
 		QString strQss = File.readAll();
@@ -179,7 +180,7 @@ void c_Robot_App_Widget::System_Scan()
 void c_Robot_App_Widget::Variable_Init()
 {
 	//Debug目录
-	m_Debug_Path = QDir::currentPath() + "/Debug_DB/" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
+	m_Debug_Path = QCoreApplication::applicationDirPath() + "/Debug_DB/" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
 
 	//判断目录是否存在
 	QDir Dir;
@@ -188,25 +189,25 @@ void c_Robot_App_Widget::Variable_Init()
 	if (!exist) {
 		Dir.mkdir(m_Debug_Path);
 	}
-	exist = Dir.exists(QDir::currentPath() + "/Images");
+	exist = Dir.exists(QCoreApplication::applicationDirPath() + "/Images");
 	if (!exist) {
-		Dir.mkdir(QDir::currentPath() + "/Images");
+		Dir.mkdir(QCoreApplication::applicationDirPath() + "/Images");
 	}
-	exist = Dir.exists(QDir::currentPath() + "/Robot_App");
+	exist = Dir.exists(QCoreApplication::applicationDirPath() + "/Robot_App");
 	if (!exist) {
-		Dir.mkdir(QDir::currentPath() + "/Robot_App");
+		Dir.mkdir(QCoreApplication::applicationDirPath() + "/Robot_App");
 	}
-	exist = Dir.exists(QDir::currentPath() + "/System_DB");
+	exist = Dir.exists(QCoreApplication::applicationDirPath() + "/System_DB");
 	if (!exist) {
-		Dir.mkdir(QDir::currentPath() + "/System_DB");
+		Dir.mkdir(QCoreApplication::applicationDirPath() + "/System_DB");
 	}
-	exist = Dir.exists(QDir::currentPath() + "/Video_DB");
+	exist = Dir.exists(QCoreApplication::applicationDirPath() + "/Video_DB");
 	if (!exist) {
-		Dir.mkdir(QDir::currentPath() + "/Video_DB");
+		Dir.mkdir(QCoreApplication::applicationDirPath() + "/Video_DB");
 	}
-	exist = Dir.exists(QDir::currentPath() + "/Work_DB");
+	exist = Dir.exists(QCoreApplication::applicationDirPath() + "/Work_DB");
 	if (!exist) {
-		Dir.mkdir(QDir::currentPath() + "/Work_DB");
+		Dir.mkdir(QCoreApplication::applicationDirPath() + "/Work_DB");
 	}
 	Variable_DB();
 }
@@ -217,7 +218,7 @@ void c_Robot_App_Widget::Variable_DB()
 {
 	//打开文件
 	QFile File;
-	File.setFileName(QDir::currentPath() + "/System_DB/Communicate_DB.json");
+	File.setFileName(QCoreApplication::applicationDirPath() + "/System_DB/Communicate_DB.json");
 	if (!File.open(QFile::ReadOnly | QIODevice::Text)) {
 		c_Variable::getInstance().g_Communicate_DB = QJsonObject(); // 文件不存在时使用空配置
 		// 2026-10-25 L：配置加载失败（只记录，不改变空对象兜底行为）
@@ -2583,7 +2584,7 @@ void c_Robot_App_Widget::keyPressEvent(QKeyEvent *event)
 {
 	if (event->key() == Qt::Key_F6) {
 		QFile File;
-		File.setFileName(QDir::currentPath() + "/Robot_App/stuqss.css");
+		File.setFileName(QCoreApplication::applicationDirPath() + "/Robot_App/stuqss.css");	// 2026-10-25 D-005b：exe 目录定位（防 CWD 依赖）
 		File.open(QIODevice::ReadOnly);
 
 		QString strQss = File.readAll();
@@ -2683,7 +2684,7 @@ void c_Robot_App_Widget::Write_Communicate_DB(QString key, double value)
 void c_Robot_App_Widget::Do_Flush_Communicate_DB()
 {
 	QFile File;
-	File.setFileName(QDir::currentPath() + "/System_DB/Communicate_DB.json");
+	File.setFileName(QCoreApplication::applicationDirPath() + "/System_DB/Communicate_DB.json");
 	// 2026-10-24 重构 T15：改 WriteOnly+Truncate（原 ReadWrite 不截断，JSON 内容超短后残留尾部导致异常）
 	if (!File.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
 		// 2026-10-25 L：配置写盘失败（只记录，不改变防抖流程）

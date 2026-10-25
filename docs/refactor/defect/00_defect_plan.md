@@ -31,7 +31,6 @@
 ## 二、修复积压（按优先级）
 
 **P0（真缺陷待修）**：
-- D-005b：System_DB/Debug_DB/stuqss.css/Images/Video_DB 共 11 处 CWD 依赖（D-005 已修 Work_Remote 4 处）
 - D-006：wait_* QEventLoop 悬空连接（若核验确认）
 - D-009：配置写盘原子性（先写临时文件再替换）
 - D-011：运行日志为空（若核验确认现象）
@@ -56,3 +55,4 @@
 |------|------|------|
 | 第 0 轮 | 目录/备份/文档/计划 | ✅ 完成 |
 | 第 1 轮 | D-005 Work_Remote 4 处路径改 applicationDirPath | ✅ 修复（其余 11 处登记 D-005b） |
+| 第 2 轮 | D-005b 全项目 15 处 CWD 依赖清零（Widget/Voice/Variable） | ✅ 修复，编译 0 错误 |

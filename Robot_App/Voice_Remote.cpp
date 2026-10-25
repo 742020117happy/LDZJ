@@ -308,7 +308,7 @@ void c_Voice_Remote::Write_HoldingRegisters_1(int vol) {
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Persist_Volume() {
 	QFile File;
-	File.setFileName(QDir::currentPath() + "/System_DB/Communicate_DB.json");
+	File.setFileName(QCoreApplication::applicationDirPath() + "/System_DB/Communicate_DB.json");	// 2026-10-25 D-005b：exe 目录定位
 	if (File.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		// 2026-10-25 L：写回保留 UTF-8 BOM（规范 §一-4，与 Widget Do_Flush 一致）
 		QByteArray out = QJsonDocument(c_Variable::getInstance().g_Communicate_DB).toJson();

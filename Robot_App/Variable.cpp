@@ -358,7 +358,7 @@ void c_Log::Write(c_Log::Level lv, const QString &module, const QString &event, 
 {
 	QMutexLocker locker(&s_Mutex);
 	if (lv < s_MinLevel) return;	/* 低于文件过滤阈值不落盘 */
-	QString dir = QDir::currentPath() + "/Debug_DB";
+	QString dir = QCoreApplication::applicationDirPath() + "/Debug_DB";	// 2026-10-25 D-005b：exe 目录定位
 	QDir().mkpath(dir);
 	QFile file(dir + "/软件操作日志_" + QDateTime::currentDateTime().toString("yyyyMMdd") + ".log");
 	if (file.open(QIODevice::Append | QIODevice::Text)) {
@@ -389,7 +389,7 @@ void c_Log::Cleanup_If_Needed()
 	if (now - s_LastCheckMs < CHECK_INTERVAL_MS) return;
 	s_LastCheckMs = now;
 
-	QString dir = QDir::currentPath() + "/Debug_DB";
+	QString dir = QCoreApplication::applicationDirPath() + "/Debug_DB";	// 2026-10-25 D-005b：exe 目录定位
 	QDir d(dir);
 	QFileInfoList files = d.entryInfoList(QStringList() << "软件操作日志_*.log", QDir::Files, QDir::Time);
 	if (files.isEmpty()) return;
