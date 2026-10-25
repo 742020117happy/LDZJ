@@ -34,6 +34,7 @@ signals:
 	// === 完成类（Widget 从 Magic/CGXi 桥回） ===
 	void update_MapList_Done();//刷新地图列表完成
 	void SwitchMap_Done();//加载地图完成
+	void SwitchMap_Failed();//2026-10-25 MM1：加载地图失败（Widget 桥自 Magic SwitchMap_Failed）
 	void RefreshNavPoints_Done();//刷新导航点列表完成
 	void DynamicInit_Done();//动态初始化完成
 	void StartTask_Done();//导航点移动运行完成

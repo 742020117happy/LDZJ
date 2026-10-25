@@ -2340,7 +2340,6 @@ void c_Robot_App_Widget::Work_Scan()
 	setIf(ui->Work_SendUnit, c_Variable::getInstance().g_Work_DB.sendUnit);
 	setIf(ui->Work_Repair, c_Variable::getInstance().g_Work_DB.repairLevel);
 	setIf(ui->Work_StartTime, c_Variable::getInstance().g_Work_DB.startTime);
-	setIf(ui->label_ErrorCode, QString::number(c_Variable::getInstance().g_Work_DB.errorCode));
 
 	ui->Work_Server_Light->Set_State(c_Variable::getInstance().g_Work.Connected);
 	ui->Work_Client_Light->Set_State(c_Variable::getInstance().g_Work.Connected);
@@ -2415,6 +2414,8 @@ void c_Robot_App_Widget::Work_Button()
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_MapList, m_Work_Remote, &c_Work_Remote::update_MapList_Done);
 	// 2026-10-24 重构 T03：SwitchMap_Done 改由专用确认信号驱动（原 update_MapStatus 有 8+ 无关发射源，致 wait_SwitchMap 假完成）
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::SwitchMap_Confirmed, m_Work_Remote, &c_Work_Remote::SwitchMap_Done);
+	// 2026-10-25 MM1：切换地图失败桥接（原无失败信号致 wait_SwitchMap 永久阻塞）
+	QObject::connect(m_Magic_Remote, &c_Magic_Remote::SwitchMap_Failed, m_Work_Remote, &c_Work_Remote::SwitchMap_Failed);
 	// 2026-10-24 修复：update_NavPointList 原误接 SwitchMap_Done，导致 wait_RefreshNavPoints 挂死
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_NavPointList, m_Work_Remote, &c_Work_Remote::RefreshNavPoints_Done);
 	// 2026-10-24 新增：动态初始化完成回发（修复 wait_DynamicInit 无退出源挂死）

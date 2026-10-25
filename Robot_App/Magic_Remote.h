@@ -300,6 +300,7 @@ signals:
 	void Dis_Recharge_Failed();	// 2026-10-24 T45：脱离充电桩失败（status==3）	// 2026-10-24 T44：回充失败（recharge/status==3）提前通知
 	void DynamicInit_Done();	// 2026-10-24 新增：动态初始化成功（init_pose_result=true），桥接 Work_Remote::DynamicInit_Done
 	void SwitchMap_Confirmed();	// 2026-10-24 重构 T03：切换地图确认（/cmd/use_map POST 应答），替代 update_MapStatus 充当 SwitchMap_Done
+	void SwitchMap_Failed();	// 2026-10-25 MM1：切换地图失败（POST 失败/网络错误），供 wait_SwitchMap 退出（原无失败信号致永久阻塞）
 
 	private slots:
 	void On_Response_Done(QString api, QJsonObject body);

@@ -882,6 +882,10 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			emit Status(QString("Magic遥控：接口失败 [%1] errCode=%2 msg=%3")
 				.arg(api).arg(errCode).arg(msg));
 		}
+		// 2026-10-25 MM1：切换地图失败 → 通知工作流（原无失败信号致 wait_SwitchMap 永久阻塞）
+		if (api.contains("/cmd/use_map") && api.contains("map_name")) {
+			emit SwitchMap_Failed();
+		}
 		return;
 	}
 
@@ -1991,6 +1995,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 // 网络错误日志 + 自动重连触发
 void c_Magic_Remote::On_Response_Error(QString api, QString error_msg) {
 	emit Status(QString("Magic遥控：网络错误 [%1] - %2").arg(api).arg(error_msg));
+
+	// 2026-10-25 MM1：切换地图网络错误 → 通知工作流（原无失败信号致 wait_SwitchMap 永久阻塞）
+	if (api.contains("/cmd/use_map") && api.contains("map_name")) {
+		emit SwitchMap_Failed();
+	}
 
 	m_ConsecutiveErrors++;
 	if (m_ConsecutiveErrors >= 3 && !m_ReconnectTimer->isActive()

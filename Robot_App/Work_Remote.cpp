@@ -1089,13 +1089,27 @@ bool c_Work_Remote::wait_RefreshMapList()
 bool c_Work_Remote::wait_SwitchMap(QString map)
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
+	{	// 2026-10-25 MM1：currentMap 跨线程读（HTTP 线程写），读侧持读锁快照
+		QReadLocker locker(&c_Variable::g_lock);
+		QString currentMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
+		if (currentMap == map) {
+			emit Status("加载地图完成");
+			return true;
+		}
+	}
+	// 2026-10-25 MM1：失败链路补全——SwitchMap_Failed（Magic POST 失败/网络错误）退出等待，
+	// 原仅 SwitchMap_Done/Task_Cancelled，切换失败将永久阻塞（DD5 同款断裂）
+	bool failed = false;
 	QEventLoop loop;
 	loop.processEvents(QEventLoop::AllEvents, 0);
 	QObject::connect(this, &c_Work_Remote::SwitchMap_Done, &loop, &QEventLoop::quit);
+	QObject::connect(this, &c_Work_Remote::SwitchMap_Failed, &loop, &QEventLoop::quit);
+	QObject::connect(this, &c_Work_Remote::SwitchMap_Failed, this, [&failed]() { failed = true; });
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待加载地图");
 	emit SwitchMap(map);
 	loop.exec();
+	if (failed) { emit Status("加载地图失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
