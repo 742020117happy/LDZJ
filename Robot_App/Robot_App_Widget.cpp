@@ -123,12 +123,26 @@ void c_Robot_App_Widget::System_Scan()
 
 	// 2026-10-24 重构 T28：状态栏文本含 QDateTime 格式化，10ms 更新浪费 UI 预算，降为约 1s 一次
 	if (m_FPS % 100 == 0) {
+		// 2026-10-25 HH2：相机帧率统计（帧序号快照差分，锁内读）
+		int frontSeq = 0, rearSeq = 0;
+		{
+			QReadLocker lock_read(&c_Variable::g_lock);
+			frontSeq = c_Variable::getInstance().g_Magic.ReadData.frontFrameSeq;
+			rearSeq  = c_Variable::getInstance().g_Magic.ReadData.rearFrameSeq;
+		}
+		int frontFps = frontSeq - m_LastFrontSeq;
+		int rearFps  = rearSeq  - m_LastRearSeq;
+		m_LastFrontSeq = frontSeq;
+		m_LastRearSeq  = rearSeq;
+
 		ui->Status_Bar->showMessage(
 			"系统时间：" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") 
 			+ "------" + 
 			"刷新帧率：" + QString::number(m_Current_FPS) + "HZ"
 			+ "------" +
 			"机械臂帧率：" + QString::number(c_Variable::getInstance().g_CGXi.FPS) + "HZ"
+			+ "------" +
+			"相机帧率：前" + QString::number(frontFps) + "/后" + QString::number(rearFps) + "HZ"
 		);
 	}
 

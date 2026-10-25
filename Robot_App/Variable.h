@@ -404,6 +404,8 @@ struct Magic_ReadData {
 	QImage rearCameraImage;       // 后相机彩色图像
 	QImage frontDepthImage;       // 前相机深度图像
 	QImage rearDepthImage;        // 后相机深度图像
+	int frontFrameSeq = 0;        // 2026-10-25 HH2：前相机帧序号（帧率统计）
+	int rearFrameSeq  = 0;        // 2026-10-25 HH2：后相机帧序号（帧率统计）
 
 	// ---------- 雷达与路径 ----------
 	QVector<QPointF> laserScanPoints;    // 2D激光扫描点（世界坐标）

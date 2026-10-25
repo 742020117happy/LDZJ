@@ -310,6 +310,7 @@ private:
 	QThread *m_HTTP_Thread = nullptr;
 
 	QTimer *m_PollTimer = nullptr;          // 状态轮询定时器（2026-10-24 C2 初始化，防 Init 跳过时空指针）
+	QTimer *m_CameraTimer = nullptr;        // 2026-10-25 HH1：相机专用轮询定时器（100ms=10Hz，前/后相机画面流畅化）
 	QTimer *m_ReconnectTimer = nullptr;     // 断线自动重连定时器（2026-10-24 C2 初始化）
 	bool m_NavTaskActive = false;
 	bool m_NavTaskSeenRunning = false;
@@ -327,5 +328,6 @@ private:
 
 	private slots:
 	void Poll_Status();            // 状态轮询槽函数
+	void Poll_Camera();            // 2026-10-25 HH1：相机专用轮询槽（100ms → 前/后相机 10Hz）
 	void Try_Reconnect();          // 自动重连槽函数
 };

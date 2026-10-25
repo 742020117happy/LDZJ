@@ -10,6 +10,9 @@ c_Magic_Remote::~c_Magic_Remote() {
 	if (m_PollTimer) {
 		m_PollTimer->stop();
 	}
+	if (m_CameraTimer) {
+		m_CameraTimer->stop();	// 2026-10-25 HH1：析构停相机轮询
+	}
 	if (m_HTTP_Thread) {
 		if (m_HTTP_Thread->isRunning()) {
 			m_HTTP_Thread->requestInterruption();
@@ -30,6 +33,11 @@ void c_Magic_Remote::Init() {
 
 	m_PollTimer = new QTimer(this);
 	QObject::connect(m_PollTimer, &QTimer::timeout, this, &c_Magic_Remote::Poll_Status);
+
+	// 2026-10-25 HH1：相机专用定时器——原相机图像混在 6s 超低频槽位（0.17Hz 画面卡顿），
+	// 独立 100ms 轮询提升至 10Hz（API 4.6.11 实时数据接口支持高频；QNAM 并行请求通道充足）
+	m_CameraTimer = new QTimer(this);
+	QObject::connect(m_CameraTimer, &QTimer::timeout, this, &c_Magic_Remote::Poll_Camera);
 
 	m_ReconnectTimer = new QTimer(this);
 	m_ReconnectTimer->setSingleShot(true);
@@ -53,6 +61,7 @@ void c_Magic_Remote::Init() {
 		c_Variable::getInstance().g_Magic.token = "";
 		c_Variable::getInstance().g_Magic.Ready = false;
 		if (m_PollTimer) m_PollTimer->stop();
+		if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：断开同步停相机轮询
 		emit Status("Magic遥控：HTTP客户端已断开");
 		if (!m_LastIP.isEmpty()) Start_Reconnect();
 	});
@@ -114,8 +123,7 @@ void c_Magic_Remote::Poll_Status() {
 		Get_Chassis_Version();       // 4.6.13 底盘导航版本
 		Get_Sys_Mac();               // 4.9.4 MAC地址
 		Get_Ultrasonic();            // 4.6.9 超声波原始数据
-		Get_Ahl1_RGB_Img();          // 4.6.11 前相机彩色图像
-		Get_Ahl2_RGB_Img();          // 4.6.11 后相机彩色图像
+		// 2026-10-25 HH1：前/后相机图像移出 6s 槽位 → 专用 m_CameraTimer 100ms 轮询（10Hz）
 		Get_Local_Grid_Plan_Path();  // 4.6.16 全局路径栅格坐标
 	}
 
@@ -128,6 +136,15 @@ void c_Magic_Remote::Poll_Status() {
 	if (m_PollCounter > 10000) {
 		m_PollCounter = 0;
 	}
+}
+
+// ================= 2026-10-25 HH1：相机专用轮询（100ms → 前/后相机各 10Hz） =================
+void c_Magic_Remote::Poll_Camera() {
+	if (!c_Variable::getInstance().g_Magic.is_connected || c_Variable::getInstance().g_Magic.token.isEmpty()) {
+		return;
+	}
+	Get_Ahl1_RGB_Img();	// 4.6.11 前相机彩色图像
+	Get_Ahl2_RGB_Img();	// 4.6.11 后相机彩色图像
 }
 
 // ======================== 连接管理 ========================
@@ -152,6 +169,7 @@ void c_Magic_Remote::Set_Token_Done(QString token)
 	m_ReconnectAttempt = 0;
 	Stop_Reconnect();
 	if (m_PollTimer) m_PollTimer->start(200);	// 2026-10-24 C2：Init 未执行时防空指针
+	if (m_CameraTimer) m_CameraTimer->start(100);	// 2026-10-25 HH1：登录成功后启动相机轮询（10Hz）
 }
 void c_Magic_Remote::Disconnect_Device() {
 	c_Variable::getInstance().g_Magic.is_connected = false;
@@ -161,6 +179,7 @@ void c_Magic_Remote::Disconnect_Device() {
 	}
 	c_Variable::getInstance().g_Magic.Ready = false;
 	if (m_PollTimer) m_PollTimer->stop();
+	if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：断开同步停相机轮询
 	// 2026-10-24 审查修复 D3：用户主动断开时清空 IP 并停重连定时器（原 Disconnect_Done 后又被自动重连）
 	m_LastIP.clear();
 	if (m_ReconnectTimer) m_ReconnectTimer->stop();
@@ -171,6 +190,7 @@ void c_Magic_Remote::Disconnect_Device() {
 void c_Magic_Remote::Start_Reconnect() {
 	if (m_LastIP.isEmpty()) return;
 	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
+	if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：重连等待期停相机轮询
 	int delay = qMin(1000 * (1 << m_ReconnectAttempt), 30000); // 1s,2s,4s,8s,16s,30s...
 	m_ReconnectAttempt++;
 	emit Status(QString("Magic遥控：%1秒后自动重连...").arg(delay / 1000));
@@ -200,6 +220,7 @@ void c_Magic_Remote::Login(QString user_code, QString password) {
 	m_LastUser = user_code;
 	m_LastPass = password;
 	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
+	if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：重登等待期停相机轮询
 	QJsonObject body;
 	body.insert("userCode", user_code);
 	body.insert("password", password);
@@ -854,6 +875,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			emit Signal_Set_Token("");
 			// 2026-10-24 审查修复 D1：401 后停轮询 → 用缓存凭证自动重登一次（原链路断裂永不恢复）
 			if (m_PollTimer) m_PollTimer->stop();
+			if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：401 停相机轮询（重登成功后由 Set_Token_Done 重启）
 			if (!m_LastUser.isEmpty()) QTimer::singleShot(1000, this, [this]() { Login(m_LastUser, m_LastPass); });
 		}
 		else {
@@ -1328,6 +1350,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			locker.relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
 				c_Variable::getInstance().g_Magic.ReadData.frontCameraImage = decoded;
+				c_Variable::getInstance().g_Magic.ReadData.frontFrameSeq++;	// 2026-10-25 HH2：帧率统计
 				emit update_DriveStatus();
 			}
 		}
@@ -1345,6 +1368,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			locker.relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
 				c_Variable::getInstance().g_Magic.ReadData.rearCameraImage = decoded;
+				c_Variable::getInstance().g_Magic.ReadData.rearFrameSeq++;	// 2026-10-25 HH2：帧率统计
 				emit update_DriveStatus();
 			}
 		}

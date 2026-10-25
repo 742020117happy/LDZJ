@@ -139,6 +139,8 @@ private:
 
 	int m_Current_FPS = 0;				// 当前帧率
 	int m_FPS = 0;						// 帧率计数器
+	int m_LastFrontSeq = 0;				// 2026-10-25 HH2：前相机帧序号快照（帧率统计）
+	int m_LastRearSeq = 0;				// 2026-10-25 HH2：后相机帧序号快照（帧率统计）
 	QTimer *m_FlushTimer = nullptr;		// Communicate_DB写入防抖定时器
 
 	void Do_Flush_Communicate_DB();		// 写入Communicate_DB到文件
