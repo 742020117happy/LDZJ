@@ -448,7 +448,7 @@ void c_Robot_App_Widget::Magic_Scan()
 		case 3: acStr = "前后"; break;
 		default: acStr = "无"; break;
 		}
-		ui->lineEdit_AntiCollision->setText(acStr);
+		setIf(ui->lineEdit_AntiCollision, acStr);
 	}
 
 	// ========== 系统信息 ==========
@@ -461,43 +461,43 @@ void c_Robot_App_Widget::Magic_Scan()
 		case 4: modeStr = "执行中"; break;
 		default: modeStr = QString::number(r.workingMode); break;
 		}
-		ui->lineEdit_WorkMode->setText(modeStr);
+		setIf(ui->lineEdit_WorkMode, modeStr);
 	}
-	if (ui->lineEdit_ErrorCode) ui->lineEdit_ErrorCode->setText(QString::number(r.errorCode));
-	if (ui->lineEdit_ChassisVer) ui->lineEdit_ChassisVer->setText(r.chassisVersion);
-	if (ui->lineEdit_NavVer) ui->lineEdit_NavVer->setText(r.navigationVersion);
-	if (ui->lineEdit_MAC) ui->lineEdit_MAC->setText(r.sysMac);
+	setIf(ui->lineEdit_ErrorCode, QString::number(r.errorCode));
+	setIf(ui->lineEdit_ChassisVer, r.chassisVersion);
+	setIf(ui->lineEdit_NavVer, r.navigationVersion);
+	setIf(ui->lineEdit_MAC, r.sysMac);
 
 	// ========== IMU数据 ==========
-	if (ui->lineEdit_IMU_AVX) ui->lineEdit_IMU_AVX->setText(QString::number(r.imuAngVelX, 'f', 4));
-	if (ui->lineEdit_IMU_AVY) ui->lineEdit_IMU_AVY->setText(QString::number(r.imuAngVelY, 'f', 4));
-	if (ui->lineEdit_IMU_AVZ) ui->lineEdit_IMU_AVZ->setText(QString::number(r.imuAngVelZ, 'f', 4));
-	if (ui->lineEdit_IMU_LAX) ui->lineEdit_IMU_LAX->setText(QString::number(r.imuLinAccX, 'f', 4));
-	if (ui->lineEdit_IMU_LAY) ui->lineEdit_IMU_LAY->setText(QString::number(r.imuLinAccY, 'f', 4));
-	if (ui->lineEdit_IMU_LAZ) ui->lineEdit_IMU_LAZ->setText(QString::number(r.imuLinAccZ, 'f', 4));
+	setIf(ui->lineEdit_IMU_AVX, QString::number(r.imuAngVelX, 'f', 4));
+	setIf(ui->lineEdit_IMU_AVY, QString::number(r.imuAngVelY, 'f', 4));
+	setIf(ui->lineEdit_IMU_AVZ, QString::number(r.imuAngVelZ, 'f', 4));
+	setIf(ui->lineEdit_IMU_LAX, QString::number(r.imuLinAccX, 'f', 4));
+	setIf(ui->lineEdit_IMU_LAY, QString::number(r.imuLinAccY, 'f', 4));
+	setIf(ui->lineEdit_IMU_LAZ, QString::number(r.imuLinAccZ, 'f', 4));
 
 	// ========== 里程计速度 ==========
-	if (ui->lineEdit_Odom_LX) ui->lineEdit_Odom_LX->setText(QString::number(r.odomLinearX, 'f', 4));
-	if (ui->lineEdit_Odom_LY) ui->lineEdit_Odom_LY->setText(QString::number(r.odomLinearY, 'f', 4));
-	if (ui->lineEdit_Odom_LZ) ui->lineEdit_Odom_LZ->setText(QString::number(r.odomLinearZ, 'f', 4));
-	if (ui->lineEdit_Odom_AX) ui->lineEdit_Odom_AX->setText(QString::number(r.odomAngularX, 'f', 4));
-	if (ui->lineEdit_Odom_AY) ui->lineEdit_Odom_AY->setText(QString::number(r.odomAngularY, 'f', 4));
-	if (ui->lineEdit_Odom_AZ) ui->lineEdit_Odom_AZ->setText(QString::number(r.odomAngularZ, 'f', 4));
+	setIf(ui->lineEdit_Odom_LX, QString::number(r.odomLinearX, 'f', 4));
+	setIf(ui->lineEdit_Odom_LY, QString::number(r.odomLinearY, 'f', 4));
+	setIf(ui->lineEdit_Odom_LZ, QString::number(r.odomLinearZ, 'f', 4));
+	setIf(ui->lineEdit_Odom_AX, QString::number(r.odomAngularX, 'f', 4));
+	setIf(ui->lineEdit_Odom_AY, QString::number(r.odomAngularY, 'f', 4));
+	setIf(ui->lineEdit_Odom_AZ, QString::number(r.odomAngularZ, 'f', 4));
 
 	// ========== 超声波 ==========
-	if (ui->lineEdit_US_FL)  ui->lineEdit_US_FL->setText(QString::number(r.ultrasonicFL, 'f', 0));
-	if (ui->lineEdit_US_FR)  ui->lineEdit_US_FR->setText(QString::number(r.ultrasonicFR, 'f', 0));
-	if (ui->lineEdit_US_RL)  ui->lineEdit_US_RL->setText(QString::number(r.ultrasonicRL, 'f', 0));
-	if (ui->lineEdit_US_RR)  ui->lineEdit_US_RR->setText(QString::number(r.ultrasonicRR, 'f', 0));
-	if (ui->lineEdit_US_LF)  ui->lineEdit_US_LF->setText(QString::number(r.ultrasonicLF, 'f', 0));
-	if (ui->lineEdit_US_LR)  ui->lineEdit_US_LR->setText(QString::number(r.ultrasonicLR, 'f', 0));
-	if (ui->lineEdit_US_RF)  ui->lineEdit_US_RF->setText(QString::number(r.ultrasonicRF, 'f', 0));
-	if (ui->lineEdit_US_RR2) ui->lineEdit_US_RR2->setText(QString::number(r.ultrasonicRR2, 'f', 0));
+	setIf(ui->lineEdit_US_FL,  QString::number(r.ultrasonicFL, 'f', 0));
+	setIf(ui->lineEdit_US_FR,  QString::number(r.ultrasonicFR, 'f', 0));
+	setIf(ui->lineEdit_US_RL,  QString::number(r.ultrasonicRL, 'f', 0));
+	setIf(ui->lineEdit_US_RR,  QString::number(r.ultrasonicRR, 'f', 0));
+	setIf(ui->lineEdit_US_LF,  QString::number(r.ultrasonicLF, 'f', 0));
+	setIf(ui->lineEdit_US_LR,  QString::number(r.ultrasonicLR, 'f', 0));
+	setIf(ui->lineEdit_US_RF,  QString::number(r.ultrasonicRF, 'f', 0));
+	setIf(ui->lineEdit_US_RR2, QString::number(r.ultrasonicRR2, 'f', 0));
 
 	// ========== GPS ==========
-	if (ui->lineEdit_GPS_Lat) ui->lineEdit_GPS_Lat->setText(QString::number(r.gpsLatitude, 'f', 6));
-	if (ui->lineEdit_GPS_Lon) ui->lineEdit_GPS_Lon->setText(QString::number(r.gpsLongitude, 'f', 6));
-	if (ui->lineEdit_GPS_Alt) ui->lineEdit_GPS_Alt->setText(QString::number(r.gpsAltitude, 'f', 2));
+	setIf(ui->lineEdit_GPS_Lat, QString::number(r.gpsLatitude, 'f', 6));
+	setIf(ui->lineEdit_GPS_Lon, QString::number(r.gpsLongitude, 'f', 6));
+	setIf(ui->lineEdit_GPS_Alt, QString::number(r.gpsAltitude, 'f', 2));
 
 	// ========== 实时位姿 ==========
 	setIf(ui->lineEdit_CurrentMap, r.currentMap);
@@ -525,10 +525,16 @@ void c_Robot_App_Widget::Magic_Scan()
 	setLblIf(ui->label_LoopInfo, QString("循环: %1/%2").arg(r.taskLoopTimes).arg(r.taskLoopCount));
 
 	// ========== 相机画面刷新（Qt scaledContents 自动缩放适配） ==========
-	if (!r.frontCameraImage.isNull())
+	// 2026-10-25 JJ1：cacheKey 变化检测——10ms 扫描下同一帧被重复 QPixmap 转换+setPixmap ≈10 次（10Hz 新帧时冗余 90%），
+	// 仅帧变化才转换刷新（QImage 隐式共享拷贝 cacheKey 恒定，新解码帧 key 必变）
+	if (!r.frontCameraImage.isNull() && r.frontCameraImage.cacheKey() != m_FrontCamKey) {
+		m_FrontCamKey = r.frontCameraImage.cacheKey();
 		ui->label_FrontCamera->setPixmap(QPixmap::fromImage(r.frontCameraImage));
-	if (!r.rearCameraImage.isNull())
+	}
+	if (!r.rearCameraImage.isNull() && r.rearCameraImage.cacheKey() != m_RearCamKey) {
+		m_RearCamKey = r.rearCameraImage.cacheKey();
 		ui->label_RearCamera->setPixmap(QPixmap::fromImage(r.rearCameraImage));
+	}
 }
 /*************************************************************************************************************************************************
 **Function:底盘按钮事件绑定 - 连接/登录/导航/充电等按钮信号
