@@ -1,6 +1,6 @@
-{
+﻿{
     "Cmd_Name": "START_INSPECTION",
-   "Value": true,
+    "Value": true,
     "Checksum": "A1B2C3D4",
     "wheelsetCount": 1,
     "tasks": [
@@ -17,7 +17,7 @@
             "wheelsetPosition": {
                 "posId": 1,
                 "mapPointName": "Lunduizhijian001",
-                "positions":["P1","P1.1","P2","P3","P4","P4.1","P5","P6"]
+                "positions": ["P1", "P1.1", "P2", "P3", "P4", "P4.1", "P5", "P6"]
             }
         }
     ]
