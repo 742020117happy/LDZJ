@@ -90,10 +90,14 @@ void c_IO_Remote::Connect()
 	int port = c_Variable::getInstance().g_Communicate_DB.value("IO_Port").toInt();
 	// 2026-08-19 走查修复：空 IP 直接重试，避免空地址连接错误刷屏
 	if (ip.isEmpty()) {
+		// 2026-10-25 L：IP 未配置 WARN（只记录，不改变 3 秒重试流程）
+		c_Log::Warn("IO", "Connect", "rejected ip_empty=true retry=3000ms");
 		emit Status("IO模块：IP 未配置，3秒后重试");
 		QTimer::singleShot(3000, this, &c_IO_Remote::Connect);
 		return;
 	}
+	// 2026-10-25 L：连接请求键值对（只记录）
+	c_Log::Info("IO", "Connect", QString("request ip=%1 port=%2").arg(ip).arg(port));
 	emit Status("IO模块：" + ip + "：" + QString::number(port));
 	emit Connect_Device(ip, port);
 }
@@ -106,6 +110,8 @@ void c_IO_Remote::Connect_Done()
 {
 	m_Time.start();
 	c_Variable::getInstance().g_IO.Connected = true;
+	// 2026-10-25 L：连接成功（只记录，不改变风扇自启流程）
+	c_Log::Info("IO", "Connect", "success");
 	emit Status("IO模块：已连接");
 
 	// 2026-10-24 T63：远程 IO 正常连接后自动启动散热风扇（Y04-KA5，线圈4）
@@ -137,6 +143,8 @@ void c_IO_Remote::Disconnect_Done()
 {
 	c_Variable::getInstance().g_IO.Connected = false;
 	c_Variable::getInstance().g_IO.Ready = false;
+	// 2026-10-25 L：断开（只记录，不改变状态清理）
+	c_Log::Warn("IO", "Disconnect", "state=disconnected");
 	emit Status("IO模块：已断开");
 }
 /*************************************************************************************************************************************************
@@ -154,22 +162,26 @@ void c_IO_Remote::Reset_Coil(int addr)
 	m_Reset_Coils[addr] = true;
 }
 // 2026-10-24 T46：三色灯互斥切换——置位目标灯前先复位另两路（用户要求：绿=关黄红、黄=关绿红、红=关绿黄）
-void c_IO_Remote::Set_Alarm_Red()   { Reset_Coil(2); Reset_Coil(3); Set_Coil(1); }   // Y01 — KA2 — 三色报警灯 红色
-void c_IO_Remote::Reset_Alarm_Red()  { Reset_Coil(1); }
-void c_IO_Remote::Set_Alarm_Yellow() { Reset_Coil(1); Reset_Coil(3); Set_Coil(2); }   // Y02 — KA3 — 三色报警灯 黄色
-void c_IO_Remote::Reset_Alarm_Yellow(){ Reset_Coil(2); }
-void c_IO_Remote::Set_Alarm_Green()  { Reset_Coil(1); Reset_Coil(2); Set_Coil(3); }   // Y03 — KA4 — 三色报警灯 绿色
-void c_IO_Remote::Reset_Alarm_Green() { Reset_Coil(3); }
-void c_IO_Remote::Set_Fan()          { Set_Coil(4); }   // Y04 — KA5 — 散热风扇
-void c_IO_Remote::Reset_Fan()         { Reset_Coil(4); }
-void c_IO_Remote::Set_Robot()		 { 
-	Reset_Coil(6); 
+void c_IO_Remote::Set_Alarm_Red()   { Reset_Coil(2); Reset_Coil(3); Set_Coil(1); c_Log::Info("IO", "DO", "name=报警红 action=on"); }   // Y01 — KA2 — 三色报警灯 红色
+void c_IO_Remote::Reset_Alarm_Red()  { Reset_Coil(1); c_Log::Info("IO", "DO", "name=报警红 action=off"); }
+void c_IO_Remote::Set_Alarm_Yellow() { Reset_Coil(1); Reset_Coil(3); Set_Coil(2); c_Log::Info("IO", "DO", "name=报警黄 action=on"); }   // Y02 — KA3 — 三色报警灯 黄色
+void c_IO_Remote::Reset_Alarm_Yellow(){ Reset_Coil(2); c_Log::Info("IO", "DO", "name=报警黄 action=off"); }
+void c_IO_Remote::Set_Alarm_Green()  { Reset_Coil(1); Reset_Coil(2); Set_Coil(3); c_Log::Info("IO", "DO", "name=报警绿 action=on"); }   // Y03 — KA4 — 三色报警灯 绿色
+void c_IO_Remote::Reset_Alarm_Green() { Reset_Coil(3); c_Log::Info("IO", "DO", "name=报警绿 action=off"); }
+void c_IO_Remote::Set_Fan()          { Set_Coil(4); c_Log::Info("IO", "DO", "name=散热风扇 action=on"); }   // Y04 — KA5 — 散热风扇
+void c_IO_Remote::Reset_Fan()         { Reset_Coil(4); c_Log::Info("IO", "DO", "name=散热风扇 action=off"); }
+void c_IO_Remote::Set_Robot()		 {
+	// 2026-10-25 L：机械臂上电三拍脉冲（只记录，不改变 500/1000ms 时序）
+	c_Log::Info("IO", "DO", "name=机械臂 action=on pulse=3");
+	Reset_Coil(6);
 	msleep(500);
-	Set_Coil(5); 
+	Set_Coil(5);
 	msleep(1000);
 	Reset_Coil(5);
 }   // 2026-10-24 重构 T24：Y05(Coil5)/Y06(Coil6) — KA6/KA7 机器人控制三拍脉冲（原注释误标"散热风扇"）
 void c_IO_Remote::Reset_Robot()		 {
+	// 2026-10-25 L：机械臂断电三拍脉冲（只记录，不改变时序）
+	c_Log::Info("IO", "DO", "name=机械臂 action=off pulse=3");
 	Reset_Coil(5);
 	msleep(500);
 	Set_Coil(6);
@@ -263,12 +275,16 @@ void c_IO_Remote::Write_Coils_Error()
 {
 	m_WriteFailCount++;
 	if (m_WriteFailCount >= 5) {
+		// 2026-10-25 L：线圈写失败 5 次放弃（只记录）
+		c_Log::Error("IO", "CoilWrite", "failed count=5/5 abandon=true");
 		emit Status("IO模块：线圈写连续失败 5 次，放弃该次写入");
 		memset(m_Set_Coils, false, sizeof(m_Set_Coils));
 		memset(m_Reset_Coils, false, sizeof(m_Reset_Coils));
 		m_WriteFailCount = 0;
 		return;
 	}
+	// 2026-10-25 L：线圈写失败（只记录，不改变下一轮询重试逻辑）
+	c_Log::Error("IO", "CoilWrite", QString("failed count=%1/5 retry_next=true").arg(m_WriteFailCount));
 	emit Status(QString("IO模块：线圈写失败（%1/5），下一轮询重试").arg(m_WriteFailCount));
 	// 保留标志，下一轮询 Write_Coils_Action 自动重试
 }
@@ -344,11 +360,15 @@ void c_IO_Remote::Write_HoldingRegisters_Error()
 {
 	m_WriteFailCount++;
 	if (m_WriteFailCount >= 5) {
+		// 2026-10-25 L：保持寄存器写失败 5 次放弃（只记录）
+		c_Log::Error("IO", "RegWrite", "failed count=5/5 abandon=true");
 		emit Status("IO模块：保持寄存器写连续失败 5 次，放弃该次写入");
 		memset(m_Set_HoldingRegisters, false, sizeof(m_Set_HoldingRegisters));
 		m_WriteFailCount = 0;
 		return;
 	}
+	// 2026-10-25 L：保持寄存器写失败（只记录，不改变下一轮询重试逻辑）
+	c_Log::Error("IO", "RegWrite", QString("failed count=%1/5 retry_next=true").arg(m_WriteFailCount));
 	emit Status(QString("IO模块：保持寄存器写失败（%1/5），下一轮询重试").arg(m_WriteFailCount));
 }
 /*************************************************************************************************************************************************
