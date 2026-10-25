@@ -504,12 +504,34 @@ signals:
 	bool msleep(const int mSec);
 };
 // 2026-10-24 重构 T31：统一软件操作日志中心——聚合所有模块操作记录到单一按天文件，线程安全
+// 2026-10-25 日志体系完善（L 系列）：新增等级/事件/格式/脱敏/限流（只记录不控制，兼容旧接口）
 class c_Log {
 public:
-	// 写一条操作日志：<时间戳> [模块] 内容（Append 模式，按天滚动 Debug_DB/软件操作日志_yyyyMMdd.log）
+	// 等级枚举：LV_ 前缀避免与 Windows.h 宏（ERROR/DEBUG 等）冲突；文本名见 Level_Name
+	enum Level { LV_DEBUG = 0, LV_INFO, LV_WARN, LV_ERROR, LV_FATAL };
+
+	// 写一条操作日志（新格式：[时间][等级][模块][事件] 键值对；Append 模式，按天滚动，写失败静默）
+	static void Write(Level lv, const QString &module, const QString &event, const QString &msg);
+	// 旧接口兼容：等价 Write(INFO, 模块名映射新标识, "General", msg)
 	static void Write(const QString &module, const QString &msg);
+	// 便捷接口
+	static void Debug(const QString &module, const QString &event, const QString &msg);
+	static void Info (const QString &module, const QString &event, const QString &msg);
+	static void Warn (const QString &module, const QString &event, const QString &msg);
+	static void Error(const QString &module, const QString &event, const QString &msg);
+	static void Fatal(const QString &module, const QString &event, const QString &msg);
+	// 等级名与阈值
+	static const char *Level_Name(Level lv);
+	static void Set_Log_Level(Level lv);		/* 文件日志过滤阈值（默认 DEBUG 全量） */
+	// 敏感信息脱敏：<=8 字符全掩 ********；>8 字符 前4+****
+	static QString Mask(const QString &secret);
+	// 高频限流：同一 key 每 perMs 毫秒最多放行一次（线程安全）
+	static bool Rate_Limit(const QString &key, int perMs = 1000);
 private:
+	static QString Module_Alias(const QString &module);	/* 旧中文模块名 → 新标识 */
 	static QMutex s_Mutex;
+	static Level s_MinLevel;									/* 文件过滤阈值 */
+	static QHash<QString, qint64> s_RateMap;					/* 限流时间戳表 */
 	// 2026-10-24 T80：日志总量治理——>500MB 自动清理至 100MB（旧→新删除，保留当天）
 	static qint64 s_LastCheckMs;									/* 检查节流时间戳 */
 	static const qint64 CHECK_INTERVAL_MS = 60000;					/* 每 60s 检查一次 */

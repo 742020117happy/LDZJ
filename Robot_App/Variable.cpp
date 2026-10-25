@@ -300,23 +300,87 @@ c_Variable& c_Variable::getInstance()
 }
 
 // 2026-10-24 重构 T31：统一软件操作日志中心实现（线程安全、按天滚动、Append 增量）
+// 2026-10-25 日志体系完善（L 系列）：新增等级/事件/格式/脱敏/限流
 QMutex c_Log::s_Mutex;
 qint64 c_Log::s_LastCheckMs = 0;
+c_Log::Level c_Log::s_MinLevel = c_Log::LV_DEBUG;
+QHash<QString, qint64> c_Log::s_RateMap;
 
-void c_Log::Write(const QString &module, const QString &msg)
+// 2026-10-25 L：旧中文模块名 → 新标识映射（兼容旧接口与既有调用点）
+QString c_Log::Module_Alias(const QString &module)
+{
+	if (module == "系统")       return "APP";
+	if (module == "移动底盘")   return "CHASSIS";
+	if (module == "机械臂")     return "ARM";
+	if (module == "巡检过程")   return "WORK";
+	if (module == "语音报警")   return "VOICE";
+	if (module == "远程IO")     return "IO";
+	return module;
+}
+
+const char *c_Log::Level_Name(c_Log::Level lv)
+{
+	switch (lv) {
+	case LV_DEBUG: return "DEBUG";
+	case LV_INFO:  return "INFO";
+	case LV_WARN:  return "WARN";
+	case LV_ERROR: return "ERROR";
+	case LV_FATAL: return "FATAL";
+	}
+	return "INFO";
+}
+
+void c_Log::Set_Log_Level(c_Log::Level lv)
 {
 	QMutexLocker locker(&s_Mutex);
+	s_MinLevel = lv;
+}
+
+QString c_Log::Mask(const QString &secret)
+{
+	if (secret.isEmpty()) return "";
+	if (secret.length() <= 8) return "********";
+	return secret.left(4) + "****";
+}
+
+bool c_Log::Rate_Limit(const QString &key, int perMs)
+{
+	QMutexLocker locker(&s_Mutex);
+	qint64 now = QDateTime::currentMSecsSinceEpoch();
+	QHash<QString, qint64>::iterator it = s_RateMap.find(key);
+	if (it != s_RateMap.end() && (now - it.value()) < perMs) return false;
+	s_RateMap.insert(key, now);
+	return true;
+}
+
+// 新格式写入口：[yyyy-MM-dd hh:mm:ss.zzz][等级][模块][事件] 键值对
+void c_Log::Write(c_Log::Level lv, const QString &module, const QString &event, const QString &msg)
+{
+	QMutexLocker locker(&s_Mutex);
+	if (lv < s_MinLevel) return;	/* 低于文件过滤阈值不落盘 */
 	QString dir = QDir::currentPath() + "/Debug_DB";
 	QDir().mkpath(dir);
 	QFile file(dir + "/软件操作日志_" + QDateTime::currentDateTime().toString("yyyyMMdd") + ".log");
 	if (file.open(QIODevice::Append | QIODevice::Text)) {
+		/* UTF-8 追加写入，无 BOM（Append 模式天然不重复写 BOM）；写失败静默不崩溃 */
 		file.write((QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")
-			+ " [" + module + "] " + msg + "\n").toUtf8());
+			+ QString("[%1][%2][%3] %4\n").arg(Level_Name(lv)).arg(Module_Alias(module)).arg(event).arg(msg)).toUtf8());
 		file.close();
 	}
 	// 2026-10-24 T80：低频检查总量，超 500MB 自动清理（锁内调用，节流 60s）
 	Cleanup_If_Needed();
 }
+
+void c_Log::Write(const QString &module, const QString &msg)
+{
+	Write(LV_INFO, module, "General", msg);
+}
+
+void c_Log::Debug(const QString &module, const QString &event, const QString &msg) { Write(LV_DEBUG, module, event, msg); }
+void c_Log::Info (const QString &module, const QString &event, const QString &msg) { Write(LV_INFO,  module, event, msg); }
+void c_Log::Warn (const QString &module, const QString &event, const QString &msg) { Write(LV_WARN,  module, event, msg); }
+void c_Log::Error(const QString &module, const QString &event, const QString &msg) { Write(LV_ERROR, module, event, msg); }
+void c_Log::Fatal(const QString &module, const QString &event, const QString &msg) { Write(LV_FATAL, module, event, msg); }
 
 // 2026-10-24 T80：日志总量治理——总量>500MB 时按修改时间旧→新删除至 <=100MB，当天文件保留
 void c_Log::Cleanup_If_Needed()

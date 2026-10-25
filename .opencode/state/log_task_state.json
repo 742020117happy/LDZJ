@@ -1,0 +1,28 @@
+{
+	"project": "D:\\Robot_App",
+	"baseline": "ef82aa1",
+	"phase": 0,
+	"tasks": [
+		{ "id": "L0", "name": "阶段0 备份与定位", "status": "done", "tries": 1 },
+		{ "id": "L1", "name": "阶段1 日志盘点", "status": "in_progress", "tries": 0 },
+		{ "id": "L2", "name": "阶段2 日志规范设计", "status": "pending", "tries": 0 },
+		{ "id": "L3", "name": "阶段3 c_Log 基础扩展", "status": "pending", "tries": 0 },
+		{ "id": "L4-1", "name": "轮1 LOG/APP/CFG 通用日志", "status": "pending", "tries": 0 },
+		{ "id": "L4-2", "name": "轮2 ARM 机械臂", "status": "pending", "tries": 0 },
+		{ "id": "L4-3", "name": "轮3 SCAN 精扫相机", "status": "pending", "tries": 0 },
+		{ "id": "L4-4", "name": "轮4 IO", "status": "pending", "tries": 0 },
+		{ "id": "L4-5", "name": "轮5 VOICE 语音", "status": "pending", "tries": 0 },
+		{ "id": "L4-6", "name": "轮6 WORK 任务流", "status": "pending", "tries": 0 },
+		{ "id": "L4-7", "name": "轮7 CHASSIS 底盘", "status": "pending", "tries": 0 },
+		{ "id": "L4-8", "name": "轮8 HTTP/Magic 网络", "status": "pending", "tries": 0 },
+		{ "id": "L4-9", "name": "轮9 DB 数据库", "status": "pending", "tries": 0 },
+		{ "id": "L4-10", "name": "轮10 WEB/EMIS", "status": "pending", "tries": 0 },
+		{ "id": "L4-11", "name": "轮11 UI 用户操作日志", "status": "pending", "tries": 0 },
+		{ "id": "L4-12", "name": "轮12 报警日志与 Work_Alarm 联动", "status": "pending", "tries": 0 },
+		{ "id": "L4-13", "name": "轮13 限流/脱敏/等级过滤优化", "status": "pending", "tries": 0 },
+		{ "id": "L4-14", "name": "轮14 编译验证+运行自检+最终报告", "status": "pending", "tries": 0 },
+		{ "id": "L5", "name": "阶段5 最终报告", "status": "pending", "tries": 0 }
+	],
+	"blocked": 0,
+	"notes": "程序运行中（PID 4836），最终部署需等关闭"
+}
