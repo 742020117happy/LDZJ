@@ -465,6 +465,8 @@ Robot_App.exe 同目录下有 Work_DB 文件夹，内含两个巡检数据文件
 ### 日志/其它
 - HoldingRegisters = 
 - Light_Auto = True
+- Log_MaxDays = 7
+- Log_MaxMB = 100
 - Log_Level = DEBUG
 - Read_DiscreteInputs_Size = 500
 - Read_InputRegisters_Size = 620

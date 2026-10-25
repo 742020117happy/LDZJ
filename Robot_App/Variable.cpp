@@ -305,6 +305,8 @@ QMutex c_Log::s_Mutex;
 qint64 c_Log::s_LastCheckMs = 0;
 c_Log::Level c_Log::s_MinLevel = c_Log::LV_DEBUG;
 QHash<QString, qint64> c_Log::s_RateMap;
+int c_Log::s_MaxDays = 7;
+qint64 c_Log::s_MaxTotalBytes = 100LL * 1024 * 1024;	// 2026-10-25 RL：默认总量 100MB（T80 原 500MB 过高，防磁盘占满）
 
 // 2026-10-25 L：旧中文模块名 → 新标识映射（兼容旧接口与既有调用点）
 QString c_Log::Module_Alias(const QString &module)
@@ -382,7 +384,18 @@ void c_Log::Warn (const QString &module, const QString &event, const QString &ms
 void c_Log::Error(const QString &module, const QString &event, const QString &msg) { Write(LV_ERROR, module, event, msg); }
 void c_Log::Fatal(const QString &module, const QString &event, const QString &msg) { Write(LV_FATAL, module, event, msg); }
 
-// 2026-10-24 T80：日志总量治理——总量>500MB 时按修改时间旧→新删除至 <=100MB，当天文件保留
+// 2026-10-25 RL：日志保留策略配置（防磁盘占满）
+void c_Log::Set_Retention(int maxDays, qint64 maxTotalMB)
+{
+	QMutexLocker locker(&s_Mutex);
+	if (maxDays >= 1 && maxDays <= 365) s_MaxDays = maxDays;
+	if (maxTotalMB >= 10 && maxTotalMB <= 10240) s_MaxTotalBytes = maxTotalMB * 1024LL * 1024LL;
+}
+
+// 2026-10-25 RL：日志治理增强（原 T80 仅中心日志 500MB 阈值，且不覆盖 8 个模块分文件）——
+// ① 中心日志按天保留（>s_MaxDays 天删除）+ 总量超 s_MaxTotalBytes 删最旧（保留当天）
+// ② 模块分文件（移动底盘.log 等 8 个无限追加文件）单文件 >20MB 删除重建
+// ③ 清理 *.tmp 残留
 void c_Log::Cleanup_If_Needed()
 {
 	qint64 now = QDateTime::currentMSecsSinceEpoch();
@@ -391,29 +404,48 @@ void c_Log::Cleanup_If_Needed()
 
 	QString dir = QCoreApplication::applicationDirPath() + "/Debug_DB";	// 2026-10-25 D-005b：exe 目录定位
 	QDir d(dir);
-	QFileInfoList files = d.entryInfoList(QStringList() << "软件操作日志_*.log", QDir::Files, QDir::Time);
-	if (files.isEmpty()) return;
+	if (!d.exists()) return;
 
-	qint64 total = 0;
-	for (const QFileInfo &fi : files) total += fi.size();
-	if (total <= MAX_TOTAL_BYTES) return;
-
-	QString todayName = "软件操作日志_" + QDateTime::currentDateTime().toString("yyyyMMdd") + ".log";
-	QStringList removed;
-	for (int i = files.size() - 1; i >= 0 && total > KEEP_BYTES; --i) {
-		const QFileInfo &fi = files.at(i);
-		if (fi.fileName() == todayName) continue;	/* 当天日志不删 */
-		qint64 sz = fi.size();
-		if (QFile::remove(fi.absoluteFilePath())) {
-			total -= sz;
-			removed << fi.fileName();
+	// ② 模块分文件（无日期后缀 .log）+ ③ tmp 残留：单文件超上限删除（各 Write_*_List 每次追加时自动重建）
+	QFileInfoList allFiles = d.entryInfoList(QStringList() << "*.log" << "*.tmp", QDir::Files, QDir::NoSort);
+	QString centerPrefix = QString::fromUtf8("软件操作日志_");
+	for (const QFileInfo &fi : allFiles) {
+		if (fi.fileName().startsWith(centerPrefix)) continue;	/* 中心日志单独策略 */
+		if (fi.fileName().endsWith(".tmp") || fi.size() > MODULE_FILE_MAX_BYTES) {
+			QFile::remove(fi.absoluteFilePath());
 		}
 	}
+
+	// ① 中心日志治理
+	QFileInfoList files = d.entryInfoList(QStringList() << (centerPrefix + "*.log"), QDir::Files, QDir::Time | QDir::Reversed);
+	if (files.isEmpty()) return;
+
+	QDate today = QDate::currentDate();
+	QString todayName = centerPrefix + QDateTime::currentDateTime().toString("yyyyMMdd") + ".log";
+	QStringList removed;
+	qint64 total = 0;
+	for (const QFileInfo &fi : files) total += fi.size();
+
+	for (const QFileInfo &fi : files) {
+		/* 按天保留：修改时间早于 s_MaxDays 天前的删除（当天保护） */
+		if (fi.lastModified().date().daysTo(today) > s_MaxDays) {
+			if (QFile::remove(fi.absoluteFilePath())) { total -= fi.size(); removed << fi.fileName(); }
+		}
+	}
+	/* 总量阈值：仍超限则删最旧（当天保护；files 已按时间升序=最旧在前） */
+	for (const QFileInfo &fi : files) {
+		if (total <= s_MaxTotalBytes) break;
+		if (fi.fileName() == todayName) continue;
+		if (!QFile::exists(fi.absoluteFilePath())) continue;	/* 上一步已删 */
+		qint64 sz = fi.size();
+		if (QFile::remove(fi.absoluteFilePath())) { total -= sz; removed << fi.fileName(); }
+	}
+
 	if (!removed.isEmpty()) {
 		QFile file(dir + "/" + todayName);
 		if (file.open(QIODevice::Append | QIODevice::Text)) {
 			file.write((QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")
-				+ " [系统] 日志总量超限，已自动清理 " + QString::number(removed.size())
+				+ " [系统] 日志保留策略：自动清理 " + QString::number(removed.size())
 				+ " 个文件：" + removed.join(" ") + "\n").toUtf8());
 			file.close();
 		}

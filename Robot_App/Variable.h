@@ -526,16 +526,19 @@ public:
 	static QString Mask(const QString &secret);
 	// 高频限流：同一 key 每 perMs 毫秒最多放行一次（线程安全）
 	static bool Rate_Limit(const QString &key, int perMs = 1000);
+	// 2026-10-25 RL：日志保留策略配置（防磁盘占满）——maxDays=中心日志按天保留天数；maxTotalMB=中心日志总量阈值；模块单文件上限固定 20MB
+	static void Set_Retention(int maxDays, qint64 maxTotalMB);
 private:
 	static QString Module_Alias(const QString &module);	/* 旧中文模块名 → 新标识 */
 	static QMutex s_Mutex;
 	static Level s_MinLevel;									/* 文件过滤阈值 */
 	static QHash<QString, qint64> s_RateMap;					/* 限流时间戳表 */
+	static int s_MaxDays;										/* 2026-10-25 RL：中心日志保留天数（默认 7） */
+	static qint64 s_MaxTotalBytes;								/* 2026-10-25 RL：中心日志总量阈值（默认 100MB） */
+	static const qint64 MODULE_FILE_MAX_BYTES = 20LL * 1024 * 1024;	/* 模块分文件单文件上限 20MB */
 	// 2026-10-24 T80：日志总量治理——>500MB 自动清理至 100MB（旧→新删除，保留当天）
 	static qint64 s_LastCheckMs;									/* 检查节流时间戳 */
 	static const qint64 CHECK_INTERVAL_MS = 60000;					/* 每 60s 检查一次 */
-	static const qint64 MAX_TOTAL_BYTES = 500LL * 1024 * 1024;		/* 总量阈值 500MB */
-	static const qint64 KEEP_BYTES = 100LL * 1024 * 1024;			/* 清理目标 100MB */
 	static void Cleanup_If_Needed();								/* 调用方须持有 s_Mutex */
 };
 class c_Variable : public QObject

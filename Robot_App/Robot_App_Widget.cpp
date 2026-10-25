@@ -260,6 +260,13 @@ void c_Robot_App_Widget::Variable_DB()
 		c_Log::Set_Log_Level(level);
 		c_Log::Info("LOG", "Config", QString("level=%1").arg(lv));
 	}
+	// 2026-10-25 RL：日志保留策略配置化（防磁盘占满）——Log_MaxDays 天数 / Log_MaxMB 总量阈值
+	{
+		int maxDays = DB_Doc.object().value("Log_MaxDays").toInt(7);
+		qint64 maxMB  = static_cast<qint64>(DB_Doc.object().value("Log_MaxMB").toInt(100));
+		c_Log::Set_Retention(maxDays, maxMB);
+		c_Log::Info("LOG", "Config", QString("retention days=%1 total=%2MB").arg(maxDays).arg(maxMB));
+	}
 }
 
 /*************************************************************************************************************************************************
