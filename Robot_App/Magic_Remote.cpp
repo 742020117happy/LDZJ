@@ -89,15 +89,16 @@ void c_Magic_Remote::Poll_Status() {
 	// 3. 中频数据 (每2次轮询请求一次，400ms)
 	if (m_PollCounter % 2 == 0) {
 		Get_Robot_Hardware_Status(); // 4.6.2 硬件状态(电量、防撞、雷达等)
-		Get_Task_Process_Status();   // 4.6.14 任务进度
+		Get_Task_Process_Status();   // 4.6.14 任务进度（仅进度显示）
 		Get_Odom();                  // 4.6.4 里程计速度
 		Get_Angular_Linear();        // 4.6.3 线速度/角速度
+		// 2026-10-24 DD6：任务完成判定唯一来源 4.4.11 is_finished（原 task_process_status==3 为"未运行"误判源）
+		// 导航激活期间提升至 400ms 轮询（原 1s），完成检测延迟更低
+		if (m_NavTaskActive) Get_Task_Is_Finished();
 	}
 
 	// 4. 低频数据 (每5次轮询请求一次，1000ms)
 	if (m_PollCounter % 5 == 0) {
-		// 2026-10-24 走查 T43：导航任务激活期间轮询官方完成接口（task_process_status 仅适用手绘/录制路径）
-		if (m_NavTaskActive) Get_Task_Is_Finished();
 		// 2026-10-24 T45：脱离充电桩进行中轮询状态
 		if (m_DisRecharging) Get_Dis_Recharge_Status();
 		Get_Recharge_Status();       // 4.5.2 充电状态反馈
@@ -1136,13 +1137,9 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QJsonObject data = dataVal.toObject();
 		int statusCode = data["statusCode"].toInt(0);
 
-		if (statusCode == 3) {
-			// 2026-10-24 重构 T03 第二批：仅本工作流发起的导航任务完成才发 Done（一次）
-			if (m_NavTaskActive) {
-				m_NavTaskActive = false;
-				emit StartTask_Done();
-			}
-		}
+		// 2026-10-24 DD6：官方文档明确 task_process_status==3 为"未运行"（非完成），
+		// 原 T43 在此处 emit StartTask_Done 属误判——任务未启动/取消也会被误报完成。
+		// 任务完成判定统一改用 4.4.11 is_finished（下方 /task_queue/task/is_finished 处理）。
 		c_Variable::getInstance().g_Magic.ReadData.taskStatus = (statusCode == 1) ? 1 : 0;
 
 		QJsonObject statusData = data["statusData"].toObject();
@@ -1477,8 +1474,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (dataVal.isBool()) {
 			bool finished = dataVal.toBool();
 			c_Variable::getInstance().g_Magic.ReadData.taskStatus = finished ? 0 : 1;
-			// T43-1 双源完成判定：task_process_status 官方仅适用于手绘/录制路径，
-			// 导航点任务改用官方 is_finished 判定（要求先观察到运行中再结束，防下发瞬间误判）
+			// 2026-10-24 DD6：任务完成判定唯一来源——4.4.11 is_finished（官方文档指定，
+			// 替代原 task_process_status 双源；要求先观察到运行中再结束，防下发瞬间误判）
 			if (isTaskFinishedApi && m_NavTaskActive) {
 				if (!finished) m_NavTaskSeenRunning = true;
 				else if (m_NavTaskSeenRunning) {
