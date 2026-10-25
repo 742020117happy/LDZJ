@@ -50,13 +50,19 @@ void c_Sql_Remote::connect_mysql()
 		DATABASE = c_Variable::getInstance().g_Communicate_DB.value("MySql_Database").toString();
 	}
 
+	// 2026-10-25 L：数据库连接请求（只打印 host/port/user/db，密码仅字段名不打印值——规范 §六）
+	c_Log::Info("DB", "Connect", QString("request host=%1 port=%2 user=%3 db=%4 password=******").arg(HOST).arg(PORT).arg(USER).arg(DATABASE));
+
 	if (!c_Object::QtPing(HOST)) {
+		// 2026-10-25 L：主机不可达（只记录，不改变 1s 重试流程）
+		c_Log::Warn("DB", "Connect", QString("rejected host_unreachable=true host=%1 retry=1000ms").arg(HOST));
 		emit Status("MySQL 网络未准备好！");
 		QTimer::singleShot(1000, this, &c_Sql_Remote::connect_mysql);
 		return;
 	}
 
 	if (mysql_ping(m_conn) == 0) {
+		c_Log::Info("DB", "Connect", "success already_connected=true");
 		emit Status("MySQL 已连接");
 		flush_pending_images();
 		return;
@@ -64,9 +70,12 @@ void c_Sql_Remote::connect_mysql()
 
 	if (!mysql_real_connect(m_conn, HOST.toLatin1().data(), USER.toLatin1().data(),
 		PASSWORD.toLatin1().data(), DATABASE.toLatin1().data(), PORT, nullptr, 0)) {
+		// 2026-10-25 L：连接失败（只打印主机与错误码，不打印密码）
+		c_Log::Error("DB", "Connect", QString("failed host=%1 err=%2").arg(HOST).arg(mysql_error(m_conn)));
 		emit Status("MySQL 连接失败：" + QString(mysql_error(m_conn)));
 		return;
 	}
+	c_Log::Info("DB", "Connect", "success");
 	emit Status("MySQL 连接成功！");
 
 	if (mysql_query(m_conn, "SET NAMES utf8mb4")) {
@@ -197,7 +206,9 @@ void c_Sql_Remote::flush_pending_images()
 		QMutexLocker locker(m_Mutex);
 		hasPending = !m_imagePathList.isEmpty();
 	}
+	// 2026-10-25 L：图片入库队列触发（只记录有无待写，不打印路径内容）
 	if (hasPending) {
+		c_Log::Info("DB", "Queue", "flush pending=true");
 		flush_collect_time();
 	}
 }

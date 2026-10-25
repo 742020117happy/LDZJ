@@ -30,55 +30,55 @@
     {
       "id": "L4-1",
       "name": "轮1 LOG/APP/CFG 通用日志",
-      "status": "in_progress",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-2",
       "name": "轮2 ARM 机械臂",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-3",
       "name": "轮3 SCAN 精扫相机",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-4",
       "name": "轮4 IO",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-5",
       "name": "轮5 VOICE 语音",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-6",
       "name": "轮6 WORK 任务流",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-7",
       "name": "轮7 CHASSIS 底盘",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-8",
       "name": "轮8 HTTP/Magic 网络",
-      "status": "pending",
+      "status": "done",
       "tries": 0
     },
     {
       "id": "L4-9",
       "name": "轮9 DB 数据库",
-      "status": "pending",
+      "status": "in_progress",
       "tries": 0
     },
     {
