@@ -99,14 +99,14 @@ void c_Robot_App_Widget::System_Scan()
 	// 2026-10-24 C3：连接指示灯不随门控停更——模块断开时须红灯提示
 	// （Fr_Light::Set_State 内部状态未变免重绘，开销可忽略）
 	{
-		auto &v = c_Variable::getInstance().g_Voice;
-		ui->Voice_Connected->Set_State(v.is_connected);
-		auto &io = c_Variable::getInstance().g_IO;
-		ui->IO_Connected->Set_State(io.Connected);
-		ui->IO_Ready->Set_State(io.Ready);
-		auto &c = c_Variable::getInstance().g_CGXi;
-		ui->CGXi_Connected->Set_State(c.Connected);
-		ui->CGXi_Ready->Set_State(c.Ready);
+	// 2026-10-24 CC：全局变量直接访问（原 v 别名已消除）
+		ui->Voice_Connected->Set_State(c_Variable::getInstance().g_Voice.is_connected);
+	// 2026-10-24 CC：全局变量直接访问（原 io 别名已消除）
+		ui->IO_Connected->Set_State(c_Variable::getInstance().g_IO.Connected);
+		ui->IO_Ready->Set_State(c_Variable::getInstance().g_IO.Ready);
+	// 2026-10-24 CC：全局变量直接访问（原 c 别名已消除）
+		ui->CGXi_Connected->Set_State(c_Variable::getInstance().g_CGXi.Connected);
+		ui->CGXi_Ready->Set_State(c_Variable::getInstance().g_CGXi.Ready);
 		ui->light_Connected->Set_State(c_Variable::getInstance().g_Magic.is_connected);
 		ui->light_Ready->Set_State(c_Variable::getInstance().g_Magic.Ready);
 	}
@@ -224,7 +224,7 @@ void c_Robot_App_Widget::Magic_Init()
 
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::Status, this, &c_Robot_App_Widget::Write_Magic_List);
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_MapList, this, [this]() {
-		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		const Magic_ReadData r = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照
 		ui->comboBox_MapList->blockSignals(true);
 		QString current = ui->comboBox_MapList->currentText();
 		ui->comboBox_MapList->clear();
@@ -236,7 +236,7 @@ void c_Robot_App_Widget::Magic_Init()
 	});
 
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_NavPointList, this, [this]() {
-		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		const Magic_ReadData r = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照
 		ui->table_NavPoints->setRowCount(r.navPoints.size());
 		for (int i = 0; i < r.navPoints.size(); ++i) {
 			QJsonObject obj = r.navPoints[i];
@@ -350,9 +350,9 @@ void c_Robot_App_Widget::Magic_DB()
 	// ---------- 任务类型和名称 ---
 	QObject::connect(ui->combo_TaskType, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, [this](int idx) {
-		auto &write = c_Variable::getInstance().g_Magic.WriteData;
-		write.taskTypeIndex = idx;
-		const auto &r = c_Variable::getInstance().g_Magic.ReadData;
+		// 2026-10-24 CC：直接访问（原 write 别名已消除）
+		c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex = idx;
+		const Magic_ReadData r = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照
 		ui->combo_TaskName->blockSignals(true);
 		QString curTask = ui->combo_TaskName->currentText();
 		ui->combo_TaskName->clear();
@@ -377,7 +377,7 @@ void c_Robot_App_Widget::Magic_DB()
 		int taskIdx = ui->combo_TaskName->findText(curTask);
 		if (taskIdx >= 0) ui->combo_TaskName->setCurrentIndex(taskIdx);
 		ui->combo_TaskName->blockSignals(false);
-		write.taskName = ui->combo_TaskName->currentText();
+		c_Variable::getInstance().g_Magic.WriteData.taskName = ui->combo_TaskName->currentText();
 	});
 	// activated 仅在用户主动选择时触发，程序化刷新（clear/setCurrentIndex）不会触发
 	QObject::connect(ui->combo_TaskName, QOverload<const QString &>::of(&QComboBox::activated),
@@ -402,10 +402,10 @@ void c_Robot_App_Widget::Magic_Scan()
 	bool dbConn = false, dbReady = false;
 	{
 		QReadLocker lock_read(&c_Variable::g_lock);
-		auto &db = c_Variable::getInstance().g_Magic;
-		snap = db.ReadData;
-		dbConn = db.is_connected;
-		dbReady = db.Ready;
+	// 2026-10-24 CC：全局变量直接访问（原 db 别名已消除）
+		snap = c_Variable::getInstance().g_Magic.ReadData;
+		dbConn = c_Variable::getInstance().g_Magic.is_connected;
+		dbReady = c_Variable::getInstance().g_Magic.Ready;
 	}
 	const auto &r = snap;
 
@@ -577,8 +577,10 @@ void c_Robot_App_Widget::Magic_Button()
 		QString curMap; int gx, gy; double ang;
 		{
 			QReadLocker locker(&c_Variable::g_lock);
-			const auto &rd = c_Variable::getInstance().g_Magic.ReadData;
-			curMap = rd.currentMap; gx = rd.gridX; gy = rd.gridY; ang = rd.angle;
+			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
+			gx = c_Variable::getInstance().g_Magic.ReadData.gridX;
+			gy = c_Variable::getInstance().g_Magic.ReadData.gridY;
+			ang = c_Variable::getInstance().g_Magic.ReadData.angle;
 		}
 		if (!curMap.isEmpty())
 			QMetaObject::invokeMethod(m_Magic_Remote, "Temp_Point_Init_Pose", Qt::QueuedConnection,
@@ -769,12 +771,12 @@ void c_Robot_App_Widget::Magic_Button()
 
 	// ========== 系统设置 ==========
 	QObject::connect(ui->btn_UpdateSpeed, &QPushButton::clicked, this, [this]() {
-		auto &w = c_Variable::getInstance().g_Magic.WriteData;
+		// 2026-10-24 CC：直接访问（原 w 别名已消除）
 		QJsonObject setting;
 		QJsonObject speed;
-		speed.insert("goal_follow", w.maxSpeedGoal);
-		speed.insert("graph_follow", w.maxSpeedGraph);
-		speed.insert("record_follow", w.maxSpeedRecord);
+		speed.insert("goal_follow", c_Variable::getInstance().g_Magic.WriteData.maxSpeedGoal);
+		speed.insert("graph_follow", c_Variable::getInstance().g_Magic.WriteData.maxSpeedGraph);
+		speed.insert("record_follow", c_Variable::getInstance().g_Magic.WriteData.maxSpeedRecord);
 		setting.insert("max_speed", speed);
 		QMetaObject::invokeMethod(m_Magic_Remote, "Update_Robot_Setting", Qt::QueuedConnection,
 			Q_ARG(QJsonObject, setting));
@@ -877,21 +879,21 @@ void c_Robot_App_Widget::Magic_Button()
 	m_MoveTimer->setInterval(80);  // ~12.5Hz，满足 >10Hz 要求
 	QObject::connect(m_MoveTimer, &QTimer::timeout, this, [this]() {
 		if (m_MoveDirection == 0 || !m_Magic_Remote) return;
-		auto &db = c_Variable::getInstance().g_Magic;
-		if (!db.ReadData.localized) {
+	// 2026-10-24 CC：全局变量直接访问（原 db 别名已消除）
+		if (!c_Variable::getInstance().g_Magic.ReadData.localized) {
 			m_MoveTimer->stop();
 			m_MoveDirection = 0;
 			QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move_Stop", Qt::QueuedConnection);
 			Write_Magic_List("警告：机器人未定位，移动指令已拦截。");
 			return;
 		}
-		auto &w = db.WriteData;
+		// 2026-10-24 CC：直接访问（原 w 别名已消除）
 		double lv = 0.0, av = 0.0;
 		switch (m_MoveDirection) {
-		case 1: lv =  w.linearSpeed;                               break;
-		case 2: lv = -w.linearSpeed;                               break;
-		case 3: av =  w.angularSpeed;                              break;
-		case 4: av = -w.angularSpeed;                              break;
+		case 1: lv =  c_Variable::getInstance().g_Magic.WriteData.linearSpeed;                               break;
+		case 2: lv = -c_Variable::getInstance().g_Magic.WriteData.linearSpeed;                               break;
+		case 3: av =  c_Variable::getInstance().g_Magic.WriteData.angularSpeed;                              break;
+		case 4: av = -c_Variable::getInstance().g_Magic.WriteData.angularSpeed;                              break;
 		}
 		QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move", Qt::QueuedConnection,
 			Q_ARG(double, lv), Q_ARG(double, av), Q_ARG(double, 0.0));
@@ -946,11 +948,11 @@ void c_Robot_App_Widget::Magic_Button()
 
 	// ========== 定距离/定角度移动 ==========
 	QObject::connect(ui->btn_ExecuteMoveParams, &QPushButton::clicked, this, [&]() {
-		auto &w = c_Variable::getInstance().g_Magic.WriteData;
-		int mode = w.moveMode;
-		double target = w.moveTarget;
+		// 2026-10-24 CC：直接访问（原 w 别名已消除）
+		int mode = c_Variable::getInstance().g_Magic.WriteData.moveMode;
+		double target = c_Variable::getInstance().g_Magic.WriteData.moveTarget;
 		QMetaObject::invokeMethod(m_Magic_Remote, "Move_With_Params", Qt::QueuedConnection,
-			Q_ARG(double, w.linearSpeed), Q_ARG(double, w.angularSpeed),
+			Q_ARG(double, c_Variable::getInstance().g_Magic.WriteData.linearSpeed), Q_ARG(double, c_Variable::getInstance().g_Magic.WriteData.angularSpeed),
 			Q_ARG(double, mode == 1 ? target : 0.0),
 			Q_ARG(double, mode == 2 ? target : 0.0),
 			Q_ARG(int, mode));
@@ -1349,7 +1351,7 @@ void c_Robot_App_Widget::Pre_Scan_120_Init()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Pre_Scan_120_DB()
 {
-	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
+	// 2026-10-24 CC：全局变量直接访问（原 cfg 别名已消除）
 
 	// ====== 连接参数 textChanged → Communicate_DB ======
 	QObject::connect(ui->Pre_Scan_120_IP, &QLineEdit::textChanged, this, [this](const QString &text) {
@@ -1401,25 +1403,25 @@ void c_Robot_App_Widget::Pre_Scan_120_DB()
 	});
 
 	// ====== 默认值写入 g_Work_DB（来源：轮对质检机器人-图像采集上传协议第2.2节）======
-	auto &work = c_Variable::getInstance().g_Work_DB;
-	work.taskId = "202404231143RD3A001";
-	work.wheelsetNo = "LZ20240315";
-	work.axleNo = "CP0012024";
-	work.sendUnit = "SHCLD";
-	work.startTime = "202404231143";
-	work.repairLevel = "L3";
-	work.currentTaskIndex = 0;
-	work.currentGain = 20;
-	work.currentPart1 = "TCLD";
-	work.currentPart2 = "05";
-	work.currentPointStr = "08";
-	work.totalImages = 0;
+	// 2026-10-24 CC：全局变量直接访问（原 work 别名已消除）
+	c_Variable::getInstance().g_Work_DB.taskId = "202404231143RD3A001";
+	c_Variable::getInstance().g_Work_DB.wheelsetNo = "LZ20240315";
+	c_Variable::getInstance().g_Work_DB.axleNo = "CP0012024";
+	c_Variable::getInstance().g_Work_DB.sendUnit = "SHCLD";
+	c_Variable::getInstance().g_Work_DB.startTime = "202404231143";
+	c_Variable::getInstance().g_Work_DB.repairLevel = "L3";
+	c_Variable::getInstance().g_Work_DB.currentTaskIndex = 0;
+	c_Variable::getInstance().g_Work_DB.currentGain = 20;
+	c_Variable::getInstance().g_Work_DB.currentPart1 = "TCLD";
+	c_Variable::getInstance().g_Work_DB.currentPart2 = "05";
+	c_Variable::getInstance().g_Work_DB.currentPointStr = "08";
+	c_Variable::getInstance().g_Work_DB.totalImages = 0;
 
 	// ====== 从 Communicate_DB 读取初始值填充 UI ======
-	ui->Pre_Scan_120_IP->setText(cfg.value("Pre_Scan_120_IP").toString());
-	ui->Pre_Scan_120_Port->setText(QString::number(cfg.value("Pre_Scan_120_Port").toInt(8001)));
-	ui->Pre_Scan_120_Monitor_Port->setText(QString::number(cfg.value("Pre_Scan_120_Monitor_Port").toInt(8000)));
-	ui->Pre_Scan_120_Tran_Port->setText(QString::number(cfg.value("Pre_Scan_120_Tran_Port").toInt(9000)));
+	ui->Pre_Scan_120_IP->setText(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString());
+	ui->Pre_Scan_120_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8001)));
+	ui->Pre_Scan_120_Monitor_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Monitor_Port").toInt(8000)));
+	ui->Pre_Scan_120_Tran_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Tran_Port").toInt(9000)));
 
 	// 推送 g_Work_DB 默认值到界面
 	c_Robot_App_Widget::Pre_Scan_120_Scan();
@@ -1538,29 +1540,29 @@ void c_Robot_App_Widget::Pre_Scan_120_Button()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Pre_Scan_120_Scan()
 {
-	auto &work = c_Variable::getInstance().g_Work_DB;
+	// 2026-10-24 CC：全局变量直接访问（原 work 别名已消除）
 
 	// 2026-10-24 重构 T27：setText 变化检测（10ms 全量刷新浪费 UI 帧预算，仅变化时写入）
 	auto setIf = [](auto *lb, const QString &v) { if (lb->text() != v) lb->setText(v); };
-	setIf(ui->r_Pre_Scan_120_TaskID, work.taskId);
-	setIf(ui->r_Pre_Scan_120_Wheelset, work.wheelsetNo);
-	setIf(ui->r_Pre_Scan_120_Axle, work.axleNo);
-	setIf(ui->r_Pre_Scan_120_SendUnit, work.sendUnit);
-	setIf(ui->r_Pre_Scan_120_StartTime, work.startTime);
-	setIf(ui->r_Pre_Scan_120_Repair, work.repairLevel);
+	setIf(ui->r_Pre_Scan_120_TaskID, c_Variable::getInstance().g_Work_DB.taskId);
+	setIf(ui->r_Pre_Scan_120_Wheelset, c_Variable::getInstance().g_Work_DB.wheelsetNo);
+	setIf(ui->r_Pre_Scan_120_Axle, c_Variable::getInstance().g_Work_DB.axleNo);
+	setIf(ui->r_Pre_Scan_120_SendUnit, c_Variable::getInstance().g_Work_DB.sendUnit);
+	setIf(ui->r_Pre_Scan_120_StartTime, c_Variable::getInstance().g_Work_DB.startTime);
+	setIf(ui->r_Pre_Scan_120_Repair, c_Variable::getInstance().g_Work_DB.repairLevel);
 
-	setIf(ui->r_Pre_Scan_120_currentWheelset, QString::number(work.currentTaskIndex));
-	setIf(ui->r_Pre_Scan_120_Gain, QString::number(work.currentGain));
-	setIf(ui->r_Pre_Scan_120_Part1, work.currentPart1);
-	setIf(ui->r_Pre_Scan_120_Part2, work.currentPart2);
-	setIf(ui->r_Pre_Scan_120_Point, work.currentPointStr);
+	setIf(ui->r_Pre_Scan_120_currentWheelset, QString::number(c_Variable::getInstance().g_Work_DB.currentTaskIndex));
+	setIf(ui->r_Pre_Scan_120_Gain, QString::number(c_Variable::getInstance().g_Work_DB.currentGain));
+	setIf(ui->r_Pre_Scan_120_Part1, c_Variable::getInstance().g_Work_DB.currentPart1);
+	setIf(ui->r_Pre_Scan_120_Part2, c_Variable::getInstance().g_Work_DB.currentPart2);
+	setIf(ui->r_Pre_Scan_120_Point, c_Variable::getInstance().g_Work_DB.currentPointStr);
 
-	auto &scan = c_Variable::getInstance().g_Prec_Scan_120;
-	setIf(ui->Pre_Scan_120_Client_Num, QString::number(scan.num));
-	ui->Pre_Scan_120_Remote_Light->Set_State(scan.Remote_Connected);
-	ui->Pre_Scan_120_Monitor_Light->Set_State(scan.Monitor_Connected);
-	ui->Pre_Scan_120_Tran_Light->Set_State(scan.Tran_Connected);
-	ui->Pre_Scan_120_Listen_Light->Set_State(scan.Tran_Listen);
+	// 2026-10-24 CC：全局变量直接访问（原 scan 别名已消除）
+	setIf(ui->Pre_Scan_120_Client_Num, QString::number(c_Variable::getInstance().g_Prec_Scan_120.num));
+	ui->Pre_Scan_120_Remote_Light->Set_State(c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected);
+	ui->Pre_Scan_120_Monitor_Light->Set_State(c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected);
+	ui->Pre_Scan_120_Tran_Light->Set_State(c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
+	ui->Pre_Scan_120_Listen_Light->Set_State(c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen);
 	// 2026-10-24 重构 T27：QDateTime 格式化降频（约 1s 一次，复用 m_FPS 计数）
 	if (m_FPS % 100 == 0)
 		ui->Pre_Scan_120_LastUpdate->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
@@ -1798,23 +1800,23 @@ void c_Robot_App_Widget::Voice_Init()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Voice_DB()
 {
-	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
+	// 2026-10-24 CC：全局变量直接访问（原 cfg 别名已消除）
 
 	ui->Voice_Com->blockSignals(true);
-	ui->Voice_Com->setCurrentText(cfg.value("Voice_Com").toString("COM1"));
+	ui->Voice_Com->setCurrentText(c_Variable::getInstance().g_Communicate_DB.value("Voice_Com").toString("COM1"));
 	ui->Voice_Com->blockSignals(false);
 
-	int baudIdx = ui->Voice_Baud->findText(cfg.value("Voice_Baud").toString("9600"));
+	int baudIdx = ui->Voice_Baud->findText(c_Variable::getInstance().g_Communicate_DB.value("Voice_Baud").toString("9600"));
 	ui->Voice_Baud->blockSignals(true);
 	if (baudIdx >= 0) ui->Voice_Baud->setCurrentIndex(baudIdx);
 	ui->Voice_Baud->blockSignals(false);
 
 	ui->Voice_Addr->blockSignals(true);
-	ui->Voice_Addr->setValue(cfg.value("Voice_Addr").toInt(1));
+	ui->Voice_Addr->setValue(c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1));
 	ui->Voice_Addr->blockSignals(false);
 
 	// 音量显示（实测范围 0-28：低5/中10/高20）
-	int vol = cfg.value("Voice_Volume").toInt(VoiceProtocol::VOLUME_MED);
+	int vol = c_Variable::getInstance().g_Communicate_DB.value("Voice_Volume").toInt(VoiceProtocol::VOLUME_MED);
 	QString volStr;
 	switch (vol) {
 	case VoiceProtocol::VOLUME_LOW:  volStr = "低(5)";  break;
@@ -1886,48 +1888,48 @@ void c_Robot_App_Widget::Voice_Button()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Voice_Scan()
 {
-	auto &voice = c_Variable::getInstance().g_Voice;
-	ui->Voice_Connected->Set_State(voice.is_connected);
+	// 2026-10-24 CC：全局变量直接访问（原 voice 别名已消除）
+	ui->Voice_Connected->Set_State(c_Variable::getInstance().g_Voice.is_connected);
 
 	// 音量显示（仅在变化时刷新）
 	QString volStr;
-	switch (voice.Volume) {
+	switch (c_Variable::getInstance().g_Voice.Volume) {
 	case VoiceProtocol::VOLUME_LOW:  volStr = "低(5)";  break;
 	case VoiceProtocol::VOLUME_MED:  volStr = "中(10)"; break;
 	case VoiceProtocol::VOLUME_HIGH: volStr = "高(20)"; break;
-	default: volStr = QString("音量(%1)").arg(voice.Volume); break;
+	default: volStr = QString("音量(%1)").arg(c_Variable::getInstance().g_Voice.Volume); break;
 	}
 	if (ui->Voice_Volume_Display->text() != volStr)
 		ui->Voice_Volume_Display->setText(volStr);
 
 	// 设备状态：未连接 → 通信异常 → 空闲/播放中/播放出错
 	QString devStr;
-	if (!voice.is_connected) {
+	if (!c_Variable::getInstance().g_Voice.is_connected) {
 		devStr = "未连接";
 	}
-	else if (!voice.Ready) {
+	else if (!c_Variable::getInstance().g_Voice.Ready) {
 		devStr = "通信异常";
 	}
 	else {
-		switch (voice.DeviceStatus) {
+		switch (c_Variable::getInstance().g_Voice.DeviceStatus) {
 		case VoiceProtocol::STATUS_IDLE:    devStr = "空闲";      break;
 		case VoiceProtocol::STATUS_PLAYING: devStr = "播放中";    break;
 		case VoiceProtocol::STATUS_ERROR:   devStr = "播放出错";  break;
-		default: devStr = QString("未知(%1)").arg(voice.DeviceStatus); break;
+		default: devStr = QString("未知(%1)").arg(c_Variable::getInstance().g_Voice.DeviceStatus); break;
 		}
 	}
 	if (ui->Voice_Device_Status->text() != devStr)
 		ui->Voice_Device_Status->setText(devStr);
 
 	// 当前播放音频
-	QString curStr = voice.PlayIndex > 0
-		? QString("PA%1").arg(voice.PlayIndex, 3, 10, QChar('0'))
+	QString curStr = c_Variable::getInstance().g_Voice.PlayIndex > 0
+		? QString("PA%1").arg(c_Variable::getInstance().g_Voice.PlayIndex, 3, 10, QChar('0'))
 		: "空闲";
 	if (ui->Voice_Current_Audio->text() != curStr)
 		ui->Voice_Current_Audio->setText(curStr);
 
 	// 累计播报次数
-	QString cntStr = QString::number(voice.PlayCount);
+	QString cntStr = QString::number(c_Variable::getInstance().g_Voice.PlayCount);
 	if (ui->Voice_Count->text() != cntStr)
 		ui->Voice_Count->setText(cntStr);
 }
@@ -1977,30 +1979,30 @@ void c_Robot_App_Widget::IO_Init()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::IO_DB()
 {
-	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
+	// 2026-10-24 CC：全局变量直接访问（原 cfg 别名已消除）
 
 	ui->IO_Ip->blockSignals(true);
-	ui->IO_Ip->setText(cfg.value("IO_IP").toString("192.168.6.10"));	// 2026-10-24 T59：默认值与现场拓扑一致
+	ui->IO_Ip->setText(c_Variable::getInstance().g_Communicate_DB.value("IO_IP").toString("192.168.6.10"));	// 2026-10-24 T59：默认值与现场拓扑一致
 	ui->IO_Ip->blockSignals(false);
 
 	ui->IO_Port->blockSignals(true);
-	ui->IO_Port->setText(cfg.value("IO_Port").toString("502"));
+	ui->IO_Port->setText(c_Variable::getInstance().g_Communicate_DB.value("IO_Port").toString("502"));
 	ui->IO_Port->blockSignals(false);
 
 	ui->Write_IO_Coils_Addr->blockSignals(true);
-	ui->Write_IO_Coils_Addr->setValue(cfg.value("IO_Coils_Addr").toInt(0));
+	ui->Write_IO_Coils_Addr->setValue(c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0));
 	ui->Write_IO_Coils_Addr->blockSignals(false);
 
 	ui->Write_IO_Coils_Size->blockSignals(true);
-	ui->Write_IO_Coils_Size->setValue(cfg.value("IO_Coils_Size").toInt(16));
+	ui->Write_IO_Coils_Size->setValue(c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16));
 	ui->Write_IO_Coils_Size->blockSignals(false);
 
 	ui->Write_IO_HoldingRegisters_Addr->blockSignals(true);
-	ui->Write_IO_HoldingRegisters_Addr->setValue(cfg.value("IO_HoldingRegisters_Addr").toInt(0));
+	ui->Write_IO_HoldingRegisters_Addr->setValue(c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Addr").toInt(0));
 	ui->Write_IO_HoldingRegisters_Addr->blockSignals(false);
 
 	ui->Write_IO_HoldingRegisters_Size->blockSignals(true);
-	ui->Write_IO_HoldingRegisters_Size->setValue(cfg.value("IO_HoldingRegisters_Size").toInt(4));
+	ui->Write_IO_HoldingRegisters_Size->setValue(c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Size").toInt(4));
 	ui->Write_IO_HoldingRegisters_Size->blockSignals(false);
 
 	QObject::connect(ui->IO_Ip, &QLineEdit::textChanged, this, [this](const QString &text) {
@@ -2088,35 +2090,35 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	if (!lightAuto) return;
 
 	// 读侧快照（T13 模式：标量加锁读）
-	auto &magic = c_Variable::getInstance().g_Magic;
+	// 2026-10-24 CC：全局变量直接访问（原 magic 别名已消除）
 	s_CGXi_DB cgxi;
 	bool emergency, localizedLost, batteryLow, chassisWarn;
-	bool magicConn = magic.is_connected;
+	bool magicConn = c_Variable::getInstance().g_Magic.is_connected;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		cgxi = c_Variable::getInstance().g_CGXi;
-		emergency     = magic.ReadData.emergencyStop;
-		localizedLost = magicConn && !magic.ReadData.localized;
-		batteryLow    = magicConn && magic.ReadData.battery > 0 && magic.ReadData.battery < 20;
-		chassisWarn   = magicConn && magic.ReadData.errorCode != 0;
+		emergency     = c_Variable::getInstance().g_Magic.ReadData.emergencyStop;
+		localizedLost = magicConn && !c_Variable::getInstance().g_Magic.ReadData.localized;
+		batteryLow    = magicConn && c_Variable::getInstance().g_Magic.ReadData.battery > 0 && c_Variable::getInstance().g_Magic.ReadData.battery < 20;
+		chassisWarn   = magicConn && c_Variable::getInstance().g_Magic.ReadData.errorCode != 0;
 	}
-	auto &work = c_Variable::getInstance().g_Work_DB;
-	auto &scan = c_Variable::getInstance().g_Prec_Scan_120;
+	// 2026-10-24 CC：全局变量直接访问（原 work 别名已消除）
+	// 2026-10-24 CC：全局变量直接访问（原 scan 别名已消除）
 
 	// 原因标志（2026-10-24 T48 扩展：相机故障/充电故障/障碍物，依据语音内容 xlsx）
-	bool cameraFail    = !(scan.Remote_Connected && scan.Monitor_Connected && scan.Tran_Connected);
+	bool cameraFail    = !(c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected && c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
 	bool anyDisconn    = !magicConn || !cgxi.Connected
 		|| !c_Variable::getInstance().g_IO.Connected;
 	bool robotError    = (cgxi.data.last_error_code != 0);
-	bool taskError     = (work.workState == 5);
-	bool chargeFail    = (magic.ReadData.chargeStatus == 3);
+	bool taskError     = (c_Variable::getInstance().g_Work_DB.workState == 5);
+	bool chargeFail    = (c_Variable::getInstance().g_Magic.ReadData.chargeStatus == 3);
 	bool obstacle      = false;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		obstacle = (c_Variable::getInstance().g_Magic.ReadData.antiCollision != 0);
 	}
-	bool paused        = (work.workState == 3);
-	bool collecting    = (work.workState == 2) || (cgxi.data.robot_moving != 0);
+	bool paused        = (c_Variable::getInstance().g_Work_DB.workState == 3);
+	bool collecting    = (c_Variable::getInstance().g_Work_DB.workState == 2) || (cgxi.data.robot_moving != 0);
 
 	int level;
 	QString voice;
@@ -2253,42 +2255,42 @@ void c_Robot_App_Widget::Work_DB()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Work_Scan()
 {
-	auto &w = c_Variable::getInstance().g_Work_DB;
-	auto &info = c_Variable::getInstance().g_Work;
+	// 2026-10-24 CC：全局变量直接访问（原 w 别名已消除）
+	// 2026-10-24 CC：全局变量直接访问（原 info 别名已消除）
 
 	// 2026-10-24 重构 T27 第二批：setText 变化检测
 	auto setIf = [](auto *lb, const QString &v) { if (lb->text() != v) lb->setText(v); };
-	setIf(ui->Work_TaskID, w.taskId);
-	setIf(ui->Work_CarType, w.carType + " / " + w.wheelsetKind);	// 2026-10-24 重构 T19：车型/轮对类型显示
-	setIf(ui->Work_Wheel, QString::number(w.currentTaskIndex + 1) + "/" + QString::number(w.taskCount));
-	setIf(ui->Work_Pos, QString::number(w.currentPos + 1));
+	setIf(ui->Work_TaskID, c_Variable::getInstance().g_Work_DB.taskId);
+	setIf(ui->Work_CarType, c_Variable::getInstance().g_Work_DB.carType + " / " + c_Variable::getInstance().g_Work_DB.wheelsetKind);	// 2026-10-24 重构 T19：车型/轮对类型显示
+	setIf(ui->Work_Wheel, QString::number(c_Variable::getInstance().g_Work_DB.currentTaskIndex + 1) + "/" + QString::number(c_Variable::getInstance().g_Work_DB.taskCount));
+	setIf(ui->Work_Pos, QString::number(c_Variable::getInstance().g_Work_DB.currentPos + 1));
 	{
 		QString stateStr;
-		switch (w.workState) {
+		switch (c_Variable::getInstance().g_Work_DB.workState) {
 		case 0: stateStr = "空闲"; break;
 		case 1: stateStr = "就绪"; break;
 		case 2: stateStr = "采集中"; break;
 		case 3: stateStr = "暂停"; break;
 		case 4: stateStr = "完成"; break;
 		case 5: stateStr = "错误"; break;
-		default: stateStr = QString::number(w.workState); break;
+		default: stateStr = QString::number(c_Variable::getInstance().g_Work_DB.workState); break;
 		}
 		setIf(ui->Work_State, stateStr);
 	}
-	setIf(ui->Work_Images, QString::number(w.totalImages));
-	setIf(ui->Work_Gain, QString::number(w.currentGain));
-	setIf(ui->Work_Part1, w.currentPart1);
-	setIf(ui->Work_Part2, w.currentPart2);
-	setIf(ui->Work_Point, w.currentPointStr);
-	setIf(ui->Work_WheelsetNo, w.wheelsetNo);
-	setIf(ui->Work_AxleNo, w.axleNo);
-	setIf(ui->Work_SendUnit, w.sendUnit);
-	setIf(ui->Work_Repair, w.repairLevel);
-	setIf(ui->Work_StartTime, w.startTime);
-	setIf(ui->label_ErrorCode, QString::number(w.errorCode));
+	setIf(ui->Work_Images, QString::number(c_Variable::getInstance().g_Work_DB.totalImages));
+	setIf(ui->Work_Gain, QString::number(c_Variable::getInstance().g_Work_DB.currentGain));
+	setIf(ui->Work_Part1, c_Variable::getInstance().g_Work_DB.currentPart1);
+	setIf(ui->Work_Part2, c_Variable::getInstance().g_Work_DB.currentPart2);
+	setIf(ui->Work_Point, c_Variable::getInstance().g_Work_DB.currentPointStr);
+	setIf(ui->Work_WheelsetNo, c_Variable::getInstance().g_Work_DB.wheelsetNo);
+	setIf(ui->Work_AxleNo, c_Variable::getInstance().g_Work_DB.axleNo);
+	setIf(ui->Work_SendUnit, c_Variable::getInstance().g_Work_DB.sendUnit);
+	setIf(ui->Work_Repair, c_Variable::getInstance().g_Work_DB.repairLevel);
+	setIf(ui->Work_StartTime, c_Variable::getInstance().g_Work_DB.startTime);
+	setIf(ui->label_ErrorCode, QString::number(c_Variable::getInstance().g_Work_DB.errorCode));
 
-	ui->Work_Server_Light->Set_State(info.Connected);
-	ui->Work_Client_Light->Set_State(info.Connected);
+	ui->Work_Server_Light->Set_State(c_Variable::getInstance().g_Work.Connected);
+	ui->Work_Client_Light->Set_State(c_Variable::getInstance().g_Work.Connected);
 }
 /*************************************************************************************************************************************************
 **Function:工作流按钮事件绑定 - 开始/取消/复位/回零/回充/暂停等按钮信号

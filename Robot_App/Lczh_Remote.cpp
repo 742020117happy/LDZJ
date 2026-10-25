@@ -266,17 +266,16 @@ QString c_Lczh_Remote::Build_Photo_Filename()
 	QString name;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		const auto &work = c_Variable::getInstance().g_Work_DB;	// 2026-10-24 CC：锁内常量别名（仅为可读性，作用域即锁）
 		name = QString("N-T1-%1-%2-%3-%4-%5-%6-%7-%8-%9")
-			.arg(work.startTime)
-			.arg(work.repairLevel)
-			.arg(work.sendUnit)
-			.arg(work.wheelsetNo)
-			.arg(work.axleNo)
-			.arg(work.currentProg)
-			.arg(work.currentPart1)
-			.arg(work.currentPart2)
-			.arg(work.currentPointStr);
+			.arg(c_Variable::getInstance().g_Work_DB.startTime)
+			.arg(c_Variable::getInstance().g_Work_DB.repairLevel)
+			.arg(c_Variable::getInstance().g_Work_DB.sendUnit)
+			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
+			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
+			.arg(c_Variable::getInstance().g_Work_DB.currentProg)
+			.arg(c_Variable::getInstance().g_Work_DB.currentPart1)
+			.arg(c_Variable::getInstance().g_Work_DB.currentPart2)
+			.arg(c_Variable::getInstance().g_Work_DB.currentPointStr);
 	}
 	return name;
 }
