@@ -434,9 +434,14 @@ void c_Magic_Remote::Start_Task(QJsonObject task_data) {
 	// 4.4.1 开始执行任务
 	// 2026-10-24 重构 T03 第二批：标记导航任务激活（StartTask_Done 仅在本工作流发起的任务完成时发射，
 	// 防手动/其他任务完成经 400ms 轮询串扰 wait_StartTask）
-	if (task_data.value("tasks").toArray().first().toObject().value("name").toString() == "NavigationPointTask") {
-		m_NavTaskActive = true;
-		m_NavTaskSeenRunning = false;	// 2026-10-24 T43：复位运行观察标志
+	{
+		// 2026-10-24 Z1：空 tasks 数组防护（first() 空数组为 UB）
+		QJsonArray arr = task_data.value("tasks").toArray();
+		if (!arr.isEmpty() &&
+			arr.first().toObject().value("name").toString() == "NavigationPointTask") {
+			m_NavTaskActive = true;
+			m_NavTaskSeenRunning = false;	// 2026-10-24 T43：复位运行观察标志
+		}
 	}
 	emit Signal_Send_POST("/task_queue/start", task_data, QJsonObject());
 }

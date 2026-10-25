@@ -151,6 +151,14 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 
 	//只有一个工位有轮对的情况
 	if (wheelsetCount == 1) {
+		// 2026-10-24 Z1：tasks 空数组防护（wheelsetCount==1 但数组为空时 at(0) 越界）
+		if (tasks.isEmpty()) {
+			return_cmd.insert("Message", "tasks 数组为空");
+			return_cmd.insert("Status", "Error");
+			return_cmd.insert("Value", false);
+			emit Write_Json(return_cmd);
+			return;
+		}
 		QJsonObject tasks_object = tasks.at(0).toObject();
 		if (tasks_object.value("taskId") == QJsonValue::Undefined){
 			return_cmd.insert("Message", "指令缺少taskId");
@@ -530,6 +538,14 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	}
 	//两个工位有轮对的情况
 	if (wheelsetCount ==2) {
+		// 2026-10-24 Z1：tasks 数组不足 2 个防护（wheelsetCount==2 但数组元素 <2 时 at(1) 越界）
+		if (tasks.size() < 2) {
+			return_cmd.insert("Message", "tasks 数组元素不足 2 个");
+			return_cmd.insert("Status", "Error");
+			return_cmd.insert("Value", false);
+			emit Write_Json(return_cmd);
+			return;
+		}
 		QJsonObject tasks_object = tasks.at(0).toObject();
 		QJsonObject tasks_object_2 = tasks.at(1).toObject();
 		if (tasks_object.value("taskId") == QJsonValue::Undefined) {

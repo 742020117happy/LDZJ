@@ -2196,6 +2196,13 @@ void c_Robot_App_Widget::Work_Init()
 	QObject::connect(m_Emis_Remote_Thread, &QThread::started, m_Emis_Remote, &c_Emis_Remote::init);          // 线程启动MySQL初始化
 	QObject::connect(m_Emis_Remote_Thread, &QThread::finished, m_Emis_Remote, &c_Emis_Remote::deleteLater);  // 线程结束自动释放
 	QObject::connect(m_Emis_Remote, &c_Emis_Remote::Status, this, &c_Robot_App_Widget::Write_Work_List);   // 状态信息写入巡检日志
+	// 2026-10-24 Z4：Update_Error 原无人连接（静默失败），桥接至巡检日志
+	QObject::connect(m_Emis_Remote, &c_Emis_Remote::Update_Error, this, [this]() {
+		Write_Work_List("EMIS 时间点上报失败");
+	});
+	QObject::connect(m_Emis_Remote, &c_Emis_Remote::Update_Done, this, [this]() {
+		Write_Work_List("EMIS 时间点上报成功");
+	});
 
 
 	m_Work_Remote = new c_Work_Remote;

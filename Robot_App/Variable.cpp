@@ -249,7 +249,8 @@ bool c_Object::QtPing(const QString ip)
 	cmd.waitForFinished(3000);
 
 	QString res = QString::fromLocal8Bit(cmd.readAll());
-	emit Status(res);
+	// 2026-10-24 Z3：移除 emit Status(res)——原始 ping 输出污染各模块日志
+	// （调用方自行记录连接结果），QtPing 仅负责连通性判定
 
 	if (res.indexOf("TTL") == -1) {
 		return false;
