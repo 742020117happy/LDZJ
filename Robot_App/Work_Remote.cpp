@@ -30,6 +30,8 @@ void c_Work_Remote::Init()
 			c_Variable::getInstance().g_Work_DB.workState = 0;
 		}
 		c_Variable::getInstance().g_Work.Connected = false;
+		// 2026-10-25 L：任务取消（只记录，不改变取消链）
+		c_Log::Warn("WORK", "Flow", "cancel source=task_cancelled");
 		emit Voice_Event("PA005");
 	});
 
@@ -148,6 +150,9 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	QJsonDocument cmd_doc(object);
 	QString jsonStr = QString::fromUtf8(cmd_doc.toJson(QJsonDocument::Compact));
 	emit Status(jsonStr);
+	// 2026-10-25 L：START_INSPECTION 指令解析完成（只打印允许字段：任务ID/车型/轮对类型/工位数；完整指令串仅走 UI Status 原有行为）
+	c_Log::Info("WORK", "Cmd", QString("recv START_INSPECTION wheelsetCount=%1 tasks=%2")
+		.arg(wheelsetCount).arg(tasks.size()));
 
 	//只有一个工位有轮对的情况
 	if (wheelsetCount == 1) {
@@ -458,12 +463,16 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.workState = 2;
 		}
-		emit Voice_Event("PA001");
-		return_cmd.insert("Message", "开始巡检");
-		return_cmd.insert("Status", "Success");
-		return_cmd.insert("Value", true);
-		emit Write_Json(return_cmd);
-		emit actualStartTime();
+	emit Voice_Event("PA001");
+	// 2026-10-25 L：巡检开始（只记录允许字段：任务ID/轮对号/工位）
+	c_Log::Info("WORK", "Flow", QString("start task_id=%1 wheel=%2 pos=1")
+		.arg(c_Variable::getInstance().g_Work_DB.taskId)
+		.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo));
+	return_cmd.insert("Message", "开始巡检");
+	return_cmd.insert("Status", "Success");
+	return_cmd.insert("Value", true);
+	emit Write_Json(return_cmd);
+	emit actualStartTime();
 
 		QJsonObject Work_Program_wheelsetKind = Work_Program_CarType.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
 		emit  precisScanStartTime();
@@ -534,12 +543,14 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.workState = 0;
 		}
-		c_Variable::getInstance().g_Work.Connected = false;
-		emit  actualReturnTime();
-		emit Status("巡检完成");
-	}
-	//两个工位有轮对的情况
-	if (wheelsetCount ==2) {
+	c_Variable::getInstance().g_Work.Connected = false;
+	emit  actualReturnTime();
+	// 2026-10-25 L：巡检完成（单工位；只记录）
+	c_Log::Info("WORK", "Flow", QString("finish task_id=%1").arg(c_Variable::getInstance().g_Work_DB.taskId));
+	emit Status("巡检完成");
+}
+//两个工位有轮对的情况
+if (wheelsetCount ==2) {
 		// 2026-10-24 Z1：tasks 数组不足 2 个防护（wheelsetCount==2 但数组元素 <2 时 at(1) 越界）
 		if (tasks.size() < 2) {
 			return_cmd.insert("Message", "tasks 数组元素不足 2 个");
@@ -921,11 +932,15 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.workState = 2;
 		}
-		emit Voice_Event("PA001");
-		return_cmd.insert("Message", "开始巡检");
-		return_cmd.insert("Status", "Success");
-		return_cmd.insert("Value", true);
-		emit Write_Json(return_cmd);
+	emit Voice_Event("PA001");
+	// 2026-10-25 L：巡检开始（双工位首工位；只记录允许字段）
+	c_Log::Info("WORK", "Flow", QString("start task_id=%1 wheel=%2 pos=1")
+		.arg(c_Variable::getInstance().g_Work_DB.taskId)
+		.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo));
+	return_cmd.insert("Message", "开始巡检");
+	return_cmd.insert("Status", "Success");
+	return_cmd.insert("Value", true);
+	emit Write_Json(return_cmd);
 
 		QJsonObject Work_Program_wheelsetKind = Work_Program_CarType.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
 		emit precisScanStartTime();
@@ -1063,10 +1078,12 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.workState = 0;
 		}
-		c_Variable::getInstance().g_Work.Connected = false;
-		emit actualReturnTime();
-		emit Status("巡检完成");
-	}
+	c_Variable::getInstance().g_Work.Connected = false;
+	emit actualReturnTime();
+	// 2026-10-25 L：巡检完成（双工位；只记录）
+	c_Log::Info("WORK", "Flow", QString("finish task_id=%1").arg(c_Variable::getInstance().g_Work_DB.taskId));
+	emit Status("巡检完成");
+}
 }
 
 //等待刷新地图列表
