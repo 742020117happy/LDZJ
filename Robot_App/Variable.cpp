@@ -9,7 +9,7 @@ static_assert(sizeof(float) == 4, "float 必须为 4 字节（CGXi 寄存器 flo
 static_assert(std::numeric_limits<float>::is_iec559, "float 必须为 IEEE754 格式");
 
 namespace {
-	bool Check_Little_Endian() {
+	bool check_little_endian() {
 		quint16 v = 0x0102;
 		const quint8 *p = reinterpret_cast<const quint8 *>(&v);
 		if (p[0] != 0x02) {
@@ -18,7 +18,7 @@ namespace {
 		}
 		return true;
 	}
-	const bool g_LittleEndianOk = Check_Little_Endian();
+	const bool g_little_endian_ok = check_little_endian();
 }
 /*************************************************************************************************************************************************
 **Function:构造函数

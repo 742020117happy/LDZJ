@@ -193,13 +193,13 @@ void c_Magic_Remote::Try_Reconnect() {
 	Login(m_LastUser, m_LastPass);
 }
 // ======================== 4.1 登录认证 ========================
-/** @brief 4.1.1 登录获取Token | POST /auth/token | Body: userCode, password */
-void c_Magic_Remote::Login(QString userCode, QString password) {
-	m_LastUser = userCode;
+/** @brief 4.1.1 登录获取Token | POST /auth/token | Body: user_code, password */
+void c_Magic_Remote::Login(QString user_code, QString password) {
+	m_LastUser = user_code;
 	m_LastPass = password;
 	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
 	QJsonObject body;
-	body["userCode"] = userCode;
+	body["userCode"] = user_code;
 	body["password"] = password;
 	emit Signal_Send_POST("/auth/token", body, QJsonObject());
 }
@@ -285,11 +285,11 @@ void c_Magic_Remote::Dynamic_Init_Pose(QString map_name, QString point_name) {
 	QString url = QString("/real_time_data/dynamic_init_pose?map_name=%1&point_name=%2").arg(map_name).arg(point_name);
 	emit Signal_Send_POST(url, QJsonObject(), QJsonObject());
 }
-/** @brief 4.2.16 使用栅格坐标初始化 | POST /real_time_data/temp_point_init_pose | Body: mapName, gridX, gridY, angle, type */
-void c_Magic_Remote::Temp_Point_Init_Pose(QString mapName, int gridX, int gridY, double angle, int type) {
+/** @brief 4.2.16 使用栅格坐标初始化 | POST /real_time_data/temp_point_init_pose | Body: map_name, grid_x, grid_y, angle, type */
+void c_Magic_Remote::Temp_Point_Init_Pose(QString map_name, int grid_x, int grid_y, double angle, int type) {
 	// 4.2.16 使用栅格坐标初始化：参数在 Body
 	QJsonObject b;
-	b["mapName"] = mapName; b["gridX"] = gridX; b["gridY"] = gridY; b["angle"] = angle; b["type"] = type;
+	b["mapName"] = map_name; b["gridX"] = grid_x; b["gridY"] = grid_y; b["angle"] = angle; b["type"] = type;
 	emit Signal_Send_POST("/real_time_data/temp_point_init_pose", b, QJsonObject());
 }
 /** @brief 4.2.18 获取初始化结果 | GET /real_time_data/init_pose_result */
@@ -336,14 +336,14 @@ void c_Magic_Remote::Get_Pos_List(QString map_name, int type) {
 	emit Signal_Send_GET("/data/poslist", p, QJsonObject());
 }
 /** @brief 4.3.5 生成手绘路径 | POST /cmd/graph | Body: 路径数据 */
-void c_Magic_Remote::Create_Graph(QJsonObject graphData) {
+void c_Magic_Remote::Create_Graph(QJsonObject graph_data) {
 	// 4.3.5 生成手绘路径
-	emit Signal_Send_POST("/cmd/graph", graphData, QJsonObject());
+	emit Signal_Send_POST("/cmd/graph", graph_data, QJsonObject());
 }
 /** @brief 4.3.6 更新手绘路径 | PUT /cmd/graph | Body: 路径数据 */
-void c_Magic_Remote::Edit_Graph(QJsonObject graphData) {
+void c_Magic_Remote::Edit_Graph(QJsonObject graph_data) {
 	// 4.3.6 更新手绘路径
-	emit Signal_Send_PUT("/cmd/graph", graphData, QJsonObject());
+	emit Signal_Send_PUT("/cmd/graph", graph_data, QJsonObject());
 }
 /** @brief 4.3.7 删除手绘路径 | DELETE /cmd/graph | Query: map_name, graph_path_name */
 void c_Magic_Remote::Delete_Graph(QString map_name, QString graph_path_name) {
@@ -370,8 +370,8 @@ void c_Magic_Remote::Rename_Graph_Path(QString map_name, QString origin_name, QS
 	emit Signal_Send_GET("/cmd/update_graph_path_name", p, QJsonObject());
 }
 /** @brief 4.3.11 检测两点生成线段 | POST /cmd/graph_check_point | Body: 点数据 */
-void c_Magic_Remote::Check_Graph_Point(QJsonObject pointData) {
-	emit Signal_Send_POST("/cmd/graph_check_point", pointData, QJsonObject());
+void c_Magic_Remote::Check_Graph_Point(QJsonObject point_data) {
+	emit Signal_Send_POST("/cmd/graph_check_point", point_data, QJsonObject());
 }
 /** @brief 4.3.12 验证几条线段是否可以生成路径 | POST /cmd/graph_check_line | Body: 线段数据 */
 void c_Magic_Remote::Check_Graph_Line(QJsonObject lineData) {
@@ -406,9 +406,9 @@ void c_Magic_Remote::Get_Record_Path(QString map_name, QString path_name, bool c
 	emit Signal_Send_GET("/data/record_path", p, QJsonObject());
 }
 /** @brief 4.3.17 编辑录制路径动作点 | PUT /cmd/record_path_points | Body: 点数据 */
-void c_Magic_Remote::Edit_Record_Path_Points(QJsonObject pointData) {
+void c_Magic_Remote::Edit_Record_Path_Points(QJsonObject point_data) {
 	// 4.3.17 编辑录制路径动作点：URL 是 /cmd/record_path_points
-	emit Signal_Send_PUT("/cmd/record_path_points", pointData, QJsonObject());
+	emit Signal_Send_PUT("/cmd/record_path_points", point_data, QJsonObject());
 }
 /** @brief 4.3.18 删除录制路径 | DELETE /cmd/record_path | Query: map_name, path_name */
 void c_Magic_Remote::Delete_Record_Path(QString map_name, QString path_name) {
@@ -430,15 +430,15 @@ void c_Magic_Remote::Check_Graph_Path_Name(QString map_id, QString path_name) {
 }
 // ======================== 4.4 任务模块 ========================
 /** @brief 4.4.1 开始执行任务 | POST /task_queue/start | Body: 任务数据 */
-void c_Magic_Remote::Start_Task(QJsonObject taskData) {
+void c_Magic_Remote::Start_Task(QJsonObject task_data) {
 	// 4.4.1 开始执行任务
 	// 2026-10-24 重构 T03 第二批：标记导航任务激活（StartTask_Done 仅在本工作流发起的任务完成时发射，
 	// 防手动/其他任务完成经 400ms 轮询串扰 wait_StartTask）
-	if (taskData.value("tasks").toArray().first().toObject().value("name").toString() == "NavigationPointTask") {
+	if (task_data.value("tasks").toArray().first().toObject().value("name").toString() == "NavigationPointTask") {
 		m_NavTaskActive = true;
 		m_NavTaskSeenRunning = false;	// 2026-10-24 T43：复位运行观察标志
 	}
-	emit Signal_Send_POST("/task_queue/start", taskData, QJsonObject());
+	emit Signal_Send_POST("/task_queue/start", task_data, QJsonObject());
 }
 /** @brief 4.4.2 暂停任务 | POST /task_queue/pause */
 void c_Magic_Remote::Pause_Task() {
@@ -467,14 +467,14 @@ void c_Magic_Remote::Check_Task_Queue_Exist(QString map_name, QString queue_name
 	emit Signal_Send_GET("/task_queue/exist", p, QJsonObject());
 }
 /** @brief 4.4.7 添加保存路径组合 | POST /task_queue | Body: 组合数据 */
-void c_Magic_Remote::Add_Task_Queue(QJsonObject queueData) {
+void c_Magic_Remote::Add_Task_Queue(QJsonObject queue_data) {
 	// 4.4.7 添加保存路径组合：URL 是 /task_queue
-	emit Signal_Send_POST("/task_queue",queueData, QJsonObject());
+	emit Signal_Send_POST("/task_queue",queue_data, QJsonObject());
 }
 /** @brief 4.4.8/16 更新路径组合 | PUT /task_queue | Body: 组合数据 */
-void c_Magic_Remote::Update_Task_Queue(QJsonObject queueData) {
+void c_Magic_Remote::Update_Task_Queue(QJsonObject queue_data) {
 	// 4.4.8 / 4.4.16 更新路径组合：URL 是 /task_queue
-	emit Signal_Send_PUT("/task_queue", queueData, QJsonObject());
+	emit Signal_Send_PUT("/task_queue", queue_data, QJsonObject());
 }
 /** @brief 4.4.9 获取路径组合列表 | GET /task_queue/list | Query: map_name */
 void c_Magic_Remote::Get_Task_Queue_List(QString map_name) {
@@ -677,13 +677,13 @@ void c_Magic_Remote::Get_Ultrasonic() {
 	emit Signal_Send_GET("/real_time_data/ultrasonic", QJsonObject(), QJsonObject());
 }
 // ======================== 4.7 移动控制 ========================
-/** @brief 4.7.1 设置移动控制数据 | POST /cmd/robot_move | Body: speed{linearSpeed, slip_angle, angularSpeed} */
-void c_Magic_Remote::Robot_Move(double linearSpeed, double angularSpeed, double slip_angle) {
+/** @brief 4.7.1 设置移动控制数据 | POST /cmd/robot_move | Body: speed{linear_speed, slip_angle, angular_speed} */
+void c_Magic_Remote::Robot_Move(double linear_speed, double angular_speed, double slip_angle) {
 	// 4.7.1 设置移动控制数据：API v1.4.4 需包含 slip_angle(-2.14~2.14)
 	QJsonObject speed;
-	speed["linearSpeed"] = linearSpeed;
+	speed["linearSpeed"] = linear_speed;
 	speed["slip_angle"] = slip_angle;
-	speed["angularSpeed"] = angularSpeed;
+	speed["angularSpeed"] = angular_speed;
 	QJsonObject b; b["speed"] = speed;
 	emit Signal_Send_POST("/cmd/robot_move", b, QJsonObject());
 }
@@ -720,8 +720,8 @@ void c_Magic_Remote::Down_Robot_Cfg() {
 	emit Signal_Send_GET("/file/robot_cfg_down", QJsonObject(), QJsonObject());
 }
 /** @brief 4.8.2 上传robot配置文件 | POST /file/robot_cfg_upload | Body: 配置文件内容 */
-void c_Magic_Remote::Upload_Robot_Cfg(QJsonObject cfgData) {
-	emit Signal_Send_POST("/file/robot_cfg_upload", cfgData, QJsonObject());
+void c_Magic_Remote::Upload_Robot_Cfg(QJsonObject cfg_data) {
+	emit Signal_Send_POST("/file/robot_cfg_upload", cfg_data, QJsonObject());
 }
 /** @brief 4.8.3 更新robot配置 | POST /cmd/robot_update_setting | Body: setting */
 void c_Magic_Remote::Update_Robot_Setting(QJsonObject setting) {
@@ -737,9 +737,9 @@ void c_Magic_Remote::Download_Map(QString map_name) {
 	emit Signal_Send_GET("/data/download_map", p, QJsonObject());
 }
 /** @brief 4.8.6 上传地图文件 | POST /data/upload_map | Query: map_name, Body: 文件数据 */
-void c_Magic_Remote::Upload_Map(QString map_name, QJsonObject mapData) {
+void c_Magic_Remote::Upload_Map(QString map_name, QJsonObject map_data) {
 	QString url = QString("/data/upload_map?map_name=%1").arg(map_name);
-	emit Signal_Send_POST(url, mapData, QJsonObject());
+	emit Signal_Send_POST(url, map_data, QJsonObject());
 }
 /** @brief 4.8.7 下载地图PNG格式图片 | GET /data/down_map_png | Query: map_name */
 void c_Magic_Remote::Down_Map_Png(QString map_name) {
@@ -751,8 +751,8 @@ void c_Magic_Remote::Get_Logo() {
 	emit Signal_Send_GET("/file/logo", QJsonObject(), QJsonObject());
 }
 /** @brief 4.8.9 上传APP Logo图片 | POST /file/logo | Body: 图片数据 */
-void c_Magic_Remote::Upload_Logo(QJsonObject logoData) {
-	emit Signal_Send_POST("/file/logo", logoData, QJsonObject());
+void c_Magic_Remote::Upload_Logo(QJsonObject logo_data) {
+	emit Signal_Send_POST("/file/logo", logo_data, QJsonObject());
 }
 /** @brief 4.8.10 获取Logo base64数据 | GET /file/logo/base64 */
 void c_Magic_Remote::Get_Logo_Base64() {
@@ -763,8 +763,8 @@ void c_Magic_Remote::Get_Background_Base64() {
 	emit Signal_Send_GET("/file/background/base64", QJsonObject(), QJsonObject());
 }
 /** @brief 4.8.12 上传APP背景图片 | POST /file/background | Body: 图片数据 */
-void c_Magic_Remote::Upload_Background(QJsonObject bgData) {
-	emit Signal_Send_POST("/file/background", bgData, QJsonObject());
+void c_Magic_Remote::Upload_Background(QJsonObject bg_data) {
+	emit Signal_Send_POST("/file/background", bg_data, QJsonObject());
 }
 /** @brief 4.9.3 获取导航系统状态 | GET /data/sys_status */
 void c_Magic_Remote::Get_Sys_Status() {
@@ -922,7 +922,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 
 		QString curName = dataObj["name"].toString();
 		if (curName.isEmpty()) curName = dataObj["mapname"].toString();
-		if (curName.isEmpty()) curName = dataObj["mapName"].toString();
+		if (curName.isEmpty()) curName = dataObj["map_name"].toString();
 		if (!curName.isEmpty()) read.currentMap = curName;
 
 		read.resolution = mapInfo["resolution"].toDouble(0.05);
@@ -948,10 +948,10 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QUrlQuery query(url.query());
 		if (query.hasQueryItem("map_name")) {
 			// POST 切换地图响应
-			QString mapName = query.queryItemValue("map_name");
-			if (!mapName.isEmpty()) {
-				read.currentMap = mapName;
-				emit Status(QString("Magic遥控：当前地图已切换为 %1").arg(mapName));
+			QString map_name = query.queryItemValue("map_name");
+			if (!map_name.isEmpty()) {
+				read.currentMap = map_name;
+				emit Status(QString("Magic遥控：当前地图已切换为 %1").arg(map_name));
 			}
 			else {
 				emit Status("Magic遥控：切换地图响应中未获取到地图名");
@@ -960,10 +960,10 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			emit Status("Magic遥控：切换地图成功，正在获取地图信息...");
 			// 2026-10-24 重构 T03：专用切换确认信号（原以 update_MapStatus 8+ 发射源充当 SwitchMap_Done，致 wait_SwitchMap 假完成）
 			emit SwitchMap_Confirmed();
-			QTimer::singleShot(1500, this, [this, mapName]() {
-				if (!mapName.isEmpty()) {
-					Get_Single_Map_Info(mapName);
-					Get_Map_Png(mapName);
+			QTimer::singleShot(1500, this, [this, map_name]() {
+				if (!map_name.isEmpty()) {
+					Get_Single_Map_Info(map_name);
+					Get_Map_Png(map_name);
 				}
 				else {
 					emit Status("Magic遥控：切换地图后地图名为空，无法获取信息");
@@ -979,7 +979,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			else if (dataVal.isObject()) {
 				QJsonObject obj = dataVal.toObject();
 				QString mName = obj["name"].toString();
-				if (mName.isEmpty()) mName = obj["mapName"].toString();
+				if (mName.isEmpty()) mName = obj["map_name"].toString();
 				if (!mName.isEmpty()) {
 					read.currentMap = mName;
 					emit Status(QString("Magic遥控：当前默认地图 -> %1").arg(mName));
@@ -1060,8 +1060,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QJsonObject data = dataVal.toObject();
 		read.angle = data["angle"].toDouble(0.0);
 		QJsonObject gridPos = data["gridPosition"].toObject();
-		read.gridX = gridPos["x"].toInt(0);
-		read.gridY = gridPos["y"].toInt(0);
+	read.gridX = gridPos["x"].toInt(0);
+	read.gridY = gridPos["y"].toInt(0);
 
 		QJsonObject worldPosObj = data["worldPosition"].toObject();
 		QJsonObject position = worldPosObj["position"].toObject();

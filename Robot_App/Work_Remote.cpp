@@ -1113,14 +1113,14 @@ bool c_Work_Remote::wait_DynamicInit(QString point)
 	return true;
 }
 //等待导航点移动
-bool c_Work_Remote::wait_StartTask(QString TaskName)
+bool c_Work_Remote::wait_StartTask(QString task_name)
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::StartTask_Done, &loop, &QEventLoop::quit);
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
-	emit Status("等待导航点移动 " + TaskName);
-	emit StartTask(TaskName);   
+	emit Status("等待导航点移动 " + task_name);
+	emit StartTask(task_name);   
 	loop.exec();
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新

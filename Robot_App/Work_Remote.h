@@ -27,7 +27,7 @@ signals:
 	void SwitchMap(QString map);//加载地图
 	void RefreshNavPoints(bool check);//刷新导航点列表
 	void DynamicInit(QString point);//动态初始化
-	void StartTask(QString TaskName);//导航点移动
+	void StartTask(QString task_name);//导航点移动
 	void StartRecharge(QString point);//回充
 	void Dis_Recharge();//脱离充电桩（2026-10-24 T45，Widget 桥到 Magic）
 
@@ -75,7 +75,7 @@ private slots:
 	bool wait_SwitchMap(QString map);//等待加载地图
 	bool wait_RefreshNavPoints();//等待刷新导航点列表
 	bool wait_DynamicInit(QString point);//等待动态初始化
-	bool wait_StartTask(QString TaskName);//等待导航点移动
+	bool wait_StartTask(QString task_name);//等待导航点移动
 	bool wait_StartRecharge(QString point);//等待回充
 	bool wait_Dis_Recharge();//等待脱离充电桩（2026-10-24 T45：机器人自动移动到 P001）
 	

@@ -25,8 +25,8 @@ public:
 	void Connect_Done(QString url);
 	void Set_Token_Done(QString token);
 	// ==================== 4.1 登录认证 ====================
-	/** @brief 4.1.1 登录获取Token | POST /auth/token | Body: userCode, password */
-	void Login(QString userCode, QString password);
+	/** @brief 4.1.1 登录获取Token | POST /auth/token | Body: user_code, password */
+	void Login(QString user_code, QString password);
 	/** @brief 4.1.2 刷新Token | GET /auth/token/refresh | Query: token */
 	void Refresh_Token(QString refresh_token);
 
@@ -59,8 +59,8 @@ public:
 	void Edit_Map(QString map_name, QJsonObject edit_data);
 	/** @brief 4.2.15 动态位姿初始化 | POST /real_time_data/dynamic_init_pose | Query: map_name, point_name */
 	void Dynamic_Init_Pose(QString map_name, QString point_name);
-	/** @brief 4.2.16 使用栅格坐标初始化 | POST /real_time_data/temp_point_init_pose | Body: mapName, gridX, gridY, angle, type */
-	void Temp_Point_Init_Pose(QString mapName, int gridX, int gridY, double angle, int type);
+	/** @brief 4.2.16 使用栅格坐标初始化 | POST /real_time_data/temp_point_init_pose | Body: map_name, grid_x, grid_y, angle, type */
+	void Temp_Point_Init_Pose(QString map_name, int grid_x, int grid_y, double angle, int type);
 	/** @brief 4.2.18 获取初始化结果 | GET /real_time_data/init_pose_result */
 	void Get_Init_Pose_Result();
 	/** @brief 4.2.x 静态位姿初始化 | POST /real_time_data/static_init_pose | Query: map_name, point_name */
@@ -80,9 +80,9 @@ public:
 	/** @brief 4.3.4 获取导航点列表 | GET /data/poslist | Query: map_name, type(可选) */
 	void Get_Pos_List(QString map_name, int type = -1);
 	/** @brief 4.3.5 生成手绘路径 | POST /cmd/graph | Body: 路径数据 */
-	void Create_Graph(QJsonObject graphData);
+	void Create_Graph(QJsonObject graph_data);
 	/** @brief 4.3.6 更新手绘路径 | PUT /cmd/graph | Body: 路径数据 */
-	void Edit_Graph(QJsonObject graphData);
+	void Edit_Graph(QJsonObject graph_data);
 	/** @brief 4.3.7 删除手绘路径 | DELETE /cmd/graph | Query: map_name, graph_path_name */
 	void Delete_Graph(QString map_name, QString graph_path_name);
 	/** @brief 4.3.8 手绘路径列表 | GET /data/graph_list | Query: map_name */
@@ -92,7 +92,7 @@ public:
 	/** @brief 4.3.10 重命名手绘路径 | GET /cmd/update_graph_path_name | Query: map_name, origin_name, new_name */
 	void Rename_Graph_Path(QString map_name, QString origin_name, QString new_name);
 	/** @brief 4.3.11 检测两点生成线段 | POST /cmd/graph_check_point | Body: 点数据 */
-	void Check_Graph_Point(QJsonObject pointData);
+	void Check_Graph_Point(QJsonObject point_data);
 	/** @brief 4.3.12 验证几条线段是否可以生成路径 | POST /cmd/graph_check_line | Body: 线段数据 */
 	void Check_Graph_Line(QJsonObject lineData);
 	/** @brief 4.3.13 开始录制路径 | GET /cmd/start_record_path | Query: map_name, path_name */
@@ -106,7 +106,7 @@ public:
 	/** @brief 4.3.16 获取录制路径 | GET /data/record_path | Query: map_name, path_name, contains_details */
 	void Get_Record_Path(QString map_name, QString path_name, bool contains_details = false);
 	/** @brief 4.3.17 编辑录制路径动作点 | PUT /cmd/record_path_points | Body: 点数据 */
-	void Edit_Record_Path_Points(QJsonObject pointData);
+	void Edit_Record_Path_Points(QJsonObject point_data);
 	/** @brief 4.3.18 删除录制路径 | DELETE /cmd/record_path | Query: map_name, path_name */
 	void Delete_Record_Path(QString map_name, QString path_name);
 	/** @brief 4.3.20 重命名录制路径 | PUT /cmd/update_rec_path_name | Query: map_name, origin_path_name, new_path_name */
@@ -116,7 +116,7 @@ public:
 
 	// ==================== 4.4 任务模块 ====================
 	/** @brief 4.4.1 开始执行任务 | POST /task_queue/start | Body: 任务数据 */
-	void Start_Task(QJsonObject taskData);
+	void Start_Task(QJsonObject task_data);
 	/** @brief 4.4.2 暂停任务 | POST /task_queue/pause */
 	void Pause_Task();
 	/** @brief 4.4.3 恢复任务 | POST /task_queue/resume */
@@ -128,9 +128,9 @@ public:
 	/** @brief 4.4.6 查询路径组合是否存在 | GET /task_queue/exist | Query: map_name, queue_name */
 	void Check_Task_Queue_Exist(QString map_name, QString queue_name);
 	/** @brief 4.4.7 添加保存路径组合 | POST /task_queue | Body: 组合数据 */
-	void Add_Task_Queue(QJsonObject queueData);
+	void Add_Task_Queue(QJsonObject queue_data);
 	/** @brief 4.4.8/16 更新路径组合 | PUT /task_queue | Body: 组合数据 */
-	void Update_Task_Queue(QJsonObject queueData);
+	void Update_Task_Queue(QJsonObject queue_data);
 	/** @brief 4.4.9 获取路径组合列表 | GET /task_queue/list | Query: map_name */
 	void Get_Task_Queue_List(QString map_name);
 	/** @brief 4.4.13 查询任务队列详情 | GET /task_queue/detail | Query: map_name, queue_name */
@@ -219,8 +219,8 @@ public:
 	void Get_Ultrasonic();
 
 	// ==================== 4.7 移动控制 ====================
-	/** @brief 4.7.1 设置移动控制数据 | POST /cmd/robot_move | Body: speed{linearSpeed, slip_angle, angularSpeed} */
-	void Robot_Move(double linearSpeed, double angularSpeed, double slip_angle = 0.0);
+	/** @brief 4.7.1 设置移动控制数据 | POST /cmd/robot_move | Body: speed{linear_speed, slip_angle, angular_speed} */
+	void Robot_Move(double linear_speed, double angular_speed, double slip_angle = 0.0);
 	/** @brief 4.7.2 关闭移动控制 | POST /cmd/robot_move_stop */
 	void Robot_Move_Stop();
 	/** @brief 4.7.3 定距离/定角度移动 | POST /cmd/move_with_params | Body: 参数 */
@@ -232,7 +232,7 @@ public:
 	/** @brief 4.8.1 下载robot配置文件 | GET /file/robot_cfg_down */
 	void Down_Robot_Cfg();
 	/** @brief 4.8.2 上传robot配置文件 | POST /file/robot_cfg_upload | Body: 配置文件内容 */
-	void Upload_Robot_Cfg(QJsonObject cfgData);
+	void Upload_Robot_Cfg(QJsonObject cfg_data);
 	/** @brief 4.8.3 更新robot配置 | POST /cmd/robot_update_setting | Body: setting */
 	void Update_Robot_Setting(QJsonObject setting);
 	/** @brief 4.8.4 恢复默认配置 | POST /cmd/robot_reset_default */
@@ -240,19 +240,19 @@ public:
 	/** @brief 4.8.5 下载地图文件 | GET /data/download_map | Query: map_name */
 	void Download_Map(QString map_name);
 	/** @brief 4.8.6 上传地图文件 | POST /data/upload_map | Query: map_name, Body: 文件数据 */
-	void Upload_Map(QString map_name, QJsonObject mapData);
+	void Upload_Map(QString map_name, QJsonObject map_data);
 	/** @brief 4.8.7 下载地图PNG格式图片 | GET /data/down_map_png | Query: map_name */
 	void Down_Map_Png(QString map_name);
 	/** @brief 4.8.8 获取APP Logo图片 | GET /file/logo */
 	void Get_Logo();
 	/** @brief 4.8.9 上传APP Logo图片 | POST /file/logo | Body: 图片数据 */
-	void Upload_Logo(QJsonObject logoData);
+	void Upload_Logo(QJsonObject logo_data);
 	/** @brief 4.8.10 获取Logo base64数据 | GET /file/logo/base64 */
 	void Get_Logo_Base64();
 	/** @brief 4.8.11 获取APP背景图片base64 | GET /file/background/base64 */
 	void Get_Background_Base64();
 	/** @brief 4.8.12 上传APP背景图片 | POST /file/background | Body: 图片数据 */
-	void Upload_Background(QJsonObject bgData);
+	void Upload_Background(QJsonObject bg_data);
 	/** @brief 4.9.3 获取导航系统状态 | GET /data/sys_status */
 	void Get_Sys_Status();
 	/** @brief 4.9.4 获取mac地址 | GET /data/sys_mac */
