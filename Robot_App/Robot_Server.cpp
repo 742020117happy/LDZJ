@@ -17,7 +17,7 @@ c_Robot_Server::~c_Robot_Server()
 void c_Robot_Server::Init()
 {
 	m_Server = new QTcpServer(this);
-    QObject::connect(m_Server, &QTcpServer::acceptError, this, &c_Robot_Server::Status);
+	QObject::connect(m_Server, &QTcpServer::acceptError, this, &c_Robot_Server::Status);
 	QObject::connect(m_Server, &QTcpServer::newConnection, this, &c_Robot_Server::New_Connection);
 }
 void c_Robot_Server::Connect_Device(QString ip, int port)

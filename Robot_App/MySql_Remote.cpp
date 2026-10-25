@@ -36,7 +36,7 @@ void c_Sql_Remote::init()
 /*************************************************************************************************************************************************
 **Function:连接MySQL服务器（含网络检测、重连、字符集设置）
 *************************************************************************************************************************************************/
-void c_Sql_Remote::connectMysql()
+void c_Sql_Remote::connect_mysql()
 {
 	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
 	QString HOST = cfg.value("Web_Server_Ip").toString();
@@ -47,13 +47,13 @@ void c_Sql_Remote::connectMysql()
 
 	if (!c_Object::QtPing(HOST)) {
 		emit Status("MySQL 网络未准备好！");
-		QTimer::singleShot(1000, this, &c_Sql_Remote::connectMysql);
+		QTimer::singleShot(1000, this, &c_Sql_Remote::connect_mysql);
 		return;
 	}
 
 	if (mysql_ping(m_conn) == 0) {
 		emit Status("MySQL 已连接");
-		flushPendingImages();
+		flush_pending_images();
 		return;
 	}
 
@@ -71,13 +71,13 @@ void c_Sql_Remote::connectMysql()
 	emit Status("设置字符集成功");
 
 	emit Connect_Done();
-	flushPendingImages();
+	flush_pending_images();
 }
 
 /*************************************************************************************************************************************************
 **Function:更新数据库中的实际返回时间
 *************************************************************************************************************************************************/
-void c_Sql_Remote::updateActualReturnTime()
+void c_Sql_Remote::update_actual_return_time()
 {
 	if (m_updatingReturnTime) {
 		return;
@@ -87,8 +87,8 @@ void c_Sql_Remote::updateActualReturnTime()
 	if (mysql_ping(m_conn) != 0) {
 		emit Status("MySQL 连接断开，排队等待重试");
 		m_updatingReturnTime = false;	// 2026-10-24 审查修复 M2：失败路径未复位标志导致功能永久失效
-		QTimer::singleShot(100, this, &c_Sql_Remote::connectMysql);
-		QTimer::singleShot(2000, this, &c_Sql_Remote::updateActualReturnTime);
+		QTimer::singleShot(100, this, &c_Sql_Remote::connect_mysql);
+		QTimer::singleShot(2000, this, &c_Sql_Remote::update_actual_return_time);
 		return;
 	}
 
@@ -132,14 +132,14 @@ void c_Sql_Remote::On_Photo_Completed(QString fname)
 	}
 
 	if (shouldFlush) {
-		flushCollectTime();
+		flush_collect_time();
 	}
 }
 
 /*************************************************************************************************************************************************
 **Function:刷新采集时间 - 将图片路径和采集时间写入数据库
 *************************************************************************************************************************************************/
-void c_Sql_Remote::flushCollectTime()
+void c_Sql_Remote::flush_collect_time()
 {
 	QMutexLocker locker(m_Mutex);
 
@@ -148,7 +148,7 @@ void c_Sql_Remote::flushCollectTime()
 	}
 	if (mysql_ping(m_conn) != 0) {
 		emit Status("MySQL 连接断开，排队等待重试");
-		QTimer::singleShot(100, this, &c_Sql_Remote::connectMysql);
+		QTimer::singleShot(100, this, &c_Sql_Remote::connect_mysql);
 		return;
 	}
 
@@ -178,14 +178,14 @@ void c_Sql_Remote::flushCollectTime()
 	}
 
 	if (!m_imagePathList.isEmpty()) {
-		QTimer::singleShot(m_flushRetryMs, this, [this]() { flushCollectTime(); });
+		QTimer::singleShot(m_flushRetryMs, this, [this]() { flush_collect_time(); });
 	}
 }
 
 /*************************************************************************************************************************************************
 **Function:刷新待处理图片队列
 *************************************************************************************************************************************************/
-void c_Sql_Remote::flushPendingImages()
+void c_Sql_Remote::flush_pending_images()
 {
 	bool hasPending = false;
 	{
@@ -193,6 +193,6 @@ void c_Sql_Remote::flushPendingImages()
 		hasPending = !m_imagePathList.isEmpty();
 	}
 	if (hasPending) {
-		flushCollectTime();
+		flush_collect_time();
 	}
 }

@@ -2,7 +2,6 @@
 #include <QMap>
 #include <QDir>
 #include <QFile>
-#include <Qbrush>
 #include <QDebug>
 #include <QTimer>
 #include <QWidget>
@@ -11,8 +10,7 @@
 #include <QVector>
 #include <QImage>
 #include <QColor>
-#include <Qpainter>
-#include <QSlider>
+#include <QPainter>
 #include <QVariant>
 #include <QDateTime>
 #include <QKeyEvent>
@@ -31,7 +29,6 @@
 #include <QHostAddress>
 #include <QApplication>
 #include <QJsonDocument>
-#include <QstackedWidget>
 #include <QAbstractSocket>
 #include <QModbusDataUnit>
 #include <QModbusTcpClient>
@@ -41,8 +38,6 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QNetworkAccessManager>
-#include <QtWebSockets\qwebsocket.h>
-#include <QtWebSockets\qwebsocketserver.h>
 #include <QScopedPointer>
 #include <QMetaType>
 #include <QSharedMemory>
@@ -52,8 +47,6 @@
 #include <QSocketNotifier>
 #include <QTextStream>
 #include <QIODevice>
-#include <QtConcurrent/QtConcurrent>
-#include <QRegularExpression>
 
 #include <mysql.h>
 

@@ -14,25 +14,25 @@ c_Scan_Client::~c_Scan_Client()
 
 void c_Scan_Client::Init()
 {
-    //实列化
-    m_Socket = new QUdpSocket;
-    //如果，UDP，状态改变，执行，本线程，状态改变函数
-    QObject::connect(m_Socket, &QUdpSocket::stateChanged, this, &c_Scan_Client::State_Changed);
-    //错误诊断
-    QObject::connect(m_Socket, QOverload<QAbstractSocket::SocketError>::of(&QUdpSocket::error), this, [=](QAbstractSocket::SocketError socketError){
-        emit Status(socketError);
-    });
+	//实列化
+	m_Socket = new QUdpSocket;
+	//如果，UDP，状态改变，执行，本线程，状态改变函数
+	QObject::connect(m_Socket, &QUdpSocket::stateChanged, this, &c_Scan_Client::State_Changed);
+	//错误诊断
+	QObject::connect(m_Socket, QOverload<QAbstractSocket::SocketError>::of(&QUdpSocket::error), this, [=](QAbstractSocket::SocketError socketError){
+		emit Status(socketError);
+	});
 	//绑定读函数
 	QObject::connect(m_Socket, &QUdpSocket::readyRead, this, &c_Scan_Client::Read_String);
 }
 
 void c_Scan_Client::Connect_Device(QString ip, int port)
 {
-    //如果已连接则返回
-    if(m_Socket->state() == QAbstractSocket::BoundState){	
+	//如果已连接则返回
+	if(m_Socket->state() == QAbstractSocket::BoundState){	
 		return;
-    }
-    //绑定主机、监听信号
+	}
+	//绑定主机、监听信号
 	m_Port = port;
 	// 2026-10-24 T53：bind 失败显式告警（原静默，上层误以为已连接）
 	// 2026-10-24 T64：Status 为 int 状态码信号（原 T53 误发 QString 导致编译失败），
@@ -46,7 +46,7 @@ void c_Scan_Client::Disconnect_Device()
 {
 	if(!m_Socket){
 		return;
-    }
+	}
 	if (m_Socket->state() != QAbstractSocket::BoundState) {
 		return;
 	}
@@ -57,11 +57,11 @@ void c_Scan_Client::Disconnect_Device()
 
 void c_Scan_Client::Read_String()
 {
-    if(m_Socket->hasPendingDatagrams()){
-        QByteArray dataGram;
-        dataGram.resize(static_cast<int>(m_Socket->pendingDatagramSize()));
-        //接受信息
-        qint64 len = m_Socket->readDatagram(dataGram.data(),dataGram.size());
+	if(m_Socket->hasPendingDatagrams()){
+		QByteArray dataGram;
+		dataGram.resize(static_cast<int>(m_Socket->pendingDatagramSize()));
+		//接受信息
+		qint64 len = m_Socket->readDatagram(dataGram.data(),dataGram.size());
 		//如果消息不为空则发送消息到主线程
 		if(len > 0){
 			// 2026-08-19 走查修复：去除可能的 \0/\r\n 尾随字符，避免影响精确匹配
@@ -76,8 +76,8 @@ void c_Scan_Client::Read_String()
 			if (value.at(0) == "CAMERA") { return; }
 
 			emit Read_String_Done(str);
-        }
-    }
+		}
+	}
 }
 
 void c_Scan_Client::Write_String(QString ip, int port, QString value)
@@ -112,34 +112,34 @@ void c_Scan_Client::State_Changed()
 		return;
 	}
 	if(m_Socket->state() == QAbstractSocket::UnconnectedState)
-    {
-        emit Status(23);
-        emit Disconnect_Done();
-    }
-    if(m_Socket->state() == QAbstractSocket::HostLookupState)
-    {
-        emit Status(24);
-    }
-    if(m_Socket->state() == QAbstractSocket::ConnectingState)
-    {
-        emit Status(25);
-    }
-    if(m_Socket->state() == QAbstractSocket::ConnectedState)
-    {
-        emit Status(26);
-        emit Connect_Done();
-    }
-    if(m_Socket->state() == QAbstractSocket::BoundState)
-    {
-        emit Status(27);
-        emit Connect_Done();
-    }
-    if(m_Socket->state() == QAbstractSocket::ClosingState)
-    {
-        emit Status(28);
-    }
-    if(m_Socket->state() == QAbstractSocket::ListeningState)
-    {
-        emit Status(29);
-    }
+	{
+		emit Status(23);
+		emit Disconnect_Done();
+	}
+	if(m_Socket->state() == QAbstractSocket::HostLookupState)
+	{
+		emit Status(24);
+	}
+	if(m_Socket->state() == QAbstractSocket::ConnectingState)
+	{
+		emit Status(25);
+	}
+	if(m_Socket->state() == QAbstractSocket::ConnectedState)
+	{
+		emit Status(26);
+		emit Connect_Done();
+	}
+	if(m_Socket->state() == QAbstractSocket::BoundState)
+	{
+		emit Status(27);
+		emit Connect_Done();
+	}
+	if(m_Socket->state() == QAbstractSocket::ClosingState)
+	{
+		emit Status(28);
+	}
+	if(m_Socket->state() == QAbstractSocket::ListeningState)
+	{
+		emit Status(29);
+	}
 }

@@ -14,8 +14,8 @@ signals:
 
 public slots:
 	void init();						// 初始化MySQL
-	void connectMysql();				// 连接MySQL服务器
-	void updateActualReturnTime();		// 更新实际返回时间
+	void connect_mysql();				// 连接MySQL服务器
+	void update_actual_return_time();		// 更新实际返回时间
 	void On_Photo_Completed(QString fname);	// 照片采集完成回调
 
 private:
@@ -25,6 +25,6 @@ private:
 	bool m_updatingReturnTime = false;	// 是否正在更新返回时间
 	int m_flushRetryMs = 100;			// 2026-10-24 重构 T20：写库重试间隔（失败翻倍上限5s，成功复位）
 
-	void flushCollectTime();		// 刷新采集时间（写入数据库）
-	void flushPendingImages();		// 刷新待处理图片队列
+	void flush_collect_time();		// 刷新采集时间（写入数据库）
+	void flush_pending_images();		// 刷新待处理图片队列
 };

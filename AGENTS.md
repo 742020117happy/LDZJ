@@ -47,9 +47,23 @@
 - `当前轮次`、`暂停条件`、`累计统计`
 - 每次改动后同步更新，绝不跳过
 
-## 5. 任务积压（当前活动：第十一阶段）
+## 5. 任务积压（当前活动：第十四阶段）
 
-### 5.11 第十一阶段任务积压（全模块学习与文档同步，2026-10-24 启用）
+### 5.14 第十四阶段任务积压（规范合规整改，2026-10-24 启用）
+
+> 自动化合规扫描（C++17/C转换/NULL/qDebug/pragma/BOM/缩进/命名/include）后的小步整改。
+> 每轮 1 文件 + MSBuild 编译验证；禁全项目格式化、禁大规模重构。
+
+| ID | 优先级 | 目标 | 内容 |
+|----|--------|------|------|
+| W1 | P2 | Variable.h | 移除零使用 include（QtCharts/QPolarChart/QScatterSeries 等） |
+| W2 | P2 | MySql_Remote | camelCase→snake_case（connectMysql/updateActualReturnTime/flushCollectTime/flushPendingImages + Widget invokeMethod 字符串） |
+| W3 | P3 | Server_Remote.cpp | 空格缩进→Tab（162 行） |
+| W4 | P3 | Scan_Client.cpp | 空格缩进→Tab（34 行） |
+| W5 | P3 | Robot_Server.cpp | 空格缩进→Tab（1 行） |
+| W6 | P3 | Robot_Client.cpp | 死代码（未编译）→ 登记不处理 |
+
+### 5.11 第十一阶段任务积压（全模块学习与文档同步，2026-10-24 已完成归档）
 
 > 第一~十阶段全部收官（T01-T101 done，见 重构状态.md）。本阶段逐模块精读当前代码，
 > 学习用户大规模重写后的最终形态，更新知识库与资料索引。每轮 1 模块（M1→M14）。
@@ -90,4 +104,4 @@
 
 - 暂停条件：用户叫停 / 全部任务 done / blocked ≥3
 - 恢复：新会话读 `重构状态.md` 从规则 1 继续
-- **当前阶段**：第十三阶段（现场反馈问题闭环），C1 已完成，等待用户下一条现场反馈
+- **当前阶段**：第十四阶段（规范合规整改），从 W1 开始，Round 111 起

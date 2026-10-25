@@ -1620,7 +1620,7 @@ void c_Robot_App_Widget::MySql_DB()
 
 	// 延迟触发首次连接
 	QTimer::singleShot(500, this, [this]() {
-		QMetaObject::invokeMethod(m_Sql_Remote, "connectMysql", Qt::QueuedConnection);
+		QMetaObject::invokeMethod(m_Sql_Remote, "connect_mysql", Qt::QueuedConnection);
 	});
 }
 /*************************************************************************************************************************************************
@@ -1637,7 +1637,7 @@ void c_Robot_App_Widget::MySql_Button()
 {
 	QObject::connect(ui->Pre_Scan_120_MySql_Reconnect, &QPushButton::clicked, this, [this]() {
 		Write_Work_List("MySQL 手动重连");
-		QMetaObject::invokeMethod(m_Sql_Remote, "connectMysql", Qt::QueuedConnection);
+		QMetaObject::invokeMethod(m_Sql_Remote, "connect_mysql", Qt::QueuedConnection);
 	});
 }
 
