@@ -157,17 +157,21 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 			emit Status(QString::number(m_Port) + "->服务：命令 " + cmd + " 缺少 Checksum，已丢弃");
 			return;
 		}
-		// 2026-10-24 审查修复 S1：幂等去重——重复 Checksum 不重复执行
-		if (m_HandledChecksum.contains(checksum)) {
-			emit Status(QString::number(m_Port) + "->服务：重复指令 " + cmd + "，已处理");
-			Reply_Ok(cmd);
-			return;
-		}
-		m_HandledChecksum.insert(checksum);
-		m_LastChecksum = checksum;
+	// 2026-10-24 审查修复 S1：幂等去重——重复 Checksum 不重复执行
+	if (m_HandledChecksum.contains(checksum)) {
+		// 2026-10-25 L：重复校验码（只记录，不改变去重行为）
+		c_Log::Warn("WEB", "Cmd", QString("duplicate checksum=%1 cmd=%2 ignored").arg(checksum).arg(cmd));
+		emit Status(QString::number(m_Port) + "->服务：重复指令 " + cmd + "（已处理）");
+		Reply_Ok(cmd);
+		return;
 	}
+	m_HandledChecksum.insert(checksum);
+	m_LastChecksum = checksum;
+}
 
-	emit Status(QString::number(m_Port) + "->服务：收到 " + cmd);
+// 2026-10-25 L：WEB 指令接收（只打印指令名与校验码；指令体不打印）
+c_Log::Info("WEB", "Cmd", QString("recv %1 checksum=%2").arg(cmd).arg(cmd == "Read_Ready" ? "-" : checksum));
+emit Status(QString::number(m_Port) + "->服务：收到 " + cmd);
 
 	if (cmd == "START_INSPECTION") {
 		// 2026-10-24 审查修复 S1：START_INSPECTION 增加状态门控（采集中/暂停中拒绝），防止重复下发污染运行中任务
@@ -207,6 +211,7 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 	}
 
 	// 2026-10-24 重构 T26：未知命令回错误应答（原仅日志无响应，WEB 侧无法感知）
+	c_Log::Warn("WEB", "Cmd", QString("unknown cmd=%1").arg(cmd));
 	emit Status(QString::number(m_Port) + "->服务：未知命令 " + cmd);
 	Reply_Error(cmd, "未知命令");
 }

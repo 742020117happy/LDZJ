@@ -82,6 +82,8 @@ void c_Emis_Remote::Update_Info(QString timeType)
 	// 💡 优化：务必加上 Content-Type，否则很多严格的服务器会拒绝解析 JSON
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
+	// 2026-10-25 L：EMIS 上报请求（只打印时间点类型与任务ID，符合规范 §六允许列表；完整 body 仅走 UI Status 原有行为）
+	c_Log::Info("EMIS", "Report", QString("send type=%1 task_id=%2").arg(timeType).arg(c_Variable::getInstance().g_Work_DB.taskId));
 	emit Status(urlStr + "->" + jsonData);
 
 	// 3. 使用成员变量 m_manager 发送（保证生命周期）
@@ -95,11 +97,15 @@ void c_Emis_Remote::Update_Info(QString timeType)
 		QByteArray resp = reply->readAll(); // 获取服务端返回的具体内容，方便排查
 
 		if (reply->error() == QNetworkReply::NoError) {
+			// 2026-10-25 L：上报成功（只记录类型与状态码）
+			c_Log::Info("EMIS", "Report", QString("success type=%1 status=%2").arg(timeType).arg(status));
 			emit Status("更新成功:" + resp);
 			emit Update_Done();
 		}
 		else {
 			// 💡 优化：打印具体的错误原因 (errorString) 和 服务端响应 (resp)
+			// 2026-10-25 L：上报失败（只记录错误原因，不打印敏感字段）
+			c_Log::Error("EMIS", "Report", QString("failed type=%1 err=%2").arg(timeType).arg(reply->errorString()));
 			emit Status("更新失败: " + reply->errorString() + " | 响应: " + resp);
 			emit Update_Error();
 		}
