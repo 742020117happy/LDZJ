@@ -342,6 +342,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			emit Write_Json(return_cmd);
 			return;
 		}
+		emit Voice_Event("PA014");	// 2026-10-25 FF1：初始化运行完成（T48 设计、T93 重写后遗失补回）
 		if (!wait_Coils_1001()) {
 			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
 				QWriteLocker locker(&c_Variable::g_lock);
@@ -495,6 +496,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 				emit Write_Json(return_cmd);
 				return;
 			}
+			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			QJsonArray Work_Program_Point = Work_Program_wheelsetKind.value(Point_Name).toArray();
 			for (int j = 0; j < Work_Program_Point.size(); j++) {
 				int program_index = Work_Program_Point.at(j).toInt();
@@ -824,6 +826,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			emit Write_Json(return_cmd);
 			return;
 		}
+		emit Voice_Event("PA014");	// 2026-10-25 FF1：初始化运行完成（T48 设计、T93 重写后遗失补回）
 		if (!wait_Coils_1001()) {
 			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
 				QWriteLocker locker(&c_Variable::g_lock);
@@ -954,6 +957,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 				emit Write_Json(return_cmd);
 				return;
 			}
+			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			QJsonArray Work_Program_Point = Work_Program_wheelsetKind.value(Point_Name).toArray();
 			for (int j = 0; j < Work_Program_Point.size(); j++) {
 				int program_index = Work_Program_Point.at(j).toInt();

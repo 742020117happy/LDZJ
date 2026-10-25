@@ -1691,6 +1691,13 @@ void c_Robot_App_Widget::Server_Init()
 	});
 	QObject::connect(m_Server_Remote, &c_Server_Remote::Return_Home_Cmd, this, [this]() {
 		Write_Work_List("WEB->回原点");
+		// 2026-10-25 FF1：回原点语音播报（PA016 运行中 / PA018 条件未达到）
+		if (!c_Variable::getInstance().g_CGXi.Connected) {
+			QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA018", Qt::QueuedConnection);
+			Write_Work_List("WEB->回原点失败：机械臂未连接");
+			return;
+		}
+		QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA016", Qt::QueuedConnection);
 		// 2026-08-19 修复：寄存器89仅接受1/2/3，回零位应走点动寄存器800（26=回零位 27=回初始位）
 		c_Variable::getInstance().g_CGXi.Transfer.jog_type = 26;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_800", Qt::QueuedConnection);
@@ -2452,6 +2459,13 @@ void c_Robot_App_Widget::Work_Button()
 		Write_Work_List("本地->停止");
 	});
 	QObject::connect(ui->Work_Btn_Home, &QPushButton::clicked, this, [this]() {
+		// 2026-10-25 FF1：回原点语音播报（PA016 运行中 / PA018 条件未达到）
+		if (!c_Variable::getInstance().g_CGXi.Connected) {
+			QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA018", Qt::QueuedConnection);
+			Write_Work_List("本地->回原点失败：机械臂未连接");
+			return;
+		}
+		QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA016", Qt::QueuedConnection);
 		c_Variable::getInstance().g_CGXi.Transfer.jog_type = 26;	// 手册 26=回零位
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_800", Qt::QueuedConnection);
 		Write_Work_List("本地->回原点");
