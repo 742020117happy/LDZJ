@@ -2,7 +2,6 @@
 #include <QMap>
 #include <QDir>
 #include <QFile>
-#include <QDebug>
 #include <QTimer>
 #include <QWidget>
 #include <QObject>

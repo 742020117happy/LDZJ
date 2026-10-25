@@ -34,14 +34,14 @@ public slots:
 	void Set_HoldingRegisters_27();		// 工具端标准数字输出
 	void Set_HoldingRegisters_63();		// 清除机器人错误(脉冲)
 	void Set_HoldingRegisters_64();		// 清除机器人警告(脉冲)
-    // --- 程序与系统配置 ---
+	// --- 程序与系统配置 ---
 	void Set_HoldingRegisters_88();		// 目标程序索引
 	void Set_HoldingRegisters_89();		// 目标程序操作 (1-启动 2-暂停 3-停止)
-    // --- TCP、负载与速度配置 (浮点区) ---
+	// --- TCP、负载与速度配置 (浮点区) ---
 	void Set_HoldingRegisters_700();		// tcp相对法兰偏移 (700-711)
 	void Set_HoldingRegisters_720();		// 负载mass和质心 (720-727)
 	void Set_HoldingRegisters_730();		// 运动速度比例 (730-731)
-    // --- 点动控制块 ---
+	// --- 点动控制块 ---
 	void Set_HoldingRegisters_800();		// 点动类型(800)，级联触发801/803/810
 	void Set_HoldingRegisters_801();		// 点动速度比例 (801-802)
 	void Set_HoldingRegisters_803();		// 点动坐标系(803)
