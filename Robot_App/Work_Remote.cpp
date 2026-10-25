@@ -1010,7 +1010,23 @@ if (wheelsetCount ==2) {
 		QString mapPointName_2 = wheelsetPosition_2.value("mapPointName").toString();
 		QJsonArray positions_2 = wheelsetPosition_2.value("positions").toArray();
 
-		QJsonObject Work_Program_wheelsetKind_2 = m_Work_Program.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
+		// 2026-10-25 QQ1：第二工位配方查找补 carType 层（原 m_Work_Program.value(wheelsetKind) 从顶层直查，
+		// 配方层级为 {carType:{wheelsetKind:{点:[轨迹]}}}（T89），缺层导致所有点位恒判"巡检点不存在"→ 任务必失败）
+		QJsonObject Work_Program_CarType_2 = m_Work_Program.value(c_Variable::getInstance().g_Work_DB.carType).toObject();
+		if (Work_Program_CarType_2.value(c_Variable::getInstance().g_Work_DB.wheelsetKind) == QJsonValue::Undefined) {
+			c_Variable::getInstance().g_Work.Connected = false;
+			{	// 2026-10-25 QQ1：与第一工位同款前置校验（失败→workState=5 红灯 PA003）
+				QWriteLocker locker(&c_Variable::g_lock);
+				c_Variable::getInstance().g_Work_DB.workState = 5;
+			}
+			emit Voice_Event("PA003");
+			return_cmd.insert("Message", "无当前车型巡检配方（第二工位）");
+			return_cmd.insert("Status", "Error");
+			return_cmd.insert("Value", false);
+			emit Write_Json(return_cmd);
+			return;
+		}
+		QJsonObject Work_Program_wheelsetKind_2 = Work_Program_CarType_2.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
 		emit precisScanStartTime();
 
 		for (int i = 0; i < positions_2.size(); i++) {
