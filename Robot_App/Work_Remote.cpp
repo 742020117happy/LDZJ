@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QElapsedTimer>
+#include <QCoreApplication>	// 2026-10-25 D-005：applicationDirPath 替代 currentPath（防 CWD 依赖）
 /*************************************************************************************************************************************************
 **Function:构造函数
 *************************************************************************************************************************************************/
@@ -35,7 +36,7 @@ void c_Work_Remote::Init()
 		emit Voice_Event("PA005");
 	});
 
-	QString path = QDir::currentPath() + "/Work_DB/InspectionPlan.json";
+	QString path = QCoreApplication::applicationDirPath() + "/Work_DB/InspectionPlan.json";	// 2026-10-25 D-005：exe 目录定位（防 CWD 依赖）
 	QFile file(path);
 	if (file.open(QIODevice::ReadOnly)) {
 		QJsonParseError err;
@@ -408,7 +409,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			}
 		}*/
 
-		QString path = QDir::currentPath() + "/Work_DB/InspectionPlan.json";
+		QString path = QCoreApplication::applicationDirPath() + "/Work_DB/InspectionPlan.json";	// 2026-10-25 D-005：exe 目录定位（防 CWD 依赖）
 		QFile file(path);
 		if (file.open(QIODevice::ReadOnly)) {
 			QJsonParseError err;
@@ -875,7 +876,7 @@ if (wheelsetCount ==2) {
 		}
 		}
 		}*/
-		QString path = QDir::currentPath() + "/Work_DB/InspectionPlan.json";
+		QString path = QCoreApplication::applicationDirPath() + "/Work_DB/InspectionPlan.json";	// 2026-10-25 D-005：exe 目录定位（防 CWD 依赖）
 		QFile file(path);
 		if (file.open(QIODevice::ReadOnly)) {
 			QJsonParseError err;
@@ -1392,7 +1393,7 @@ void c_Work_Remote::Cancel_Task_Cmd() {
 
 void c_Work_Remote::Work_Test()
 {
-	QString path = QDir::currentPath() + "/Work_DB/Axis_Position.json";
+	QString path = QCoreApplication::applicationDirPath() + "/Work_DB/Axis_Position.json";	// 2026-10-25 D-005：exe 目录定位（防 CWD 依赖）
 	QFile file(path);
 	if (file.open(QIODevice::ReadOnly)) {
 		QJsonParseError err;
