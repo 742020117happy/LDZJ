@@ -245,8 +245,9 @@ bool c_Object::QtPing(const QString ip)
 
 	QProcess cmd;
 	cmd.start(cmdstr);
-	cmd.waitForReadyRead(3000);
-	cmd.waitForFinished(3000);
+	// 2026-10-24 BB3：超时 3000→2000ms（MySql 断线重连更快响应，单次最长 6s→4s）
+	cmd.waitForReadyRead(2000);
+	cmd.waitForFinished(2000);
 
 	QString res = QString::fromLocal8Bit(cmd.readAll());
 	// 2026-10-24 Z3：移除 emit Status(res)——原始 ping 输出污染各模块日志

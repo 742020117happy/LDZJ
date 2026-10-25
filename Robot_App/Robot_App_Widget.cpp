@@ -2079,7 +2079,13 @@ void c_Robot_App_Widget::IO_Scan()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Status_Light_Voice_Scan()
 {
-	if (!c_Variable::getInstance().g_Communicate_DB.value("Light_Auto").toBool(true)) return;
+	// 2026-10-24 BB1：Light_Auto 读侧持锁（Voice 线程 SetVolume 可能并发写配置）
+	bool lightAuto;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		lightAuto = c_Variable::getInstance().g_Communicate_DB.value("Light_Auto").toBool(true);
+	}
+	if (!lightAuto) return;
 
 	// 读侧快照（T13 模式：标量加锁读）
 	auto &magic = c_Variable::getInstance().g_Magic;

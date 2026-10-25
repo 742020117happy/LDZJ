@@ -224,7 +224,12 @@ void c_Voice_Remote::Play_With_Volume(int index, int vol) {
 		c_Variable::getInstance().g_Communicate_DB.insert("Voice_Volume", vol);
 	}
 
-	int serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁（GUI 线程可能并发写配置）
+	int serverAddress;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
+	}
 	s_ModBus_DB reg;
 	reg.write_HoldingRegisters[VoiceProtocol::REG_PLAY]   = static_cast<quint16>(index);
 	reg.write_HoldingRegisters[VoiceProtocol::REG_VOLUME] = static_cast<quint16>(vol);
@@ -240,7 +245,12 @@ void c_Voice_Remote::Play_With_Volume(int index, int vol) {
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Query_Status() {
 	if (!c_Variable::getInstance().g_Voice.is_connected) return;
-	int serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁
+	int serverAddress;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
+	}
 	// 2026-10-24 T74：心跳查询帧不刷帧日志（TX/RX 静默），仅状态变化/异常才输出
 	emit Signal_Frame_Log_Enable(false);
 	emit Signal_Read_HoldingRegisters(VoiceProtocol::REG_STATUS, 1, serverAddress);
@@ -250,7 +260,12 @@ void c_Voice_Remote::Query_Status() {
 **Function:写 HR 0x0003 - 音频索引（01 06 00 03 00 XX CRCL CRCH）
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Write_HoldingRegisters_0(int index) {
-	int serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁
+	int serverAddress;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
+	}
 	s_ModBus_DB reg;
 	reg.write_HoldingRegisters[VoiceProtocol::REG_PLAY] = static_cast<quint16>(index);
 	emit Signal_Write_HoldingRegisters(VoiceProtocol::REG_PLAY, 1, reg, serverAddress);
@@ -260,7 +275,12 @@ void c_Voice_Remote::Write_HoldingRegisters_0(int index) {
 **Function:写 HR 0x0004 - 音量（01 06 00 04 00 XX CRCL CRCH）
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Write_HoldingRegisters_1(int vol) {
-	int serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁
+	int serverAddress;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		serverAddress = c_Variable::getInstance().g_Communicate_DB.value("Voice_Addr").toInt(1);
+	}
 	s_ModBus_DB reg;
 	reg.write_HoldingRegisters[VoiceProtocol::REG_VOLUME] = static_cast<quint16>(vol);
 	emit Signal_Write_HoldingRegisters(VoiceProtocol::REG_VOLUME, 1, reg, serverAddress);

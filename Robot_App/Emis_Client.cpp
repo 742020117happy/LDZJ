@@ -71,8 +71,12 @@ void c_Emis_Remote::Update_Info(QString timeType)
 
 	QByteArray jsonData = QJsonDocument(body).toJson(QJsonDocument::Compact);
 
-	// 2. 拼接业务路径
-	QString urlStr = c_Variable::getInstance().g_Communicate_DB.value("EMIS_Url").toString();
+	// 2. 拼接业务路径（2026-10-24 BB1：g_Communicate_DB 读侧持锁）
+	QString urlStr;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		urlStr = c_Variable::getInstance().g_Communicate_DB.value("EMIS_Url").toString();
+	}
 	QNetworkRequest request(urlStr);
 
 	// 💡 优化：务必加上 Content-Type，否则很多严格的服务器会拒绝解析 JSON

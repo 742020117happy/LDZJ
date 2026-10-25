@@ -114,8 +114,12 @@ void c_IO_Remote::Connect_Done()
 	Set_Fan();
 	emit Status("IO模块：已连接，自动启动散热风扇（Y04-KA5）");
 
-	m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
-	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁（GUI 线程可能并发写配置）
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
+		m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
+	}
 	// 2026-10-24 重构 T07：写接口（Set_Coil 1-6 硬编码与现场接线对应）与读缓存均为相对地址，
 	// 基址必须为 0；配置非 0 会导致写错地址/校验错位，故锁定并告警
 	if (m_Coils_Addr != 0) {
@@ -219,8 +223,12 @@ void c_IO_Remote::Read_Coils_Done(s_ModBus_DB data)
 	if (Write_Coils_Action()) { return; }
 	if (Write_HoldingRegisters_Action()) { return; }
 
-	m_HoldingRegisters_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Addr").toInt();
-	m_HoldingRegisters_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Size").toInt();
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		m_HoldingRegisters_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Addr").toInt();
+		m_HoldingRegisters_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Size").toInt();
+	}
 	m_Read_HoldingRegisters_Count = 1;
 	if (m_HoldingRegisters_Size >= 124) {
 		emit Read_HoldingRegisters(m_HoldingRegisters_Addr, 124);
@@ -235,8 +243,12 @@ void c_IO_Remote::Write_Coils_Done()
 {
 	c_Variable::getInstance().g_IO.Ready = !c_Variable::getInstance().g_IO.Ready;
 	m_WriteFailCount = 0;	// 2026-10-24 重构 T08：写成功清零失败计数
-	m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
-	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
+		m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
+	}
 	m_Read_Coils_Count = 1;
 	if (m_Coils_Size > 1000) {
 		emit Read_Coils(m_Coils_Addr, 1000);
@@ -291,8 +303,12 @@ void c_IO_Remote::Read_HoldingRegisters_Done(s_ModBus_DB data)
 	if (Write_Coils_Action()) { return; }
 	if (Write_HoldingRegisters_Action()) { return; }
 
-	m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
-	m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		m_Coils_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Addr").toInt(0);
+		m_Coils_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
+	}
 	m_Read_Coils_Count = 1;
 	if (m_Coils_Size > 1000) {
 		emit Read_Coils(m_Coils_Addr, 1000);
@@ -308,8 +324,12 @@ void c_IO_Remote::Write_HoldingRegisters_Done()
 {
 	c_Variable::getInstance().g_IO.Ready = !c_Variable::getInstance().g_IO.Ready;
 	m_WriteFailCount = 0;	// 2026-10-24 重构 T08：写成功清零失败计数
-	m_HoldingRegisters_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Addr").toInt(0);
-	m_HoldingRegisters_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Size").toInt(4);
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		m_HoldingRegisters_Addr = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Addr").toInt(0);
+		m_HoldingRegisters_Size = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Size").toInt(4);
+	}
 	m_Read_HoldingRegisters_Count = 1;
 	if (m_HoldingRegisters_Size >= 124) {
 		emit Read_HoldingRegisters(m_HoldingRegisters_Addr, 124);
@@ -336,7 +356,7 @@ void c_IO_Remote::Write_HoldingRegisters_Error()
 ************************************************************************************************************************************************/
 bool c_IO_Remote::Write_Coils_Action()
 {
-	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt(16);
+	int size = m_Coils_Size;	// 2026-10-24 BB1：改用 Connect_Done 缓存成员（配置变更重连生效）
 	for (int i = 0; i < size; i++) {
 		if (m_Set_Coils[i]) {
 			s_ModBus_DB reg;
@@ -357,7 +377,7 @@ bool c_IO_Remote::Write_Coils_Action()
 }
 bool c_IO_Remote::Write_HoldingRegisters_Action()
 {
-	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Size").toInt();
+	int size = m_HoldingRegisters_Size;	// 2026-10-24 BB1：改用缓存成员
 	for (int i = 0; i < size; i++) {
 		if (m_Set_HoldingRegisters[i]) {
 			s_ModBus_DB reg;
@@ -371,7 +391,7 @@ bool c_IO_Remote::Write_HoldingRegisters_Action()
 }
 void c_IO_Remote::Read_Coils_Action()
 {
-	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_Coils_Size").toInt();
+	int size = m_Coils_Size;	// 2026-10-24 BB1：改用缓存成员
 	for (int i = 0; i < size; i++) {
 		if (m_Set_Coils[i] && c_Variable::getInstance().g_IO.Coils[i]) {
 			m_Set_Coils[i] = false;
@@ -385,7 +405,7 @@ void c_IO_Remote::Read_Coils_Action()
 }
 void c_IO_Remote::Read_HoldingRegisters_Action()
 {
-	int size = c_Variable::getInstance().g_Communicate_DB.value("IO_HoldingRegisters_Size").toInt();
+	int size = m_HoldingRegisters_Size;	// 2026-10-24 BB1：改用缓存成员
 	for (int i = 0; i < size; i++) {
 		if (m_Set_HoldingRegisters[i] &&
 			c_Variable::getInstance().g_IO.read_HoldingRegisters[i] ==

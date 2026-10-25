@@ -62,8 +62,14 @@ void c_CGXi_Remote::Init() {
 **Function:连接CGXi机械臂 - 从全局配置读取IP/端口并发起ModBus TCP连接
 *************************************************************************************************************************************************/
 void c_CGXi_Remote::Connect() {
-	QString ip = c_Variable::getInstance().g_Communicate_DB.value("CGXi_Ip").toString();
-	int port = c_Variable::getInstance().g_Communicate_DB.value("CGXi_Port").toInt();
+	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁（GUI 线程可能并发写配置）
+	QString ip;
+	int port;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		ip = c_Variable::getInstance().g_Communicate_DB.value("CGXi_Ip").toString();
+		port = c_Variable::getInstance().g_Communicate_DB.value("CGXi_Port").toInt();
+	}
 	emit Status("CGXi遥控：" + ip + "：" + QString::number(port));
 	emit Connect_Device(ip, port);
 }
