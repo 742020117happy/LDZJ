@@ -88,22 +88,22 @@ void c_Scan_Client::Write_String(QString ip, int port, QString value)
 	if (m_Socket->state() != QAbstractSocket::BoundState) {
 		return;
 	}
-   if (ip.isEmpty()) {
-	   return;
-   }
-   if (port < 1 || port > 65535) {
-	   return;
-   }
-   if (value.isEmpty()) {
-	   return;
-   }
-   //发送消息
-   if(m_Socket->writeDatagram(value.toUtf8(), QHostAddress(ip), port) != -1){
-	   emit Write_String_Done();
-   }
-   else {
-	   emit Write_String_Error();
-   }
+	if (ip.isEmpty()) {
+		return;
+	}
+	if (port < 1 || port > 65535) {
+		return;
+	}
+	if (value.isEmpty()) {
+		return;
+	}
+	//发送消息
+	if(m_Socket->writeDatagram(value.toUtf8(), QHostAddress(ip), port) != -1){
+		emit Write_String_Done();
+	}
+	else {
+		emit Write_String_Error();
+	}
 }
 
 void c_Scan_Client::State_Changed()
