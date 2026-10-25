@@ -307,14 +307,22 @@ void c_Voice_Remote::Write_HoldingRegisters_1(int vol) {
 **Function:音量持久化 - 低频操作，直接写 Communicate_DB.json
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Persist_Volume() {
+	// 2026-10-25 D-009：原子写盘（临时文件+rename，防断电截断损坏配置）
+	QString finalPath = QCoreApplication::applicationDirPath() + "/System_DB/Communicate_DB.json";	// 2026-10-25 D-005b：exe 目录定位
+	QString tmpPath = finalPath + ".tmp";
 	QFile File;
-	File.setFileName(QCoreApplication::applicationDirPath() + "/System_DB/Communicate_DB.json");	// 2026-10-25 D-005b：exe 目录定位
+	File.setFileName(tmpPath);
 	if (File.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		// 2026-10-25 L：写回保留 UTF-8 BOM（规范 §一-4，与 Widget Do_Flush 一致）
 		QByteArray out = QJsonDocument(c_Variable::getInstance().g_Communicate_DB).toJson();
 		out.prepend("\xEF\xBB\xBF");
 		File.write(out);
 		File.close();
+		// 2026-10-25 D-009：原子替换目标
+		if (!QFile::rename(tmpPath, finalPath)) {
+			c_Log::Error("CFG", "Config_Save", "rename failed source=voice_persist_volume");
+			QFile::remove(tmpPath);
+		}
 		// 2026-10-25 L：音量持久化成功（只记录，不打印配置值）
 		c_Log::Info("CFG", "Config_Save", "source=voice_persist_volume file=System_DB/Communicate_DB.json");
 	}

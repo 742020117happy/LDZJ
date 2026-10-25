@@ -2683,8 +2683,11 @@ void c_Robot_App_Widget::Write_Communicate_DB(QString key, double value)
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Do_Flush_Communicate_DB()
 {
+	// 2026-10-25 D-009：原子写盘——先写临时文件再 rename 替换（防断电/崩溃截断损坏配置）
+	QString finalPath = QCoreApplication::applicationDirPath() + "/System_DB/Communicate_DB.json";
+	QString tmpPath = finalPath + ".tmp";
 	QFile File;
-	File.setFileName(QCoreApplication::applicationDirPath() + "/System_DB/Communicate_DB.json");
+	File.setFileName(tmpPath);
 	// 2026-10-24 重构 T15：改 WriteOnly+Truncate（原 ReadWrite 不截断，JSON 内容超短后残留尾部导致异常）
 	if (!File.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
 		// 2026-10-25 L：配置写盘失败（只记录，不改变防抖流程）
@@ -2706,6 +2709,11 @@ void c_Robot_App_Widget::Do_Flush_Communicate_DB()
 	out.prepend("\xEF\xBB\xBF");
 	File.write(out);
 	File.close();
+	// 2026-10-25 D-009：临时文件完整落盘后原子替换目标（rename 失败则保留旧配置并记录）
+	if (!QFile::rename(tmpPath, finalPath)) {
+		c_Log::Error("CFG", "Config_Save", QString("rename failed err=tmp_to_final"));
+		QFile::remove(tmpPath);
+	}
 	// 2026-10-25 L：配置保存成功（不打印任何字段值，防敏感信息泄露）
 	c_Log::Info("CFG", "Config_Save", QString("file=System_DB/Communicate_DB.json size=%1").arg(out.size()));
 }
