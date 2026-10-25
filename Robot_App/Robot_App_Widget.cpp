@@ -1675,14 +1675,20 @@ void c_Robot_App_Widget::Server_Init()
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 2;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
 		// 2026-10-24 重构 T05：补 workState 转移（原只写寄存器，Resume 被状态矩阵永久拒绝）
-		c_Variable::getInstance().g_Work_DB.workState = 3;
+		{	// 2026-10-25 GG2：WEB 指令运行期写 workState 补写锁（Server 线程读侧持读锁）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.workState = 3;
+		}
 	});
 	QObject::connect(m_Server_Remote, &c_Server_Remote::Resume_Task_Cmd, this, [this]() {
 		Write_Work_List("WEB->暂停复位");
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 1;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
 		// 2026-10-24 重构 T05：补 workState 转移（恢复采集）
-		c_Variable::getInstance().g_Work_DB.workState = 2;
+		{	// 2026-10-25 GG2：WEB 指令运行期写 workState 补写锁（Server 线程读侧持读锁）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.workState = 2;
+		}
 	});
 	QObject::connect(m_Server_Remote, &c_Server_Remote::Emergency_Stop_Cmd, this, [=]() {
 		Write_Work_List("WEB->软急停");
@@ -2441,20 +2447,29 @@ void c_Robot_App_Widget::Work_Button()
 	QObject::connect(ui->Work_Btn_Pause, &QPushButton::clicked, this, [this]() {
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 2;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
-		c_Variable::getInstance().g_Work_DB.workState = 3;
+		{	// 2026-10-25 GG2：本地按钮运行期写 workState 补写锁（Server 线程读侧持读锁）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.workState = 3;
+		}
 		Write_Work_List("本地->暂停");
 	});
 	QObject::connect(ui->Work_Btn_Resume, &QPushButton::clicked, this, [this]() {
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 1;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
-		c_Variable::getInstance().g_Work_DB.workState = 2;
+		{	// 2026-10-25 GG2：本地按钮运行期写 workState 补写锁（Server 线程读侧持读锁）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.workState = 2;
+		}
 		Write_Work_List("本地->恢复");
 	});
 	QObject::connect(ui->Work_Btn_Stop, &QPushButton::clicked, this, [this]() {
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 3;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
 		QMetaObject::invokeMethod(m_Magic_Remote, "Stop_Task", Qt::QueuedConnection);
-		c_Variable::getInstance().g_Work_DB.workState = 5;
+		{	// 2026-10-25 GG2：本地按钮运行期写 workState 补写锁（Server 线程读侧持读锁）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.workState = 5;
+		}
 		if (m_Work_Remote) QMetaObject::invokeMethod(m_Work_Remote, "Cancel_Task_Cmd", Qt::QueuedConnection);
 		Write_Work_List("本地->停止");
 	});

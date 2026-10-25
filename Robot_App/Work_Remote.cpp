@@ -979,13 +979,16 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 
 		emit precisScanEndTime();
 
-		c_Variable::getInstance().g_Work_DB.taskId = tasks_object_2.value("taskId").toString();
-		c_Variable::getInstance().g_Work_DB.carType = tasks_object_2.value("carType").toString();
-		c_Variable::getInstance().g_Work_DB.wheelsetKind = tasks_object_2.value("wheelsetKind").toString();
-		c_Variable::getInstance().g_Work_DB.wheelsetNo = tasks_object_2.value("wheelsetNo").toString();
-		c_Variable::getInstance().g_Work_DB.axleNo = tasks_object_2.value("axleNo").toString();
-		c_Variable::getInstance().g_Work_DB.sendUnit = tasks_object_2.value("sendUnit").toString();
-		c_Variable::getInstance().g_Work_DB.repairLevel = tasks_object_2.value("repairLevel").toString();
+		{	// 2026-10-25 GG1：双工位第二工位 g_Work_DB 写入补写锁（T83/T86 遗漏点，跨线程撕裂风险）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.taskId = tasks_object_2.value("taskId").toString();
+			c_Variable::getInstance().g_Work_DB.carType = tasks_object_2.value("carType").toString();
+			c_Variable::getInstance().g_Work_DB.wheelsetKind = tasks_object_2.value("wheelsetKind").toString();
+			c_Variable::getInstance().g_Work_DB.wheelsetNo = tasks_object_2.value("wheelsetNo").toString();
+			c_Variable::getInstance().g_Work_DB.axleNo = tasks_object_2.value("axleNo").toString();
+			c_Variable::getInstance().g_Work_DB.sendUnit = tasks_object_2.value("sendUnit").toString();
+			c_Variable::getInstance().g_Work_DB.repairLevel = tasks_object_2.value("repairLevel").toString();
+		}
 
 		
 		int posId_2 = wheelsetPosition_2.value("posId").toInt();
