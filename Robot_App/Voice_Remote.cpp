@@ -114,6 +114,8 @@ void c_Voice_Remote::Connect() {
 
 	emit Status("语音播报器：" + portName + " 波特率=" + QString::number(baudRate)
 		+ " 校验= 无 从站地址=" + QString::number(serverAddress));
+	// 2026-10-25 L：串口打开请求键值对（只记录，不改变连接流程）
+	c_Log::Info("VOICE", "Serial", QString("open com=%1 baud=%2 addr=%3").arg(portName).arg(baudRate).arg(serverAddress));
 	emit Signal_Connect_Device(portName, baudRate, QSerialPort::NoParity, QSerialPort::Data8, QSerialPort::OneStop, serverAddress);
 }
 
@@ -131,7 +133,9 @@ void c_Voice_Remote::Connect_Loop() {
 void c_Voice_Remote::Connect_Done() {
 	m_FailCount = 0;
 	c_Variable::getInstance().g_Voice.is_connected = true;
-	/* "已连接"已由主站 Status(0)→Modbus_Status 映射输出，此处不再重复 */
+	// 2026-10-25 L：连接成功（只记录，不改变音量同步与心跳启动）
+	c_Log::Info("VOICE", "Connect", QString("success addr=%1").arg(c_Variable::getInstance().g_Voice.ServerAddress));
+	/* "通信恢复"信号桥接下游 Status(0)（Modbus_Status 映射表注释过长，此处省略重复注释） */
 	Write_HoldingRegisters_1(m_Volume);	/* 同步音量（回声确认后 Ready 置位） */
 	if (m_HeartbeatTimer) m_HeartbeatTimer->start();	/* 启动心跳 */
 }
@@ -144,6 +148,8 @@ void c_Voice_Remote::Disconnect_Done() {
 	m_FailCount = 0;
 	c_Variable::getInstance().g_Voice.is_connected = false;
 	c_Variable::getInstance().g_Voice.Ready = false;
+	// 2026-10-25 L：断开（只记录，不改变清理流程）
+	c_Log::Warn("VOICE", "Disconnect", "state=disconnected");
 	emit Status("语音播报器：已断开");
 }
 
@@ -155,6 +161,8 @@ void c_Voice_Remote::On_No_Reply() {
 	m_FailCount = qMin(m_FailCount + 1, VoiceProtocol::FAIL_LIMIT);
 	if (m_FailCount == VoiceProtocol::FAIL_LIMIT && c_Variable::getInstance().g_Voice.Ready) {
 		c_Variable::getInstance().g_Voice.Ready = false;
+		// 2026-10-25 L：通信异常（只记录，不改变判定逻辑）
+		c_Log::Error("VOICE", "Heartbeat", QString("state=offline no_reply=%1").arg(VoiceProtocol::FAIL_LIMIT));
 		emit Status(QString("语音播报器：连续%1次无应答，判定通信异常").arg(VoiceProtocol::FAIL_LIMIT));
 	}
 }
@@ -164,14 +172,22 @@ void c_Voice_Remote::On_No_Reply() {
 *************************************************************************************************************************************************/
 void c_Voice_Remote::Play(int index) {
 	if (index < 0 || index > 255) {
+		// 2026-10-25 L：播放索引越界 WARN（只记录，不改变拒绝行为）
+		c_Log::Warn("VOICE", "Play", QString("rejected index=%1 range=0-255").arg(index));
 		emit Status("语音播报器：播放索引越界 " + QString::number(index));
 		return;
 	}
 	c_Variable::getInstance().g_Voice.PlayIndex = index;
 	Write_HoldingRegisters_0(index);
-	if (index == 0) emit Status("语音播报器：停止播放");
+	if (index == 0) {
+		// 2026-10-25 L：停止播放（只记录）
+		c_Log::Info("VOICE", "Play", "stop");
+		emit Status("语音播报器：停止播放");
+	}
 	else {
 		c_Variable::getInstance().g_Voice.PlayCount++;
+		// 2026-10-25 L：播放开始（只记录；文本由 PA 序号表映射，不打印音频文件内容）
+		c_Log::Info("VOICE", "Play", QString("start audio=PA%1 count=%2").arg(index, 3, 10, QChar('0')).arg(c_Variable::getInstance().g_Voice.PlayCount));
 		emit Status(QString("语音播报器：播放 PA%1").arg(index, 3, 10, QChar('0')));
 	}
 }
@@ -199,6 +215,8 @@ void c_Voice_Remote::SetVolume(int vol) {
 	}
 	Write_HoldingRegisters_1(vol);
 	Persist_Volume();
+	// 2026-10-25 L：音量设置（只记录，不改变写入流程）
+	c_Log::Info("VOICE", "Volume", QString("set level=%1").arg(vol));
 	emit Status("语音播报器：设置音量 " + QString::number(vol));
 }
 
@@ -314,6 +332,8 @@ void c_Voice_Remote::Write_HoldingRegisters_Done() {
 	// 2026-10-24 CC：全局变量直接访问（禁止局部引用别名）
 	if (!c_Variable::getInstance().g_Voice.Ready) {
 		c_Variable::getInstance().g_Voice.Ready = true;
+		// 2026-10-25 L：通信恢复（只记录，不改变 Ready 置位）
+		c_Log::Info("VOICE", "Heartbeat", "state=online recovered=true");
 		emit Status("语音播报器：通信恢复（设备在线）");
 	}
 }
@@ -333,9 +353,11 @@ void c_Voice_Remote::Read_HoldingRegisters_Done(s_ModBus_DB data) {
 
 	switch (status) {
 	case VoiceProtocol::STATUS_IDLE:
+		c_Log::Info("VOICE", "Heartbeat", "state=online status=idle");
 		emit Status("语音播报器：状态-空闲（设备在线）");
 		break;
 	case VoiceProtocol::STATUS_PLAYING:
+		c_Log::Info("VOICE", "Heartbeat", "state=online status=playing");
 		emit Status("语音播报器：状态-播放中（设备在线）");
 		break;
 	case VoiceProtocol::STATUS_ERROR:
