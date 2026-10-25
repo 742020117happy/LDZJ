@@ -1108,16 +1108,14 @@ bool c_Work_Remote::wait_RefreshMapList()
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	// 2026-10-25 NN2：失败链路补全（MM1 同款断裂，原仅 Done/Task_Cancelled 退出，失败永久阻塞）
-	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::update_MapList_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::RefreshMapList_Failed, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::RefreshMapList_Failed, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::RefreshMapList_Failed, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006：exit-code 模式（receiver=loop 析构自动断连）
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待刷新地图列表");
 	emit RefreshMapList(1);
-	loop.exec();
-	if (failed) { emit Status("刷新地图列表失败"); return false; }
+
+	if (loop.exec() != 0) { emit Status("刷新地图列表失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1138,17 +1136,15 @@ bool c_Work_Remote::wait_SwitchMap(QString map)
 	}
 	// 2026-10-25 MM1：失败链路补全——SwitchMap_Failed（Magic POST 失败/网络错误）退出等待，
 	// 原仅 SwitchMap_Done/Task_Cancelled，切换失败将永久阻塞（DD5 同款断裂）
-	bool failed = false;
 	QEventLoop loop;
 	loop.processEvents(QEventLoop::AllEvents, 0);
 	QObject::connect(this, &c_Work_Remote::SwitchMap_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::SwitchMap_Failed, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::SwitchMap_Failed, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::SwitchMap_Failed, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006：exit-code 模式（receiver=loop 析构自动断连）
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待加载地图");
 	emit SwitchMap(map);
-	loop.exec();
-	if (failed) { emit Status("加载地图失败"); return false; }
+
+	if (loop.exec() != 0) { emit Status("加载地图失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1160,17 +1156,15 @@ bool c_Work_Remote::wait_RefreshNavPoints()
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	// 2026-10-25 NN2：失败链路补全（MM1 同款断裂）
-	bool failed = false;
 	QEventLoop loop;
 	loop.processEvents(QEventLoop::AllEvents, 0);
 	QObject::connect(this, &c_Work_Remote::RefreshNavPoints_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::RefreshNavPoints_Failed, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::RefreshNavPoints_Failed, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::RefreshNavPoints_Failed, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006：exit-code 模式（receiver=loop 析构自动断连）
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待刷新导航点列表");
 	emit RefreshNavPoints(1);
-	loop.exec();
-	if (failed) { emit Status("刷新导航点列表失败"); return false; }
+
+	if (loop.exec() != 0) { emit Status("刷新导航点列表失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1182,16 +1176,14 @@ bool c_Work_Remote::wait_DynamicInit(QString point)
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	// 2026-10-25 NN2：失败链路补全（init_pose_result=false / POST 失败 → DynamicInit_Failed）
-	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::DynamicInit_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::DynamicInit_Failed, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::DynamicInit_Failed, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::DynamicInit_Failed, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006：exit-code 模式（receiver=loop 析构自动断连）
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待动态初始化");
 	emit DynamicInit(point);
-	loop.exec();
-	if (failed) { emit Status("动态初始化失败"); return false; }
+
+	if (loop.exec() != 0) { emit Status("动态初始化失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1203,16 +1195,14 @@ bool c_Work_Remote::wait_StartTask(QString task_name)
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	// 2026-10-25 NN2：失败链路补全（POST /task_queue/start 失败 → StartTask_Failed）
-	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::StartTask_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::StartTask_Failed, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::StartTask_Failed, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::StartTask_Failed, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006：exit-code 模式（receiver=loop 析构自动断连）
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待导航点移动 " + task_name);
 	emit StartTask(task_name);   
-	loop.exec();
-	if (failed) { emit Status("导航任务启动失败"); return false; }
+
+	if (loop.exec() != 0) { emit Status("导航任务启动失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1224,16 +1214,14 @@ bool c_Work_Remote::wait_Dis_Recharge()
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	// 2026-10-24 DD5：链路补全——T45 的 Dis_Recharge_Failed 已发但等待侧未接，脱离失败将永久阻塞
-	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::Dis_Recharge_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::Dis_Recharge_Failed, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::Dis_Recharge_Failed, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::Dis_Recharge_Failed, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006：exit-code 模式（receiver=loop 析构自动断连）
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待脱离充电桩");
 	emit Dis_Recharge();
-	loop.exec();
-	if (failed) { emit Status("脱离充电桩失败"); return false; }
+
+	if (loop.exec() != 0) { emit Status("脱离充电桩失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1245,16 +1233,14 @@ bool c_Work_Remote::wait_StartRecharge(QString point)
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	// 2026-10-24 DD5：链路补全——T44 的 StartRecharge_Failed 已发但等待侧未接，回充失败将永久阻塞
-	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::StartRecharge_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::StartRecharge_Failed, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::StartRecharge_Failed, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::StartRecharge_Failed, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006：exit-code 模式（receiver=loop 析构自动断连）
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待回充");
 	emit StartRecharge(point);
-	loop.exec();
-	if (failed) { emit Status("回充失败"); return false; }
+
+	if (loop.exec() != 0) { emit Status("回充失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(2500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1281,16 +1267,14 @@ bool c_Work_Remote::wait_IO_Robot_ON()
 		ioConnected = c_Variable::getInstance().g_IO.Connected;
 	}
 	if (!ioConnected) { emit Status("机械臂开机失败：远程 IO 未连接"); return false; }
-	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::IO_Robot_ON_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::IO_Disconnected, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::IO_Disconnected, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::IO_Disconnected, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待机械臂开机");
 	emit IO_Robot_ON(1);
-	loop.exec();
-	if (failed) { emit Status("机械臂开机失败：远程 IO 断开"); return false; }
+
+	if (loop.exec() != 0) { emit Status("机械臂开机失败：远程 IO 断开"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1316,16 +1300,14 @@ bool c_Work_Remote::wait_Coils_1001()
 		cgxiConnected = c_Variable::getInstance().g_CGXi.Connected;
 	}
 	if (!cgxiConnected) { emit Status("机械臂使能失败：机械臂未连接"); return false; }
-	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::Coils_1001_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::CGXi_Disconnected, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::CGXi_Disconnected, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::CGXi_Disconnected, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待机械臂使能");
 	emit Coils_1001(1);
-	loop.exec();
-	if (failed) { emit Status("机械臂使能失败：机械臂断开"); return false; }
+
+	if (loop.exec() != 0) { emit Status("机械臂使能失败：机械臂断开"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
@@ -1344,18 +1326,16 @@ bool c_Work_Remote::wait_CGXi_Prog_Start(qint16 index)
 		cgxiConnected = c_Variable::getInstance().g_CGXi.Connected;
 	}
 	if (!cgxiConnected) { emit Status("机械臂轨迹执行失败：机械臂未连接"); return false; }
-	bool failed = false;
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::CGXi_Prog_Start_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::CGXi_Disconnected, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::CGXi_Disconnected, this, [&failed]() { failed = true; });
+	QObject::connect(this, &c_Work_Remote::CGXi_Disconnected, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status(QString("等待机械臂轨迹执行 轨迹%1").arg(index));
 	emit Set_HoldingRegisters_88(index);
 	msleep(500);
 	emit CGXi_Prog_Start(1);
-	loop.exec();
-	if (failed) { emit Status("机械臂轨迹执行失败：机械臂断开"); return false; }
+
+	if (loop.exec() != 0) { emit Status("机械臂轨迹执行失败：机械臂断开"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 	msleep(500);//等待ui界面更新
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
