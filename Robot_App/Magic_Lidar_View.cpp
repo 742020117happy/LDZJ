@@ -43,7 +43,7 @@ void c_Magic_Lidar_View::paintEvent(QPaintEvent *event)
 
 	painter.fillRect(rect(), QColor(10, 10, 20));
 
-	const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+	const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 	bool connected = c_Variable::getInstance().g_Magic.is_connected;
 
 	if (!connected) {
@@ -87,7 +87,7 @@ void c_Magic_Lidar_View::Draw_Grid(QPainter &painter)
 
 void c_Magic_Lidar_View::Draw_Scan_Points(QPainter &painter, const QColor &color, float alpha)
 {
-	const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+	const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 	const auto &points = read.laserScanPoints;
 	if (points.isEmpty()) return;
 
@@ -106,7 +106,7 @@ void c_Magic_Lidar_View::Draw_Scan_Points(QPainter &painter, const QColor &color
 
 void c_Magic_Lidar_View::Draw_Robot(QPainter &painter)
 {
-	const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+	const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 	QPointF rpos = World_To_Widget(read.worldX, read.worldY);
 	if (qIsNaN(rpos.x()) || qIsNaN(rpos.y())) return;
 
@@ -138,7 +138,7 @@ void c_Magic_Lidar_View::Draw_Robot(QPainter &painter)
 
 void c_Magic_Lidar_View::Draw_Paths(QPainter &painter)
 {
-	const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+	const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 
 	if (!read.localPlanPath.isEmpty()) {
 		painter.save();
@@ -171,7 +171,7 @@ void c_Magic_Lidar_View::Draw_Paths(QPainter &painter)
 
 void c_Magic_Lidar_View::Draw_HUD(QPainter &painter)
 {
-	const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+	const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 
 	QRectF bg(10, 10, 220, 85);
 	painter.setPen(Qt::NoPen);

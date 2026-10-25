@@ -75,10 +75,8 @@ void c_Magic_Remote::Init() {
 
 // ================= 新增：状态轮询槽函数实现 =================
 void c_Magic_Remote::Poll_Status() {
-	auto &db = c_Variable::getInstance().g_Magic;
-
-	// 1. 前置条件检查：未连接或未登录则跳过
-	if (!db.is_connected || db.token.isEmpty()) {
+	// 2026-10-24 CC：全局变量直接访问（禁止局部引用别名）
+	if (!c_Variable::getInstance().g_Magic.is_connected || c_Variable::getInstance().g_Magic.token.isEmpty()) {
 		return;
 	}
 
@@ -121,8 +119,8 @@ void c_Magic_Remote::Poll_Status() {
 	}
 
 	// 6. 2026-10-24 重构 T14：Token 定时刷新（每 3000 次轮询≈10 分钟，预防过期；失败由 401 自动重登兜底）
-	if (m_PollCounter % 3000 == 0 && !db.refreshToken.isEmpty()) {
-		Refresh_Token(db.refreshToken);
+	if (m_PollCounter % 3000 == 0 && !c_Variable::getInstance().g_Magic.refreshToken.isEmpty()) {
+		Refresh_Token(c_Variable::getInstance().g_Magic.refreshToken);
 	}
 
 	// 防止计数器溢出
@@ -184,11 +182,14 @@ void c_Magic_Remote::Stop_Reconnect() {
 void c_Magic_Remote::Try_Reconnect() {
 	emit Status("Magic遥控：正在自动重连...");
 	// 从 Communicate_DB 读取最新凭证（用户可能在断线期间修改过配置）
-	auto &db = c_Variable::getInstance().g_Communicate_DB;
-	m_LastIP = db.value("Magic_IP").toString(m_LastIP);
-	m_LastPort = static_cast<quint16>(db.value("Magic_Port").toInt(m_LastPort));
-	m_LastUser = db.value("Magic_User").toString(m_LastUser);
-	m_LastPass = db.value("Magic_Pass").toString(m_LastPass);
+	// 2026-10-24 CC：读侧持锁 + 直接访问（禁止局部引用别名）
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		m_LastIP   = c_Variable::getInstance().g_Communicate_DB.value("Magic_IP").toString(m_LastIP);
+		m_LastPort = static_cast<quint16>(c_Variable::getInstance().g_Communicate_DB.value("Magic_Port").toInt(m_LastPort));
+		m_LastUser = c_Variable::getInstance().g_Communicate_DB.value("Magic_User").toString(m_LastUser);
+		m_LastPass = c_Variable::getInstance().g_Communicate_DB.value("Magic_Pass").toString(m_LastPass);
+	}
 	Connect_Device(m_LastIP, m_LastPort);
 	Login(m_LastUser, m_LastPass);
 }
@@ -842,15 +843,13 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	int errCode = body["errCode"].toInt();
 	QJsonValue dataVal = body["data"];
 
-	s_Magic_DB &magicDB = c_Variable::getInstance().g_Magic;
-	auto &read = magicDB.ReadData;
-	auto &write = magicDB.WriteData;
+	// 2026-10-24 CC：全局变量直接访问（原 magicDB/read/write 别名已全部替换为 getInstance() 直访）
 
 	// ================= 2. 失败/鉴权处理 =================
 	if (!successed) {
 		if (errCode == 401) {
 			emit Status("Magic遥控：Token已过期或无效(401)，自动重新登录");
-			magicDB.token = "";	// 2026-10-24 C1：外层写锁已覆盖，勿再嵌套加锁
+			c_Variable::getInstance().g_Magic.token = "";	// 2026-10-24 C1：外层写锁已覆盖，勿再嵌套加锁
 			emit Signal_Set_Token("");
 			// 2026-10-24 审查修复 D1：401 后停轮询 → 用缓存凭证自动重登一次（原链路断裂永不恢复）
 			if (m_PollTimer) m_PollTimer->stop();
@@ -871,8 +870,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QString token = dataObj["token"].toString();
 		QString refreshToken = dataObj["refresh_token"].toString();
 		if (!token.isEmpty()) {
-			magicDB.token = token;	// 2026-10-24 C1：外层写锁已覆盖
-			if (!refreshToken.isEmpty()) { magicDB.refreshToken = refreshToken; }
+			c_Variable::getInstance().g_Magic.token = token;	// 2026-10-24 C1：外层写锁已覆盖
+			if (!refreshToken.isEmpty()) { c_Variable::getInstance().g_Magic.refreshToken = refreshToken; }
 			emit Signal_Set_Token(token);
 		}
 		else {
@@ -885,7 +884,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QJsonObject dataObj = dataVal.toObject();
 		QString newToken = dataObj["token"].toString();
 		if (!newToken.isEmpty()) {
-			magicDB.token = newToken;	// 2026-10-24 C1：外层写锁已覆盖
+			c_Variable::getInstance().g_Magic.token = newToken;	// 2026-10-24 C1：外层写锁已覆盖
 			emit Signal_Set_Token(newToken);
 			emit Status("Magic遥控：Token已刷新");
 		}
@@ -897,20 +896,20 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// 4.2.7 获取地图列表
 	if (path == "/data/list_maps") {
 		QJsonArray mapArray = dataVal.toArray();
-		read.mapList.clear();
+		c_Variable::getInstance().g_Magic.ReadData.mapList.clear();
 		QString defaultMap;
 		for (const auto &item : mapArray) {
 			QJsonObject obj = item.toObject();
 			QString mName = obj["name"].toString();
 			if (!mName.isEmpty()) {
-				read.mapList.append(mName);
+				c_Variable::getInstance().g_Magic.ReadData.mapList.append(mName);
 				if (obj["default"].toBool() && defaultMap.isEmpty()) {
 					defaultMap = mName;
 				}
 			}
 		}
-		if (read.currentMap.isEmpty() && !defaultMap.isEmpty()) {
-			read.currentMap = defaultMap;
+		if (c_Variable::getInstance().g_Magic.ReadData.currentMap.isEmpty() && !defaultMap.isEmpty()) {
+			c_Variable::getInstance().g_Magic.ReadData.currentMap = defaultMap;
 			emit Status(QString("Magic遥控：自动选中默认地图 -> %1").arg(defaultMap));
 			Get_Single_Map_Info(defaultMap);
 			Get_Map_Png(defaultMap);
@@ -928,19 +927,19 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		QString curName = dataObj["name"].toString();
 		if (curName.isEmpty()) curName = dataObj["mapname"].toString();
 		if (curName.isEmpty()) curName = dataObj["map_name"].toString();
-		if (!curName.isEmpty()) read.currentMap = curName;
+		if (!curName.isEmpty()) c_Variable::getInstance().g_Magic.ReadData.currentMap = curName;
 
-		read.resolution = mapInfo["resolution"].toDouble(0.05);
-		read.originX = mapInfo["originX"].toDouble(0.0);
-		read.originY = mapInfo["originY"].toDouble(0.0);
-		read.gridWidth = mapInfo["gridWidth"].toInt(0);
-		read.gridHeight = mapInfo["gridHeight"].toInt(0);
+		c_Variable::getInstance().g_Magic.ReadData.resolution = mapInfo["resolution"].toDouble(0.05);
+		c_Variable::getInstance().g_Magic.ReadData.originX = mapInfo["originX"].toDouble(0.0);
+		c_Variable::getInstance().g_Magic.ReadData.originY = mapInfo["originY"].toDouble(0.0);
+		c_Variable::getInstance().g_Magic.ReadData.gridWidth = mapInfo["gridWidth"].toInt(0);
+		c_Variable::getInstance().g_Magic.ReadData.gridHeight = mapInfo["gridHeight"].toInt(0);
 
 		emit Status(QString("Magic遥控：地图元数据更新 名称=%1；分辨率=%2；尺寸=%3x%4")
-			.arg(read.currentMap)
-			.arg(read.resolution)
-			.arg(read.gridWidth)
-			.arg(read.gridHeight));
+			.arg(c_Variable::getInstance().g_Magic.ReadData.currentMap)
+			.arg(c_Variable::getInstance().g_Magic.ReadData.resolution)
+			.arg(c_Variable::getInstance().g_Magic.ReadData.gridWidth)
+			.arg(c_Variable::getInstance().g_Magic.ReadData.gridHeight));
 		emit update_MapStatus();
 
 		return;
@@ -955,7 +954,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			// POST 切换地图响应
 			QString map_name = query.queryItemValue("map_name");
 			if (!map_name.isEmpty()) {
-				read.currentMap = map_name;
+				c_Variable::getInstance().g_Magic.ReadData.currentMap = map_name;
 				emit Status(QString("Magic遥控：当前地图已切换为 %1").arg(map_name));
 			}
 			else {
@@ -978,15 +977,15 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		else {
 			// GET 查询当前默认地图
 			if (dataVal.isString() && !dataVal.toString().isEmpty()) {
-				read.currentMap = dataVal.toString();
-				emit Status(QString("Magic遥控：当前默认地图 -> %1").arg(read.currentMap));
+				c_Variable::getInstance().g_Magic.ReadData.currentMap = dataVal.toString();
+				emit Status(QString("Magic遥控：当前默认地图 -> %1").arg(c_Variable::getInstance().g_Magic.ReadData.currentMap));
 			}
 			else if (dataVal.isObject()) {
 				QJsonObject obj = dataVal.toObject();
 				QString mName = obj["name"].toString();
 				if (mName.isEmpty()) mName = obj["map_name"].toString();
 				if (!mName.isEmpty()) {
-					read.currentMap = mName;
+					c_Variable::getInstance().g_Magic.ReadData.currentMap = mName;
 					emit Status(QString("Magic遥控：当前默认地图 -> %1").arg(mName));
 				}
 			}
@@ -998,12 +997,12 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	if (path == "/cmd/async_stop_scan_map") {
 		QJsonObject dataObj = dataVal.toObject();
 		if (!dataObj.isEmpty()) {
-			read.resolution = dataObj["resolution"].toDouble(0.05);
-			read.originX = dataObj["originX"].toDouble(0.0);
-			read.originY = dataObj["originY"].toDouble(0.0);
-			read.gridWidth = dataObj["gridWidth"].toInt(0);
-			read.gridHeight = dataObj["gridHeight"].toInt(0);
-			read.mapping = false;
+			c_Variable::getInstance().g_Magic.ReadData.resolution = dataObj["resolution"].toDouble(0.05);
+			c_Variable::getInstance().g_Magic.ReadData.originX = dataObj["originX"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.originY = dataObj["originY"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.gridWidth = dataObj["gridWidth"].toInt(0);
+			c_Variable::getInstance().g_Magic.ReadData.gridHeight = dataObj["gridHeight"].toInt(0);
+			c_Variable::getInstance().g_Magic.ReadData.mapping = false;
 			emit Status("Magic遥控：建图完成，地图已保存");
 			emit update_MapStatus();
 	
@@ -1041,20 +1040,20 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			decoded.loadFromData(imgData);
 			locker.relock();
 			if (!decoded.isNull()) {
-				read.mapImage = decoded;
-				read.mapLoaded = true;
-				if (read.gridWidth == 0 || read.gridHeight == 0) {
-					read.gridWidth = read.mapImage.width();
-					read.gridHeight = read.mapImage.height();
+				c_Variable::getInstance().g_Magic.ReadData.mapImage = decoded;
+				c_Variable::getInstance().g_Magic.ReadData.mapLoaded = true;
+				if (c_Variable::getInstance().g_Magic.ReadData.gridWidth == 0 || c_Variable::getInstance().g_Magic.ReadData.gridHeight == 0) {
+					c_Variable::getInstance().g_Magic.ReadData.gridWidth = c_Variable::getInstance().g_Magic.ReadData.mapImage.width();
+					c_Variable::getInstance().g_Magic.ReadData.gridHeight = c_Variable::getInstance().g_Magic.ReadData.mapImage.height();
 				}
-				else if (read.mapImage.width() != read.gridWidth ||
-					read.mapImage.height() != read.gridHeight) {
+				else if (c_Variable::getInstance().g_Magic.ReadData.mapImage.width() != c_Variable::getInstance().g_Magic.ReadData.gridWidth ||
+					c_Variable::getInstance().g_Magic.ReadData.mapImage.height() != c_Variable::getInstance().g_Magic.ReadData.gridHeight) {
 					emit Status(QString("Magic遥控：地图图片尺寸(%1x%2)与元数据(%3x%4)不一致，将按元数据缩放")
-						.arg(read.mapImage.width()).arg(read.mapImage.height())
-						.arg(read.gridWidth).arg(read.gridHeight));
+						.arg(c_Variable::getInstance().g_Magic.ReadData.mapImage.width()).arg(c_Variable::getInstance().g_Magic.ReadData.mapImage.height())
+						.arg(c_Variable::getInstance().g_Magic.ReadData.gridWidth).arg(c_Variable::getInstance().g_Magic.ReadData.gridHeight));
 				}
 				emit Status(QString("Magic遥控：地图底图加载成功 size=%1x%2")
-					.arg(read.mapImage.width()).arg(read.mapImage.height()));
+					.arg(c_Variable::getInstance().g_Magic.ReadData.mapImage.width()).arg(c_Variable::getInstance().g_Magic.ReadData.mapImage.height()));
 				emit update_MapStatus();
 		
 			}
@@ -1070,23 +1069,23 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	if (path == "/real_time_data/robot_pos") {
 		if (!dataVal.isObject()) return;
 		QJsonObject data = dataVal.toObject();
-		read.angle = data["angle"].toDouble(0.0);
+		c_Variable::getInstance().g_Magic.ReadData.angle = data["angle"].toDouble(0.0);
 		QJsonObject gridPos = data["gridPosition"].toObject();
-	read.gridX = gridPos["x"].toInt(0);
-	read.gridY = gridPos["y"].toInt(0);
+	c_Variable::getInstance().g_Magic.ReadData.gridX = gridPos["x"].toInt(0);
+	c_Variable::getInstance().g_Magic.ReadData.gridY = gridPos["y"].toInt(0);
 
 		QJsonObject worldPosObj = data["worldPosition"].toObject();
 		QJsonObject position = worldPosObj["position"].toObject();
 		if (position.isEmpty()) {
-			read.worldX = worldPosObj["x"].toDouble(0.0);
-			read.worldY = worldPosObj["y"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.worldX = worldPosObj["x"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.worldY = worldPosObj["y"].toDouble(0.0);
 		}
 		else {
-			read.worldX = position["x"].toDouble(0.0);
-			read.worldY = position["y"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.worldX = position["x"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.worldY = position["y"].toDouble(0.0);
 		}
 
-		magicDB.Ready = !magicDB.Ready;
+		c_Variable::getInstance().g_Magic.Ready = !c_Variable::getInstance().g_Magic.Ready;
 		emit update_RobotStatus();
 
 		return;
@@ -1094,7 +1093,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 
 	// --- 4.6.6 机器人定位状态 ---
 	if (path == "/real_time_data/robot_local_status") {
-		read.localized = dataVal.toBool(false);
+		c_Variable::getInstance().g_Magic.ReadData.localized = dataVal.toBool(false);
 		emit update_RobotStatus();
 
 		return;
@@ -1105,26 +1104,26 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (!dataVal.isObject()) return;
 		QJsonObject data = dataVal.toObject();
 
-		read.battery = data["battery_percentage"].toInt(0);
-		read.antiCollision = data["anticollision"].toInt(0);
-		read.emergencyStop = data["emergency_stop"].toBool(false);
-		read.workingMode = data["current_working"].toInt(1);
-		read.errorCode = data["error"].toInt(0);
+		c_Variable::getInstance().g_Magic.ReadData.battery = data["battery_percentage"].toInt(0);
+		c_Variable::getInstance().g_Magic.ReadData.antiCollision = data["anticollision"].toInt(0);
+		c_Variable::getInstance().g_Magic.ReadData.emergencyStop = data["emergency_stop"].toBool(false);
+		c_Variable::getInstance().g_Magic.ReadData.workingMode = data["current_working"].toInt(1);
+		c_Variable::getInstance().g_Magic.ReadData.errorCode = data["error"].toInt(0);
 
 		if (data.contains("charge")) {
-			read.charging = (data["charge"].toInt() == 1);
+			c_Variable::getInstance().g_Magic.ReadData.charging = (data["charge"].toInt() == 1);
 		}
 		else if (data.contains("is_charging")) {
-			read.charging = data["is_charging"].toBool();
+			c_Variable::getInstance().g_Magic.ReadData.charging = data["is_charging"].toBool();
 		}
 		else if (data.contains("charge_status")) {
-			read.charging = (data["charge_status"].toInt() == 4);
+			c_Variable::getInstance().g_Magic.ReadData.charging = (data["charge_status"].toInt() == 4);
 		}
 
-		read.lidarOnline = data["lidar"].toBool(false);
-		read.imuOnline = data["imu"].toBool(false);
-		read.odomOnline = data["odom"].toBool(false);
-		read.cameraOnline = (data["camera_num"].toInt(0) > 0);
+		c_Variable::getInstance().g_Magic.ReadData.lidarOnline = data["lidar"].toBool(false);
+		c_Variable::getInstance().g_Magic.ReadData.imuOnline = data["imu"].toBool(false);
+		c_Variable::getInstance().g_Magic.ReadData.odomOnline = data["odom"].toBool(false);
+		c_Variable::getInstance().g_Magic.ReadData.cameraOnline = (data["camera_num"].toInt(0) > 0);
 
 		emit update_RobotStatus();
 
@@ -1144,14 +1143,14 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 				emit StartTask_Done();
 			}
 		}
-		read.taskStatus = (statusCode == 1) ? 1 : 0;
+		c_Variable::getInstance().g_Magic.ReadData.taskStatus = (statusCode == 1) ? 1 : 0;
 
 		QJsonObject statusData = data["statusData"].toObject();
 		if (!statusData.isEmpty()) {
-			read.taskProgress = statusData["process_rate"].toDouble(0.0);
-			read.taskLoopCount = statusData["loop_count"].toInt(0);
-			read.taskLoopTimes = statusData["loop_times"].toInt(0);
-			read.taskRemainSec = statusData["less_second"].toInt(0);
+			c_Variable::getInstance().g_Magic.ReadData.taskProgress = statusData["process_rate"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.taskLoopCount = statusData["loop_count"].toInt(0);
+			c_Variable::getInstance().g_Magic.ReadData.taskLoopTimes = statusData["loop_times"].toInt(0);
+			c_Variable::getInstance().g_Magic.ReadData.taskRemainSec = statusData["less_second"].toInt(0);
 		}
 		emit update_RobotStatus();
 
@@ -1164,8 +1163,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			QJsonObject d = dataVal.toObject();
 			// 2026-10-24 审查修复 C1：v1.4.4 响应为对象 data.linear={x,y,z}/data.angular={x,y,z}，
 			// 原 toDouble() 对对象恒返回 0，导致速度恒 0
-			read.currentLinearSpeed = d["linear"].toObject()["x"].toDouble(0.0);
-			read.currentAngularSpeed = d["angular"].toObject()["z"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.currentLinearSpeed = d["linear"].toObject()["x"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.currentAngularSpeed = d["angular"].toObject()["z"].toDouble(0.0);
 		}
 		return;
 	}
@@ -1177,13 +1176,13 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			QJsonObject twist = d["twist"].toObject();
 			QJsonObject twistData = twist.contains("twist") ? twist["twist"].toObject() : twist;
 			QJsonObject linear = twistData["linear"].toObject();
-			read.odomLinearX = linear["x"].toDouble(0.0);
-			read.odomLinearY = linear["y"].toDouble(0.0);
-			read.odomLinearZ = linear["z"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.odomLinearX = linear["x"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.odomLinearY = linear["y"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.odomLinearZ = linear["z"].toDouble(0.0);
 			QJsonObject angular = twistData["angular"].toObject();
-			read.odomAngularX = angular["x"].toDouble(0.0);
-			read.odomAngularY = angular["y"].toDouble(0.0);
-			read.odomAngularZ = angular["z"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.odomAngularX = angular["x"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.odomAngularY = angular["y"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.odomAngularZ = angular["z"].toDouble(0.0);
 		}
 		return;
 	}
@@ -1193,13 +1192,13 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (dataVal.isObject()) {
 			QJsonObject d = dataVal.toObject();
 			QJsonObject angVel = d["angular_velocity"].toObject();
-			read.imuAngVelX = angVel["x"].toDouble(0.0);
-			read.imuAngVelY = angVel["y"].toDouble(0.0);
-			read.imuAngVelZ = angVel["z"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.imuAngVelX = angVel["x"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.imuAngVelY = angVel["y"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.imuAngVelZ = angVel["z"].toDouble(0.0);
 			QJsonObject linAcc = d["linear_acceleration"].toObject();
-			read.imuLinAccX = linAcc["x"].toDouble(0.0);
-			read.imuLinAccY = linAcc["y"].toDouble(0.0);
-			read.imuLinAccZ = linAcc["z"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.imuLinAccX = linAcc["x"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.imuLinAccY = linAcc["y"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.imuLinAccZ = linAcc["z"].toDouble(0.0);
 		}
 		return;
 	}
@@ -1212,18 +1211,18 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			double angleMin = d["angle_min"].toDouble(-3.14159);
 			double angleMax = d["angle_max"].toDouble(3.14159);
 			double angleInc = d["angle_increment"].toDouble(0.017);
-			read.laserScanPoints.clear();
-			read.laserScanPoints.reserve(ranges.size());
+			c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.clear();
+			c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.reserve(ranges.size());
 			for (int i = 0; i < ranges.size(); ++i) {
 				double range = ranges[i].toDouble();
 				if (range > 0.05 && range < 30.0) {
 					double a = angleMin + i * angleInc;
-					read.laserScanPoints.append(QPointF(
-						read.worldX + range * qCos(a),
-						read.worldY + range * qSin(a)));
+					c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.append(QPointF(
+						c_Variable::getInstance().g_Magic.ReadData.worldX + range * qCos(a),
+						c_Variable::getInstance().g_Magic.ReadData.worldY + range * qSin(a)));
 				}
 			}
-			read.lidarOnline = !read.laserScanPoints.isEmpty();
+			c_Variable::getInstance().g_Magic.ReadData.lidarOnline = !c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.isEmpty();
 		}
 		return;
 	}
@@ -1238,16 +1237,16 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (dataVal.isObject()) {
 			QJsonObject d = dataVal.toObject();
 			QJsonArray positions = d["positions"].toArray();
-			read.laserScanPoints.clear();
-			read.laserScanPoints.reserve(positions.size());
+			c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.clear();
+			c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.reserve(positions.size());
 			for (const auto &item : positions) {
 				QJsonObject pt = item.toObject();
 				double x = pt["x"].toDouble();
 				double y = pt["y"].toDouble();
 				if (qAbs(x) < 50.0 && qAbs(y) < 50.0)
-					read.laserScanPoints.append(QPointF(x, y));
+					c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.append(QPointF(x, y));
 			}
-			read.lidarOnline = !read.laserScanPoints.isEmpty();
+			c_Variable::getInstance().g_Magic.ReadData.lidarOnline = !c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.isEmpty();
 		}
 		return;
 	}
@@ -1257,11 +1256,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (dataVal.isObject()) {
 			QJsonObject d = dataVal.toObject();
 			QJsonArray gridPhits = d["gridPhits"].toArray();
-			read.laserGridPoints.clear();
-			read.laserGridPoints.reserve(gridPhits.size());
+			c_Variable::getInstance().g_Magic.ReadData.laserGridPoints.clear();
+			c_Variable::getInstance().g_Magic.ReadData.laserGridPoints.reserve(gridPhits.size());
 			for (const auto &item : gridPhits) {
 				QJsonObject pt = item.toObject();
-				read.laserGridPoints.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
+				c_Variable::getInstance().g_Magic.ReadData.laserGridPoints.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
 			}
 		}
 		return;
@@ -1271,9 +1270,9 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	if (path == "/real_time_data/gps") {
 		if (dataVal.isObject()) {
 			QJsonObject d = dataVal.toObject();
-			read.gpsLatitude = d["latitude"].toDouble(0.0);
-			read.gpsLongitude = d["longitude"].toDouble(0.0);
-			read.gpsAltitude = d["altitude"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.gpsLatitude = d["latitude"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.gpsLongitude = d["longitude"].toDouble(0.0);
+			c_Variable::getInstance().g_Magic.ReadData.gpsAltitude = d["altitude"].toDouble(0.0);
 		}
 		return;
 	}
@@ -1282,8 +1281,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	if (path == "/real_time_data/chassis_navigation") {
 		if (!dataVal.isObject()) return;
 		QJsonObject data = dataVal.toObject();
-		read.chassisVersion = data["chassis_version"].toString();
-		read.navigationVersion = data["navigation_version"].toString();
+		c_Variable::getInstance().g_Magic.ReadData.chassisVersion = data["chassis_version"].toString();
+		c_Variable::getInstance().g_Magic.ReadData.navigationVersion = data["navigation_version"].toString();
 		emit update_RobotStatus();
 
 		return;
@@ -1294,11 +1293,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (dataVal.isObject()) {
 			QJsonObject d = dataVal.toObject();
 			QJsonArray gridPhits = d["gridPhits"].toArray();
-			read.localPlanPath.clear();
-			read.localPlanPath.reserve(gridPhits.size());
+			c_Variable::getInstance().g_Magic.ReadData.localPlanPath.clear();
+			c_Variable::getInstance().g_Magic.ReadData.localPlanPath.reserve(gridPhits.size());
 			for (const auto &item : gridPhits) {
 				QJsonObject pt = item.toObject();
-				read.localPlanPath.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
+				c_Variable::getInstance().g_Magic.ReadData.localPlanPath.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
 			}
 		}
 		return;
@@ -1309,11 +1308,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (dataVal.isObject()) {
 			QJsonObject d = dataVal.toObject();
 			QJsonArray gridPhits = d["gridPhits"].toArray();
-			read.localGridPlanPath.clear();
-			read.localGridPlanPath.reserve(gridPhits.size());
+			c_Variable::getInstance().g_Magic.ReadData.localGridPlanPath.clear();
+			c_Variable::getInstance().g_Magic.ReadData.localGridPlanPath.reserve(gridPhits.size());
 			for (const auto &item : gridPhits) {
 				QJsonObject pt = item.toObject();
-				read.localGridPlanPath.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
+				c_Variable::getInstance().g_Magic.ReadData.localGridPlanPath.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
 			}
 		}
 		return;
@@ -1331,7 +1330,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			decoded.loadFromData(imgData);
 			locker.relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
-				read.frontCameraImage = decoded;
+				c_Variable::getInstance().g_Magic.ReadData.frontCameraImage = decoded;
 				emit update_DriveStatus();
 			}
 		}
@@ -1348,7 +1347,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			decoded.loadFromData(imgData);
 			locker.relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
-				read.rearCameraImage = decoded;
+				c_Variable::getInstance().g_Magic.ReadData.rearCameraImage = decoded;
 				emit update_DriveStatus();
 			}
 		}
@@ -1365,7 +1364,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			decoded.loadFromData(imgData);
 			locker.relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
-				read.frontDepthImage = decoded;
+				c_Variable::getInstance().g_Magic.ReadData.frontDepthImage = decoded;
 				emit update_DriveStatus();
 			}
 		}
@@ -1382,7 +1381,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			decoded.loadFromData(imgData);
 			locker.relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
-				read.rearDepthImage = decoded;
+				c_Variable::getInstance().g_Magic.ReadData.rearDepthImage = decoded;
 				emit update_DriveStatus();
 			}
 		}
@@ -1398,21 +1397,21 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	if (path == "/real_time_data/ultrasonic") {
 		if (dataVal.isObject()) {
 			QJsonObject d = dataVal.toObject();
-			read.ultrasonicFL = d["front_left"].toDouble(0);
-			read.ultrasonicFR = d["front_right"].toDouble(0);
-			read.ultrasonicRL = d["rear_left"].toDouble(0);
-			read.ultrasonicRR = d["rear_right"].toDouble(0);
-			read.ultrasonicLF = d["left_front"].toDouble(0);
-			read.ultrasonicLR = d["left_rear"].toDouble(0);
-			read.ultrasonicRF = d["right_front"].toDouble(0);
-			read.ultrasonicRR2 = d["right_rear"].toDouble(0);
+			c_Variable::getInstance().g_Magic.ReadData.ultrasonicFL = d["front_left"].toDouble(0);
+			c_Variable::getInstance().g_Magic.ReadData.ultrasonicFR = d["front_right"].toDouble(0);
+			c_Variable::getInstance().g_Magic.ReadData.ultrasonicRL = d["rear_left"].toDouble(0);
+			c_Variable::getInstance().g_Magic.ReadData.ultrasonicRR = d["rear_right"].toDouble(0);
+			c_Variable::getInstance().g_Magic.ReadData.ultrasonicLF = d["left_front"].toDouble(0);
+			c_Variable::getInstance().g_Magic.ReadData.ultrasonicLR = d["left_rear"].toDouble(0);
+			c_Variable::getInstance().g_Magic.ReadData.ultrasonicRF = d["right_front"].toDouble(0);
+			c_Variable::getInstance().g_Magic.ReadData.ultrasonicRR2 = d["right_rear"].toDouble(0);
 		}
 		return;
 	}
 
 	// --- 4.2.1 扫图响应 ---
 	if (path == "/cmd/begin_map") {
-		read.mapping = true;
+		c_Variable::getInstance().g_Magic.ReadData.mapping = true;
 		emit Status("Magic遥控：建图已开始");
 		return;
 	}
@@ -1477,7 +1476,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		bool isTaskFinishedApi = (path == "/task_queue/task/is_finished");
 		if (dataVal.isBool()) {
 			bool finished = dataVal.toBool();
-			read.taskStatus = finished ? 0 : 1;
+			c_Variable::getInstance().g_Magic.ReadData.taskStatus = finished ? 0 : 1;
 			// T43-1 双源完成判定：task_process_status 官方仅适用于手绘/录制路径，
 			// 导航点任务改用官方 is_finished 判定（要求先观察到运行中再结束，防下发瞬间误判）
 			if (isTaskFinishedApi && m_NavTaskActive) {
@@ -1491,10 +1490,10 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		}
 		else if (dataVal.isObject()) {
 			int statusCode = dataVal.toObject()["statusCode"].toInt(0);
-			read.taskStatus = (statusCode == 1) ? 1 : 0;
+			c_Variable::getInstance().g_Magic.ReadData.taskStatus = (statusCode == 1) ? 1 : 0;
 		}
 		else {
-			read.taskStatus = (dataVal.toInt() == 0) ? 0 : 1;
+			c_Variable::getInstance().g_Magic.ReadData.taskStatus = (dataVal.toInt() == 0) ? 0 : 1;
 		}
 		emit update_RobotStatus();
 
@@ -1505,7 +1504,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		if (!dataVal.isObject()) return;
 		QJsonObject data = dataVal.toObject();
 		int status = data["status"].toInt(0);
-		read.taskStatus = status;
+		c_Variable::getInstance().g_Magic.ReadData.taskStatus = status;
 		emit update_RobotStatus();
 
 		return;
@@ -1514,8 +1513,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// --- 4.5 自主充电 ---
 	if (path == "/data/recharge/status") {
 		int status = dataVal.toInt(1);
-		read.chargeStatus = status;
-		read.charging = (status == 4);
+		c_Variable::getInstance().g_Magic.ReadData.chargeStatus = status;
+		c_Variable::getInstance().g_Magic.ReadData.charging = (status == 4);
 		if (status == 4) {
 			emit StartRecharge_Done();
 		}
@@ -1548,8 +1547,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// --- 4.9 系统数据 ---
 	if (path == "/data/sys_status") {
 		int sysStatus = dataVal.toInt(1);
-		if (read.workingMode == 0) {
-			read.workingMode = sysStatus;
+		if (c_Variable::getInstance().g_Magic.ReadData.workingMode == 0) {
+			c_Variable::getInstance().g_Magic.ReadData.workingMode = sysStatus;
 		}
 		emit update_RobotStatus();
 
@@ -1562,10 +1561,10 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			for (const auto &item : dataVal.toArray()) {
 				macList << item.toString();
 			}
-			read.sysMac = macList.join(", ");
+			c_Variable::getInstance().g_Magic.ReadData.sysMac = macList.join(", ");
 		}
 		else if (dataVal.isString()) {
-			read.sysMac = dataVal.toString();
+			c_Variable::getInstance().g_Magic.ReadData.sysMac = dataVal.toString();
 		}
 		emit update_RobotStatus();
 
@@ -1574,10 +1573,10 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 
 	if (path == "/data/local_sys_info") {
 		if (dataVal.isObject()) {
-			read.sysTitle = dataVal.toObject()["title"].toString();
+			c_Variable::getInstance().g_Magic.ReadData.sysTitle = dataVal.toObject()["title"].toString();
 		}
 		else if (dataVal.isString()) {
-			read.sysTitle = dataVal.toString();
+			c_Variable::getInstance().g_Magic.ReadData.sysTitle = dataVal.toString();
 		}
 		return;
 	}
@@ -1595,11 +1594,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// --- 4.3 路径与点管理 (列表数据) ---
 	if (path == "/data/poslist") {
 		QJsonArray posArray = dataVal.toArray();
-		read.navPoints.clear();
+		c_Variable::getInstance().g_Magic.ReadData.navPoints.clear();
 		for (const auto &item : posArray) {
 			QJsonObject obj = item.toObject();
 			if (!obj.isEmpty()) {
-				read.navPoints.append(obj);
+				c_Variable::getInstance().g_Magic.ReadData.navPoints.append(obj);
 			}
 		}
 		emit update_NavPointList();
@@ -1609,11 +1608,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 
 	if (path == "/data/graph_list") {
 		QJsonArray graphArray = dataVal.toArray();
-		read.graphPaths.clear();
+		c_Variable::getInstance().g_Magic.ReadData.graphPaths.clear();
 		for (const auto &item : graphArray) {
 			QJsonObject obj = item.toObject();
 			if (!obj.isEmpty()) {
-				read.graphPaths.append(obj);
+				c_Variable::getInstance().g_Magic.ReadData.graphPaths.append(obj);
 			}
 		}
 		emit update_GraphList();
@@ -1623,11 +1622,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 
 	if (path == "/data/record_list") {
 		QJsonArray recordArray = dataVal.toArray();
-		read.recordPaths.clear();
+		c_Variable::getInstance().g_Magic.ReadData.recordPaths.clear();
 		for (const auto &item : recordArray) {
 			QJsonObject obj = item.toObject();
 			if (!obj.isEmpty()) {
-				read.recordPaths.append(obj);
+				c_Variable::getInstance().g_Magic.ReadData.recordPaths.append(obj);
 			}
 		}
 		emit update_RecordList();
@@ -1637,11 +1636,11 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 
 	if (path == "/task_queue/list") {
 		QJsonArray queueArray = dataVal.toArray();
-		read.taskQueues.clear();
+		c_Variable::getInstance().g_Magic.ReadData.taskQueues.clear();
 		for (const auto &item : queueArray) {
 			QJsonObject obj = item.toObject();
 			if (!obj.isEmpty()) {
-				read.taskQueues.append(obj);
+				c_Variable::getInstance().g_Magic.ReadData.taskQueues.append(obj);
 			}
 		}
 		emit update_TaskQueueList();

@@ -42,7 +42,7 @@ void c_Magic_Map_View::Fit_View()
 	bool mapLoaded = false; int gridW = 0, gridH = 0;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 		mapLoaded = read.mapLoaded; gridW = read.gridWidth; gridH = read.gridHeight;
 	}
 	int w = width();
@@ -77,7 +77,7 @@ void c_Magic_Map_View::paintEvent(QPaintEvent *event)
 	double res = 1.0, ox = 0, oy = 0;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 		mapImage = read.mapImage;
 		mapLoaded = read.mapLoaded;
 		connected = c_Variable::getInstance().g_Magic.is_connected;
@@ -129,7 +129,7 @@ void c_Magic_Map_View::Draw_Robot(QPainter &painter)
 	double worldX = 0, worldY = 0, angle = 0;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 		worldX = read.worldX; worldY = read.worldY; angle = read.angle;
 	}
 	QPointF robotPx = World_To_Pixel(worldX, worldY);
@@ -187,7 +187,7 @@ void c_Magic_Map_View::Draw_HUD(QPainter &painter)
 	double snap_localized, snap_worldX, snap_worldY;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 		snap_localized = read.localized;
 		snap_worldX = read.worldX;
 		snap_worldY = read.worldY;
@@ -226,7 +226,7 @@ QPointF c_Magic_Map_View::World_To_Pixel(double wx, double wy) const
 	int gw = 1, gh = 1;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		const auto &read = c_Variable::getInstance().g_Magic.ReadData;
+		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 		resolution = read.resolution;
 		if (qFuzzyIsNull(resolution) || resolution < 0.001) resolution = 0.05;
 		gw = read.gridWidth; gh = read.gridHeight;

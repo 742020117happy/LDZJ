@@ -54,9 +54,13 @@ void c_Server_Remote::Init()
 	// 断线自动重连
 	QObject::connect(m_Robot_Server, &c_Robot_Server::Connect_Loop,
 		this, [=]() {
-		auto &cfg = c_Variable::getInstance().g_Communicate_DB;
-		QString ip = cfg.value("Server_IP").toString("0.0.0.0");
-		int port = cfg.value("Server_Port").toInt(520);
+		// 2026-10-24 CC：读侧持锁 + 直接访问（禁止局部引用别名）
+		QString ip; int port;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			ip = c_Variable::getInstance().g_Communicate_DB.value("Server_IP").toString("0.0.0.0");
+			port = c_Variable::getInstance().g_Communicate_DB.value("Server_Port").toInt(520);
+		}
 		QTimer::singleShot(6000, this, [=]() { Connect(ip, port); });
 	});
 
@@ -65,25 +69,26 @@ void c_Server_Remote::Init()
 		c_Variable::getInstance().g_Server.Tran_Listen = true;
 	});
 	QObject::connect(m_Robot_Server, &c_Robot_Server::Connect_Done, this, [=]() {
-		auto &s = c_Variable::getInstance().g_Server;
-		s.Tran_Connected = true;
-		s.num++;
+		// 2026-10-24 CC：直接访问
+		c_Variable::getInstance().g_Server.Tran_Connected = true;
+		c_Variable::getInstance().g_Server.num++;
 	});
 	QObject::connect(m_Robot_Server, &c_Robot_Server::Disconnect_Done, this, [=]() {
-		auto &s = c_Variable::getInstance().g_Server;
-		s.Tran_Connected = false;
-		s.num = 0;
-		s.Tran_Listen = false;
+		// 2026-10-24 CC：直接访问
+		c_Variable::getInstance().g_Server.Tran_Connected = false;
+		c_Variable::getInstance().g_Server.num = 0;
+		c_Variable::getInstance().g_Server.Tran_Listen = false;
 	});
 
 	m_Robot_Server_Thread->start();
 
-	// 从配置读取监听地址 → 自动启动服务
-	auto &cfg = c_Variable::getInstance().g_Communicate_DB;
-	QString ip = cfg.value("Server_IP").toString("0.0.0.0");
-	int port = cfg.value("Server_Port").toInt(520);
-	Connect(ip, port);
-	m_Port = port;
+	// 从配置读取监听地址 → 自动启动服务（2026-10-24 CC：直接访问）
+	{
+		QString ip = c_Variable::getInstance().g_Communicate_DB.value("Server_IP").toString("0.0.0.0");
+		int port = c_Variable::getInstance().g_Communicate_DB.value("Server_Port").toInt(520);
+		Connect(ip, port);
+		m_Port = port;
+	}
 }
 
 /*************************************************************************************************************************************************
@@ -212,87 +217,81 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 QJsonObject c_Server_Remote::Build_System_Status()
 {
 	QJsonObject root;
-	auto &all = c_Variable::getInstance();
 
 	root.insert("status", "OK");
 	root.insert("timestamp", QDateTime::currentDateTime().toString("yyyyMMddHHmmss"));
 
-	// 2. 任务进度（2026-10-24 T87：g_Work_DB 跨线程写，读侧持读锁快照）
+	// 2. 任务进度（2026-10-24 T87：g_Work_DB 跨线程写，读侧持读锁快照；CC：直接访问）
 	QJsonObject task;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		const auto &work = all.g_Work_DB;
-		task.insert("taskId", work.taskId);
-		task.insert("workState", work.workState);
-		task.insert("currentTaskIndex", work.currentTaskIndex);
-		task.insert("taskCount", work.taskCount);
-		task.insert("currentPos", work.currentPos);
-		task.insert("totalImages", work.totalImages);
+		task.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
+		task.insert("workState", c_Variable::getInstance().g_Work_DB.workState);
+		task.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
+		task.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
+		task.insert("currentPos", c_Variable::getInstance().g_Work_DB.currentPos);
+		task.insert("totalImages", c_Variable::getInstance().g_Work_DB.totalImages);
 	}
 	root.insert("task", task);
 
-	// 3. AMR 底盘
+	// 3. AMR 底盘（2026-10-24 CC：直接访问）
 	QJsonObject chassis;
-	auto &m = all.g_Magic;
-	chassis.insert("connected", m.is_connected);
-	chassis.insert("localized", m.ReadData.localized);
-	chassis.insert("battery", m.ReadData.battery);
-	chassis.insert("chargeStatus", m.ReadData.chargeStatus);
-	chassis.insert("emergencyStop", m.ReadData.emergencyStop);
-	chassis.insert("workingMode", m.ReadData.workingMode);
-	chassis.insert("errorCode", m.ReadData.errorCode);
+	chassis.insert("connected", c_Variable::getInstance().g_Magic.is_connected);
+	chassis.insert("localized", c_Variable::getInstance().g_Magic.ReadData.localized);
+	chassis.insert("battery", c_Variable::getInstance().g_Magic.ReadData.battery);
+	chassis.insert("chargeStatus", c_Variable::getInstance().g_Magic.ReadData.chargeStatus);
+	chassis.insert("emergencyStop", c_Variable::getInstance().g_Magic.ReadData.emergencyStop);
+	chassis.insert("workingMode", c_Variable::getInstance().g_Magic.ReadData.workingMode);
+	chassis.insert("errorCode", c_Variable::getInstance().g_Magic.ReadData.errorCode);
 	QJsonObject pos;
-	pos.insert("x", m.ReadData.worldX);
-	pos.insert("y", m.ReadData.worldY);
-	pos.insert("angle", m.ReadData.angle);
+	pos.insert("x", c_Variable::getInstance().g_Magic.ReadData.worldX);
+	pos.insert("y", c_Variable::getInstance().g_Magic.ReadData.worldY);
+	pos.insert("angle", c_Variable::getInstance().g_Magic.ReadData.angle);
 	chassis.insert("position", pos);
 	root.insert("chassis", chassis);
 
-	// 4. 机械臂
+	// 4. 机械臂（2026-10-24 CC：直接访问）
 	QJsonObject arm;
-	auto &c = all.g_CGXi;
-	arm.insert("connected", c.Connected);
-	arm.insert("mode", c.data.robot_mode);
-	arm.insert("programStatus", c.data.program_status);
-	arm.insert("moving", (c.data.robot_moving != 0));
-	arm.insert("errorCode", c.data.last_error_code);
-	arm.insert("currentProgramIndex", c.data.current_program_index);
-	arm.insert("speedRatio", c.data.speed_ratio);
-	arm.insert("powered", (c.data.robot_power_on_indicator != 0));
+	arm.insert("connected", c_Variable::getInstance().g_CGXi.Connected);
+	arm.insert("mode", c_Variable::getInstance().g_CGXi.data.robot_mode);
+	arm.insert("programStatus", c_Variable::getInstance().g_CGXi.data.program_status);
+	arm.insert("moving", (c_Variable::getInstance().g_CGXi.data.robot_moving != 0));
+	arm.insert("errorCode", c_Variable::getInstance().g_CGXi.data.last_error_code);
+	arm.insert("currentProgramIndex", c_Variable::getInstance().g_CGXi.data.current_program_index);
+	arm.insert("speedRatio", c_Variable::getInstance().g_CGXi.data.speed_ratio);
+	arm.insert("powered", (c_Variable::getInstance().g_CGXi.data.robot_power_on_indicator != 0));
 	QJsonObject tcp;
-	tcp.insert("x", c.data.tcp_actual_position[0]);
-	tcp.insert("y", c.data.tcp_actual_position[1]);
-	tcp.insert("z", c.data.tcp_actual_position[2]);
-	tcp.insert("rx", c.data.tcp_actual_position[3]);
-	tcp.insert("ry", c.data.tcp_actual_position[4]);
-	tcp.insert("rz", c.data.tcp_actual_position[5]);
+	tcp.insert("x", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[0]);
+	tcp.insert("y", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[1]);
+	tcp.insert("z", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[2]);
+	tcp.insert("rx", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[3]);
+	tcp.insert("ry", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[4]);
+	tcp.insert("rz", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[5]);
 	arm.insert("tcpPose", tcp);
 	root.insert("arm", arm);
 
-	// 5. 相机
+	// 5. 相机（2026-10-24 CC：直接访问）
 	QJsonObject camera;
-	auto &scan = all.g_Prec_Scan_120;
-	camera.insert("remoteConnected", scan.Remote_Connected);
-	camera.insert("monitorConnected", scan.Monitor_Connected);
-	camera.insert("tranConnected", scan.Tran_Connected);
-	camera.insert("tranListen", scan.Tran_Listen);
+	camera.insert("remoteConnected", c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected);
+	camera.insert("monitorConnected", c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected);
+	camera.insert("tranConnected", c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
+	camera.insert("tranListen", c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen);
 	root.insert("camera", camera);
 
-	// 6. WEB 服务自身
+	// 6. WEB 服务自身（2026-10-24 CC：直接访问）
 	QJsonObject svr;
-	auto &s = all.g_Server;
-	svr.insert("clientConnected", s.Tran_Connected);
-	svr.insert("listening", s.Tran_Listen);
-	svr.insert("clientCount", s.num);
+	svr.insert("clientConnected", c_Variable::getInstance().g_Server.Tran_Connected);
+	svr.insert("listening", c_Variable::getInstance().g_Server.Tran_Listen);
+	svr.insert("clientCount", c_Variable::getInstance().g_Server.num);
 	root.insert("server", svr);
 
-	// 7. 最近报警（2026-10-24 T83：g_Worry_List 跨线程写入，读侧持读锁快照）
+	// 7. 最近报警（2026-10-24 T83：g_Worry_List 跨线程写入，读侧持读锁快照；CC：直接访问）
 	QJsonArray warns;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		int n = qMin(5, all.g_Worry_List.size());
+		int n = qMin(5, c_Variable::getInstance().g_Worry_List.size());
 		for (int i = 0; i < n; ++i)
-			warns.append(all.g_Worry_List[i].toString());
+			warns.append(c_Variable::getInstance().g_Worry_List[i].toString());
 	}
 	root.insert("recentAlarms", warns);
 
@@ -306,45 +305,45 @@ void c_Server_Remote::Parse_Start_Inspection(const QJsonObject &json)
 {
 	// 2026-10-24 T86：g_Work_DB 跨线程（Work/Lczh/GUI 读），解析写侧持写锁
 	QWriteLocker locker(&c_Variable::g_lock);
-	auto &w = c_Variable::getInstance().g_Work_DB;
+	// 2026-10-24 CC：直接访问（别名已消除）
 
 	// 解析 tasks[] 数组 (2026-07-16 协商版)
 	QJsonArray tasks = json.value("tasks").toArray();
-	w.taskCount = json.value("wheelsetCount").toInt(0);
-	if (w.taskCount != tasks.size()) {
-		w.taskCount = tasks.size();
+	c_Variable::getInstance().g_Work_DB.taskCount = json.value("wheelsetCount").toInt(0);
+	if (c_Variable::getInstance().g_Work_DB.taskCount != tasks.size()) {
+		c_Variable::getInstance().g_Work_DB.taskCount = tasks.size();
 	}
 
-	w.tasks = tasks;
-	w.currentTaskIndex = 0;
+	c_Variable::getInstance().g_Work_DB.tasks = tasks;
+	c_Variable::getInstance().g_Work_DB.currentTaskIndex = 0;
 
 	// 载入第一个任务的数据到当前字段
 	if (tasks.size() > 0) {
 		QJsonObject t0 = tasks[0].toObject();
-		w.taskId      = t0.value("taskId").toString();
-		w.carType     = t0.value("carType").toString();      // 2026-10-24 新增：车型
-		w.wheelsetKind= t0.value("wheelsetKind").toString(); // 2026-10-24 新增：轮对类型 GBD/T3C
-		w.axleType    = t0.value("axleType").toString();
-		w.wheelsetNo  = t0.value("wheelsetNo").toString();
-		w.axleNo      = t0.value("axleNo").toString();
-		w.sendUnit    = t0.value("sendUnit").toString();
-		w.startTime   = t0.value("startTime").toString();
-		w.repairLevel = t0.value("repairLevel").toString();
+		c_Variable::getInstance().g_Work_DB.taskId      = t0.value("taskId").toString();
+		c_Variable::getInstance().g_Work_DB.carType     = t0.value("carType").toString();      // 2026-10-24 新增：车型
+		c_Variable::getInstance().g_Work_DB.wheelsetKind= t0.value("wheelsetKind").toString(); // 2026-10-24 新增：轮对类型 GBD/T3C
+		c_Variable::getInstance().g_Work_DB.axleType    = t0.value("axleType").toString();
+		c_Variable::getInstance().g_Work_DB.wheelsetNo  = t0.value("wheelsetNo").toString();
+		c_Variable::getInstance().g_Work_DB.axleNo      = t0.value("axleNo").toString();
+		c_Variable::getInstance().g_Work_DB.sendUnit    = t0.value("sendUnit").toString();
+		c_Variable::getInstance().g_Work_DB.startTime   = t0.value("startTime").toString();
+		c_Variable::getInstance().g_Work_DB.repairLevel = t0.value("repairLevel").toString();
 		// 2026-10-24 新增：地图名 + 完整点位序列
 		QJsonObject wp = t0.value("wheelsetPosition").toObject();
-		w.mapPointName = wp.value("mapPointName").toString();
-		w.positions.clear();
+		c_Variable::getInstance().g_Work_DB.mapPointName = wp.value("mapPointName").toString();
+		c_Variable::getInstance().g_Work_DB.positions.clear();
 		QJsonArray posArr = wp.value("positions").toArray();
-		for (int p = 0; p < posArr.size(); p++) w.positions << posArr.at(p).toString();
+		for (int p = 0; p < posArr.size(); p++) c_Variable::getInstance().g_Work_DB.positions << posArr.at(p).toString();
 	}
 
-	w.currentPos = 0;
-	w.currentPoint = 0;
-	w.workState = 1;
-	w.errorCode = 0;
-	w.totalImages = 0;
+	c_Variable::getInstance().g_Work_DB.currentPos = 0;
+	c_Variable::getInstance().g_Work_DB.currentPoint = 0;
+	c_Variable::getInstance().g_Work_DB.workState = 1;
+	c_Variable::getInstance().g_Work_DB.errorCode = 0;
+	c_Variable::getInstance().g_Work_DB.totalImages = 0;
 
-	emit Status(QString::number(m_Port) + "->服务：任务已解析 tasks=" + QString::number(w.taskCount));
+	emit Status(QString::number(m_Port) + "->服务：任务已解析 tasks=" + QString::number(c_Variable::getInstance().g_Work_DB.taskCount));
 }
 
 /*************************************************************************************************************************************************
@@ -413,12 +412,12 @@ void c_Server_Remote::Reply_Ok(const QString &cmd)
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Accepted()
 {
-	auto &w = c_Variable::getInstance().g_Work_DB;
+	// 2026-10-24 CC：直接访问（别名已消除）
 	QJsonObject rsp;
 	rsp.insert("status", "ACCEPTED");
 	QJsonArray ids;
-	for (int i = 0; i < w.tasks.size(); i++)
-		ids.append(w.tasks[i].toObject().value("taskId").toString());
+	for (int i = 0; i < c_Variable::getInstance().g_Work_DB.tasks.size(); i++)
+		ids.append(c_Variable::getInstance().g_Work_DB.tasks[i].toObject().value("taskId").toString());
 	rsp.insert("taskIds", ids);
 	Write_Json_With_Checksum(rsp);
 }
@@ -428,12 +427,12 @@ void c_Server_Remote::Send_Accepted()
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Ready()
 {
-	auto &w = c_Variable::getInstance().g_Work_DB;
+	// 2026-10-24 CC：直接访问（别名已消除）
 	QJsonObject rsp;
 	rsp.insert("status", "READY");
-	rsp.insert("taskId", w.taskId);
-	rsp.insert("currentTaskIndex", w.currentTaskIndex);
-	rsp.insert("taskCount", w.taskCount);
+	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
+	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
+	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
 	Write_Json_With_Checksum(rsp);
 }
 
@@ -442,12 +441,12 @@ void c_Server_Remote::Send_Ready()
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Completed(int totalImages)
 {
-	auto &w = c_Variable::getInstance().g_Work_DB;
+	// 2026-10-24 CC：直接访问（别名已消除）
 	QJsonObject rsp;
 	rsp.insert("status", "COMPLETED");
-	rsp.insert("taskId", w.taskId);
-	rsp.insert("currentTaskIndex", w.currentTaskIndex);
-	rsp.insert("taskCount", w.taskCount);
+	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
+	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
+	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
 	rsp.insert("totalImages", totalImages);
 	Write_Json_With_Checksum(rsp);
 }
@@ -457,12 +456,12 @@ void c_Server_Remote::Send_Completed(int totalImages)
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Error(int errorCode, QString desc)
 {
-	auto &w = c_Variable::getInstance().g_Work_DB;
+	// 2026-10-24 CC：直接访问（别名已消除）
 	QJsonObject rsp;
 	rsp.insert("status", "ERROR");
-	rsp.insert("taskId", w.taskId);
-	rsp.insert("currentTaskIndex", w.currentTaskIndex);
-	rsp.insert("taskCount", w.taskCount);
+	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
+	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
+	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
 	rsp.insert("errorCode", errorCode);
 	rsp.insert("Reason", desc);
 	Write_Json_With_Checksum(rsp);
