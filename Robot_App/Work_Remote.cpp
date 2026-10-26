@@ -508,21 +508,33 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			}
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			QJsonArray Work_Program_Point = Work_Program_wheelsetKind.value(Point_Name).toArray();
-			for (int j = 0; j < Work_Program_Point.size(); j++) {
-				int program_index = Work_Program_Point.at(j).toInt();
-				if (!wait_CGXi_Prog_Start(program_index)) {
-					c_Variable::getInstance().g_Work.Connected = false;
+			// 2026-10-25 用户修改加固：轨迹按工位号索引（posId-1）；越界防护防 at() 崩溃（不改索引语义）
+			if (posId < 1 || posId > Work_Program_Point.size()) {
+				c_Variable::getInstance().g_Work.Connected = false;
+				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
+					QWriteLocker locker(&c_Variable::g_lock);
+					c_Variable::getInstance().g_Work_DB.workState = 5;
+				}
+				emit Voice_Event("PA003");
+				return_cmd.insert("Message", "巡检点工位轨迹越界");
+				return_cmd.insert("Status", "Error");
+				return_cmd.insert("Value", false);
+				emit Write_Json(return_cmd);
+				return;
+			}
+			int program_index = Work_Program_Point.at(posId - 1).toInt();
+			if (!wait_CGXi_Prog_Start(program_index)) {
+				c_Variable::getInstance().g_Work.Connected = false;
 					{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
 						QWriteLocker locker(&c_Variable::g_lock);
 						c_Variable::getInstance().g_Work_DB.workState = 5;
 					}
-					emit Voice_Event("PA003");
-					return_cmd.insert("Message", "机械臂运行失败");
-					return_cmd.insert("Status", "Error");
-					return_cmd.insert("Value", false);
-					emit Write_Json(return_cmd);
-					return;
-				}
+				emit Voice_Event("PA003");
+				return_cmd.insert("Message", "机械臂运行失败");
+				return_cmd.insert("Status", "Error");
+				return_cmd.insert("Value", false);
+				emit Write_Json(return_cmd);
+				return;
 			}
 		}
 
@@ -551,7 +563,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	emit Status("巡检完成");
 }
 //两个工位有轮对的情况
-if (wheelsetCount ==2) {
+	if (wheelsetCount ==2) {
 		// 2026-10-24 Z1：tasks 数组不足 2 个防护（wheelsetCount==2 但数组元素 <2 时 at(1) 越界）
 		if (tasks.size() < 2) {
 			return_cmd.insert("Message", "tasks 数组元素不足 2 个");
@@ -975,8 +987,21 @@ if (wheelsetCount ==2) {
 			}
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			QJsonArray Work_Program_Point = Work_Program_wheelsetKind.value(Point_Name).toArray();
-			for (int j = 0; j < Work_Program_Point.size(); j++) {
-				int program_index = Work_Program_Point.at(j).toInt();
+			// 2026-10-25 用户修改同步：轨迹按工位号索引（posId-1），与单工位语义一致；越界防护防 at() 崩溃
+			if (posId < 1 || posId > Work_Program_Point.size()) {
+				c_Variable::getInstance().g_Work.Connected = false;
+				{
+					QWriteLocker locker(&c_Variable::g_lock);
+					c_Variable::getInstance().g_Work_DB.workState = 5;
+				}
+				emit Voice_Event("PA003");
+				return_cmd.insert("Message", "巡检点工位轨迹越界");
+				return_cmd.insert("Status", "Error");
+				return_cmd.insert("Value", false);
+				emit Write_Json(return_cmd);
+				return;
+			}
+			int program_index = Work_Program_Point.at(posId - 1).toInt();
 				if (!wait_CGXi_Prog_Start(program_index)) {
 					c_Variable::getInstance().g_Work.Connected = false;
 					{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
@@ -987,9 +1012,8 @@ if (wheelsetCount ==2) {
 					return_cmd.insert("Message", "机械臂运行失败");
 					return_cmd.insert("Status", "Error");
 					return_cmd.insert("Value", false);
-					emit Write_Json(return_cmd);
-					return;
-				}
+				emit Write_Json(return_cmd);
+				return;
 			}
 		}
 
@@ -1059,8 +1083,21 @@ if (wheelsetCount ==2) {
 				return;
 			}
 			QJsonArray Work_Program_Point = Work_Program_wheelsetKind_2.value(Point_Name).toArray();
-			for (int j = 0; j < Work_Program_Point.size(); j++) {
-				int program_index = Work_Program_Point.at(j).toInt();
+			// 2026-10-25 用户修改同步：第二工位轨迹按 posId_2-1 索引；越界防护
+			if (posId_2 < 1 || posId_2 > Work_Program_Point.size()) {
+				c_Variable::getInstance().g_Work.Connected = false;
+				{
+					QWriteLocker locker(&c_Variable::g_lock);
+					c_Variable::getInstance().g_Work_DB.workState = 5;
+				}
+				emit Voice_Event("PA003");
+				return_cmd.insert("Message", "巡检点工位轨迹越界（第二工位）");
+				return_cmd.insert("Status", "Error");
+				return_cmd.insert("Value", false);
+				emit Write_Json(return_cmd);
+				return;
+			}
+			int program_index = Work_Program_Point.at(posId_2 - 1).toInt();
 				if (!wait_CGXi_Prog_Start(program_index)) {
 					c_Variable::getInstance().g_Work.Connected = false;
 					{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
@@ -1071,9 +1108,8 @@ if (wheelsetCount ==2) {
 					return_cmd.insert("Message", "机械臂运行失败");
 					return_cmd.insert("Status", "Error");
 					return_cmd.insert("Value", false);
-					emit Write_Json(return_cmd);
-					return;
-				}
+				emit Write_Json(return_cmd);
+				return;
 			}
 		}
 
