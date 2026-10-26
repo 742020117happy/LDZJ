@@ -991,7 +991,11 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		emit precisScanStartTime();
 		for (int i = 0; i < positions.size(); i++) {
 			QString Point_Name = positions.at(i).toString();
-			if (Work_Program_wheelsetKind.value(Point_Name) == QJsonValue::Undefined) {
+			// 2026-10-25 用户定稿：双工位点位归属执行——工位1 侧点 {P1,P1.1,P4.1,P5,P6} 执行 配方1[0]；
+			// 工位2 侧点 {P1.1,P2,P3,P4,P4.1} 执行 配方2[1]；共用点（P1.1/P4.1）先 1 后 2；非两侧点判"巡检点不存在"
+			const bool isPos1 = (Point_Name == "P1" || Point_Name == "P1.1" || Point_Name == "P4.1" || Point_Name == "P5" || Point_Name == "P6");
+			const bool isPos2 = (Point_Name == "P1.1" || Point_Name == "P2" || Point_Name == "P3" || Point_Name == "P4" || Point_Name == "P4.1");
+			if (!isPos1 && !isPos2) {
 				c_Variable::getInstance().g_Work.Connected = false;
 				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
 					QWriteLocker locker(&c_Variable::g_lock);
@@ -1018,55 +1022,47 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 				return;
 			}
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
-			QJsonArray Work_Program_Point = Work_Program_wheelsetKind.value(Point_Name).toArray();
-			// 2026-10-25 用户修改同步：轨迹按工位号索引（posId-1），与单工位语义一致；越界防护防 at() 崩溃
-			if (posId < 1 || posId > Work_Program_Point.size()) {
-				c_Variable::getInstance().g_Work.Connected = false;
-				{
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA003");
-				return_cmd.insert("Message", "巡检点工位轨迹越界");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				return;
-			}
-			int program_index = Work_Program_Point.at(posId - 1).toInt();
-			if (!wait_CGXi_Prog_Start(program_index)) {
-				c_Variable::getInstance().g_Work.Connected = false;
-				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA003");
-				return_cmd.insert("Message", "机械臂运行失败");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				return;
-			}
-			// 2026-10-25 用户设计：严格仅 P1.1/P4.1 两点执行 配方1[0] + 配方2[1] 双轨迹，其余点单轨迹
-			if ((Point_Name == "P1.1" || Point_Name == "P4.1")
-				&& posId_2 >= 1 && posId_2 <= Work_Program_wheelsetKind_2.value(Point_Name).toArray().size()) {
-				int program_index_2 = Work_Program_wheelsetKind_2.value(Point_Name).toArray().at(posId_2 - 1).toInt();
-				if (!wait_CGXi_Prog_Start(program_index_2)) {
-					c_Variable::getInstance().g_Work.Connected = false;
-					{
-						QWriteLocker locker(&c_Variable::g_lock);
-						c_Variable::getInstance().g_Work_DB.workState = 5;
+			// 1 号工位侧轨迹：配方1[point][posId-1]（越界防护）
+			if (isPos1) {
+				QJsonArray arr1 = Work_Program_wheelsetKind.value(Point_Name).toArray();
+				if (posId >= 1 && posId <= arr1.size()) {
+					int program_index = arr1.at(posId - 1).toInt();
+					if (!wait_CGXi_Prog_Start(program_index)) {
+						c_Variable::getInstance().g_Work.Connected = false;
+						{
+							QWriteLocker locker(&c_Variable::g_lock);
+							c_Variable::getInstance().g_Work_DB.workState = 5;
+						}
+						emit Voice_Event("PA003");
+						return_cmd.insert("Message", "机械臂运行失败");
+						return_cmd.insert("Status", "Error");
+						return_cmd.insert("Value", false);
+						emit Write_Json(return_cmd);
+						return;
 					}
-					emit Voice_Event("PA003");
-					return_cmd.insert("Message", "机械臂运行失败（第二工位轨迹）");
-					return_cmd.insert("Status", "Error");
-					return_cmd.insert("Value", false);
-					emit Write_Json(return_cmd);
-					return;
+				}
+			}
+			// 2 号工位侧轨迹：配方2[point][posId_2-1]（越界防护）
+			if (isPos2) {
+				QJsonArray arr2 = Work_Program_wheelsetKind_2.value(Point_Name).toArray();
+				if (posId_2 >= 1 && posId_2 <= arr2.size()) {
+					int program_index_2 = arr2.at(posId_2 - 1).toInt();
+					if (!wait_CGXi_Prog_Start(program_index_2)) {
+						c_Variable::getInstance().g_Work.Connected = false;
+						{
+							QWriteLocker locker(&c_Variable::g_lock);
+							c_Variable::getInstance().g_Work_DB.workState = 5;
+						}
+						emit Voice_Event("PA003");
+						return_cmd.insert("Message", "机械臂运行失败（第二工位轨迹）");
+						return_cmd.insert("Status", "Error");
+						return_cmd.insert("Value", false);
+						emit Write_Json(return_cmd);
+						return;
+					}
 				}
 			}
 		}
-
 		emit precisScanEndTime();
 
 		{	// 2026-10-25 GG1：双工位第二工位 g_Work_DB 写入补写锁（T83/T86 遗漏点，跨线程撕裂风险）
