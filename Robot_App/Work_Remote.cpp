@@ -157,9 +157,9 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		<< "axleNo" << "sendUnit" << "startTime" << "repairLevel" << "wheelsetPosition";
 	for (int i = 0; i < required.size(); i++) {
 		if (t1.value(required.at(i)) == QJsonValue::Undefined) { reply_missing(required.at(i)); return; }
-		// 2026-10-26 用户定稿：字段值含空格 → 拒绝（防下游文件名/数据库/EMIS 携带空格）
-		if (t1.value(required.at(i)).toString().contains(' ')) {
-			return_cmd.insert("Message", QString("指令字段含空格：%1").arg(required.at(i)));
+		// 2026-10-26 用户定稿：字段值含空格/&/- → 拒绝（防下游文件名/数据库/EMIS 携带分隔符）
+		if (t1.value(required.at(i)).toString().contains(' ') || t1.value(required.at(i)).toString().contains('&') || t1.value(required.at(i)).toString().contains('-')) {
+			return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(required.at(i)));
 			return_cmd.insert("Status", "Error");
 			return_cmd.insert("Value", false);
 			emit Write_Json(return_cmd);
@@ -180,9 +180,9 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		t2 = tasks.at(1).toObject();
 		for (int i = 0; i < required.size(); i++) {
 			if (t2.value(required.at(i)) == QJsonValue::Undefined) { reply_missing(required.at(i)); return; }
-			// 2026-10-26 用户定稿：任务2 字段同样禁止空格
-			if (t2.value(required.at(i)).toString().contains(' ')) {
-				return_cmd.insert("Message", QString("指令字段含空格：%1").arg(required.at(i)));
+			// 2026-10-26 用户定稿：任务2 字段同样禁止空格/&/-
+			if (t2.value(required.at(i)).toString().contains(' ') || t2.value(required.at(i)).toString().contains('&') || t2.value(required.at(i)).toString().contains('-')) {
+				return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(required.at(i)));
 				return_cmd.insert("Status", "Error");
 				return_cmd.insert("Value", false);
 				emit Write_Json(return_cmd);

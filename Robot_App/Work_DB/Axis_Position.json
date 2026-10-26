@@ -5,12 +5,12 @@
 	"wheelsetCount": 2,
 	"tasks": [
 		{
-			"taskId": "202610261352&ZQM3B22328&109-M3B-22328&CRH380B",
+			"taskId": "202610261352ZQM3B22328109M3B22328CRH380B",
 			"carType": "CRH380B",
 			"wheelsetKind": "M3B",
 			"axleType": "22328",
 			"wheelsetNo": "109M3B22328",
-			"axleNo": "ZQ-M3B-22328-02",
+			"axleNo": "ZQM3B2232802",
 			"sendUnit": "SHDCD",
 			"startTime": "202610242000",
 			"repairLevel": "L3",
@@ -27,12 +27,12 @@
 			}
 		},
 		{
-			"taskId": "202610261352&ZQM3B22079&109-M3B-22079&CRH380B",
+			"taskId": "202610261352ZQM3B22079109M3B22079CRH380B",
 			"carType": "CRH380B",
 			"wheelsetKind": "M3B",
 			"axleType": "22079",
 			"wheelsetNo": "109M3B22079",
-			"axleNo": "ZQ-M3B-22079-01",
+			"axleNo": "ZQM3B2207901",
 			"sendUnit": "SHDCD",
 			"startTime": "202610242000",
 			"repairLevel": "L3",
