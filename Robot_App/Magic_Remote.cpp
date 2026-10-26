@@ -598,7 +598,12 @@ void c_Magic_Remote::Get_Recharge_Status() {
 }
 /** @brief 4.5.3 脱离充电桩 | POST /cmd/dis_recharge */
 void c_Magic_Remote::Dis_Recharge() {
-	// 4.5.3 脱离充电桩
+	// 4.5.3 自主脱离
+	// 2026-10-26 修正：首次下发入口初始化计时/重发标记（重发响应不再重置，防无限重发风暴）
+	if (!m_DisRecharging) {
+		m_DisRechargeStartMs = QDateTime::currentMSecsSinceEpoch();
+		m_DisRechargeRetried = false;
+	}
 	emit Signal_Send_POST("/cmd/dis_recharge", QJsonObject(), QJsonObject());
 }
 /** @brief 4.5.4 脱离结果反馈 | GET /cmd/dis_recharge/status */
