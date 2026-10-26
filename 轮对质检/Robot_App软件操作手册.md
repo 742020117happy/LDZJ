@@ -95,15 +95,15 @@ Robot_App.exe 同目录下有 Work_DB 文件夹，内含两个巡检数据文件
     "wheelsetCount": 1,
     "tasks": [
         {
-            "taskId": "202610241506&20260109-0029&109-GBD-04990&CR400BF",
+            "taskId": "202610241506202601090029109GBD04990CR400BF",
             "carType": "CR400BF",
             "wheelsetKind": "GBD",
             "axleType": "RD3A",
             "wheelsetNo": "109 GBD 04990",
             "axleNo": "AX-RD3A-261023-01",
-            "sendUnit": "上海动车段",
+            "sendUnit": "SHDCD",
             "startTime": "202610231631",
-            "repairLevel": "三级修",
+            "repairLevel": "L3",
             "wheelsetPosition": {
                 "posId": 1,
                 "mapPointName": "Lunduizhijian001",
