@@ -512,7 +512,8 @@ bool c_Work_Remote::wait_IO_Robot_ON()
 	// 2026-10-26 现场矫正：移除 IO 断连快查——现场 IO 站未连接时机械臂亦可正常开机（完成信号来自 CGXi CO1 位），快查误判致"机械臂开机失败"
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::IO_Robot_ON_Done, &loop, &QEventLoop::quit);
-	QObject::connect(this, &c_Work_Remote::IO_Disconnected, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006
+	// 2026-10-26 现场矫正：IO 断开仅记录不判失败——完成信号源为 CGXi CO1 位，与 IO 站连接无因果
+	QObject::connect(this, &c_Work_Remote::IO_Disconnected, this, []() { c_Log::Warn("WORK", "Flow", "io_disconnected while waiting robot_on"); });
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待机械臂开机");
 	emit IO_Robot_ON(1);
