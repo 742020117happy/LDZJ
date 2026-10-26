@@ -277,17 +277,22 @@ void c_Lczh_Remote::Scan_Tran_Listen_Done()
 *************************************************************************************************************************************************/
 QString c_Lczh_Remote::Build_Photo_Filename()
 {
-	// 2026-10-24 T97：g_Work_DB 字段跨线程写，读侧持读锁快照
+	// 2026-10-24 T97：g_Work_DB 字段跨线程读，读侧持锁字段快照后拼命令
+	// 2026-10-26 现场矫正：文件名格式对齐 2026-10-22 现场验证版协议日志——
+	// 旧正确格式：N-T1-{startTime}-{repairLevel}-{sendUnit}-{wheelsetNo}-{axleNo}-{prog}-{carType}L-P{part1}{part2}-{seq}
+	// 示例：N-T1-202404231143-L3-SHCLD-LZ20240315-CP0012024-2-CRH380BL-P1T-01
+	// 原格式缺 carType 段且点位段拆分方式不符（P1-T-01 → P1T-01）
 	QString name;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		name = QString("N-T1-%1-%2-%3-%4-%5-%6-%7-%8-%9")
+		name = QString("N-T1-%1-%2-%3-%4-%5-%6-%7L-P%8%9-%10")
 			.arg(c_Variable::getInstance().g_Work_DB.startTime)
 			.arg(c_Variable::getInstance().g_Work_DB.repairLevel)
 			.arg(c_Variable::getInstance().g_Work_DB.sendUnit)
 			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
 			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
 			.arg(c_Variable::getInstance().g_Work_DB.currentProg)
+			.arg(c_Variable::getInstance().g_Work_DB.carType)
 			.arg(c_Variable::getInstance().g_Work_DB.currentPart1)
 			.arg(c_Variable::getInstance().g_Work_DB.currentPart2)
 			.arg(c_Variable::getInstance().g_Work_DB.currentPointStr);
