@@ -287,7 +287,7 @@ QString c_Lczh_Remote::Build_Photo_Filename()
 	// 2026-10-24 T97：g_Work_DB 字段跨线程读，读侧持锁字段快照后拼命令
 	// 2026-10-26 现场矫正：文件名格式对齐 2026-10-22 现场验证版协议日志——
 	// 旧正确格式：N-T1-{startTime}-{repairLevel}-{sendUnit}-{wheelsetNo}-{axleNo}-{prog}-{carType}L-P{part1}{part2}-{seq}
-	// 示例：N-T1-202404231143-L3-SHCLD-LZ20240315-CP0012024-2-CRH380BL-P1T-01
+	// 示例：N-T1-202404231143-L3-SHDCD-LZ20240315-CP0012024-2-CRH380BL-P1T-01
 	// 原格式缺 carType 段且点位段拆分方式不符（P1-T-01 → P1T-01）
 	QString name;
 	{

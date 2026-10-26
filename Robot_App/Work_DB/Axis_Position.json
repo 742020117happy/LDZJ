@@ -11,9 +11,9 @@
 			"axleType": "22328",
 			"wheelsetNo": "109 M3B 22328",
 			"axleNo": "ZQ-M3B-22328-02",
-			"sendUnit": "上海动车段",
+			"sendUnit": "SHDCD",
 			"startTime": "202610242000",
-			"repairLevel": "三级修",
+			"repairLevel": "L3",
 			"wheelsetPosition": {
 				"posId": 1,
 				"mapPointName": "Lunduizhijian001",
@@ -33,9 +33,9 @@
 			"axleType": "22079",
 			"wheelsetNo": "109 M3B 22079",
 			"axleNo": "ZQ-M3B-22079-01",
-			"sendUnit": "上海动车段",
+			"sendUnit": "SHDCD",
 			"startTime": "202610242000",
-			"repairLevel": "三级修",
+			"repairLevel": "L3",
 			"wheelsetPosition": {
 				"posId": 2,
 				"mapPointName": "Lunduizhijian001",

@@ -1492,7 +1492,7 @@ void c_Robot_App_Widget::Pre_Scan_120_DB()
 	c_Variable::getInstance().g_Work_DB.taskId = "202404231143RD3A001";
 	c_Variable::getInstance().g_Work_DB.wheelsetNo = "LZ20240315";
 	c_Variable::getInstance().g_Work_DB.axleNo = "CP0012024";
-	c_Variable::getInstance().g_Work_DB.sendUnit = "SHCLD";
+	c_Variable::getInstance().g_Work_DB.sendUnit = "SHDCD";
 	c_Variable::getInstance().g_Work_DB.startTime = "202404231143";
 	c_Variable::getInstance().g_Work_DB.repairLevel = "L3";
 	c_Variable::getInstance().g_Work_DB.currentTaskIndex = 0;

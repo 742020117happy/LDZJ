@@ -71,9 +71,9 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			"axleType" : "RD3A",
 			"wheelsetNo" : "109 GBD 04990",
 			"axleNo" : "AX-RD3A-261023-01",
-			"sendUnit" : "上海动车段",
+			"sendUnit" : "SHDCD",
 			"startTime" : "202610231631",
-			"repairLevel" : "三级修",
+			"repairLevel" : "L3",
 			"wheelsetPosition" : {
 			"posId": 1,
 			"mapPointName" : "Lunduizhijian001",
