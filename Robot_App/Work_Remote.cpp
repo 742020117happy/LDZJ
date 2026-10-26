@@ -1036,8 +1036,9 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 				emit Write_Json(return_cmd);
 				return;
 			}
-			// 2026-10-25 用户设计：配方数组含 2 号工位轨迹时（如 P1.1/P4.1）再执行一次 2 号工位轨迹
-			if (posId_2 >= 1 && posId_2 <= Work_Program_wheelsetKind_2.value(Point_Name).toArray().size()) {
+			// 2026-10-25 用户设计：严格仅 P1.1/P4.1 两点执行 配方1[0] + 配方2[1] 双轨迹，其余点单轨迹
+			if ((Point_Name == "P1.1" || Point_Name == "P4.1")
+				&& posId_2 >= 1 && posId_2 <= Work_Program_wheelsetKind_2.value(Point_Name).toArray().size()) {
 				int program_index_2 = Work_Program_wheelsetKind_2.value(Point_Name).toArray().at(posId_2 - 1).toInt();
 				if (!wait_CGXi_Prog_Start(program_index_2)) {
 					c_Variable::getInstance().g_Work.Connected = false;
