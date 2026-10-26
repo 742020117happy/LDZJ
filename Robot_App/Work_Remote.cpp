@@ -198,6 +198,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 
 	// 工序失败统一处理（2026-10-25 整合：workState=5 + 语音 + Error 应答收敛为 lambda）
 	auto fail_step = [this, &return_cmd](const QString &msg, const QString &pa) {
+		c_Variable::getInstance().g_Work.Connected = false;	// 2026-10-26 现场矫正：失败复位任务门控（综合重写回归遗漏）
 		{
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.workState = 5;
@@ -210,6 +211,10 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	};
 
 	// ================= 4. 工序链（两场景共用） =================
+	// 2026-10-26 现场矫正：任务门控必须在工序链前置位——wait_* 首行检查 g_Work.Connected（取消门控），
+	// 综合重写时误置于巡检启动段（工序链之后）→ 首步 wait_IO_Robot_ON 恒判 false → "机械臂开机失败"
+	c_Variable::getInstance().g_Work.Connected = true;
+
 	if (!wait_IO_Robot_ON()) { fail_step("机械臂开机失败", "PA003"); return; }
 	if (!wait_Dis_Recharge()) { fail_step("机器人脱桩失败", "PA008"); return; }
 	if (!wait_RefreshMapList()) { fail_step("机器人刷新地图失败", "PA007"); return; }
@@ -251,7 +256,6 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	}
 
 	// ================= 6. 巡检启动 =================
-	c_Variable::getInstance().g_Work.Connected = true;
 	{
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.workState = 2;
