@@ -5,11 +5,11 @@
 	"wheelsetCount": 2,
 	"tasks": [
 		{
-			"taskId": "202610261352&ZQ M3B22328&109-M3B-22328&CRH380B",
+			"taskId": "202610261352&ZQM3B22328&109-M3B-22328&CRH380B",
 			"carType": "CRH380B",
 			"wheelsetKind": "M3B",
 			"axleType": "22328",
-			"wheelsetNo": "109 M3B 22328",
+			"wheelsetNo": "109M3B22328",
 			"axleNo": "ZQ-M3B-22328-02",
 			"sendUnit": "SHDCD",
 			"startTime": "202610242000",
@@ -27,11 +27,11 @@
 			}
 		},
 		{
-			"taskId": "202610261352&ZQ M3B22079&109-M3B-22079&CRH380B",
+			"taskId": "202610261352&ZQM3B22079&109-M3B-22079&CRH380B",
 			"carType": "CRH380B",
 			"wheelsetKind": "M3B",
 			"axleType": "22079",
-			"wheelsetNo": "109 M3B 22079",
+			"wheelsetNo": "109M3B22079",
 			"axleNo": "ZQ-M3B-22079-01",
 			"sendUnit": "SHDCD",
 			"startTime": "202610242000",
