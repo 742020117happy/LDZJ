@@ -1579,8 +1579,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		c_Variable::getInstance().g_Magic.ReadData.chargeStatus = status;
 		c_Variable::getInstance().g_Magic.ReadData.charging = (status == 4);
 		if (status == 4) {
-			// 2026-10-25 L：回充成功（只记录，不改变信号链路）
-			c_Log::Info("CHASSIS", "Charge", "status=success");
+			// 2026-10-25 L：回充成功（只记录；2026-10-26 变化才输出——原每秒轮询刷屏）
+			if (m_LastRechargeStatus != 4) { c_Log::Info("CHASSIS", "Charge", "status=success"); m_LastRechargeStatus = 4; }
 			emit StartRecharge_Done();
 		}
 		// 2026-10-24 T44：回充失败提前通知（原仅靠 600s 超时兜底；官方状态机 1请先下发/2去桩/3失败/4成功）
@@ -1605,9 +1605,23 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		default: statusStr = "未知状态";
 		}
 		emit Status("Magic遥控：脱桩状态 -> " + statusStr);
-		// 2026-10-24 T45：完成/失败信号（4=成功 3=失败）
+		// 2026-10-24 T45：完成/失败信号，4=成功 3=失败
 		if (status == 4 && m_DisRecharging) { m_DisRecharging = false; emit Dis_Recharge_Done(); }
 		if (status == 3 && m_DisRecharging) { m_DisRecharging = false; emit Dis_Recharge_Failed(); }
+		// 2026-10-26 现场兜底：status=1（请先下发）持续 10s 重发一次；重发后仍 1 超 30s 判失败（防永久阻塞）
+		if (status == 1 && m_DisRecharging) {
+			qint64 now = QDateTime::currentMSecsSinceEpoch();
+			if (!m_DisRechargeRetried && m_DisRechargeStartMs > 0 && now - m_DisRechargeStartMs > 10000) {
+				m_DisRechargeRetried = true;
+				c_Log::Warn("CHASSIS", "DisRecharge", "status=1 resend=true");
+				emit Signal_Send_POST("/cmd/dis_recharge", QJsonObject(), QJsonObject());
+			}
+			else if (m_DisRechargeRetried && m_DisRechargeStartMs > 0 && now - m_DisRechargeStartMs > 30000) {
+				m_DisRecharging = false;
+				c_Log::Error("CHASSIS", "DisRecharge", "status=1 timeout failed");
+				emit Dis_Recharge_Failed();
+			}
+		}
 		return;
 	}
 
@@ -1905,6 +1919,9 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			emit Dis_Recharge_Done();
 		}
 		else {
+			// 2026-10-26 现场：记录下发时间（status=1 兜底重发/超时判定基准）
+			m_DisRechargeStartMs = QDateTime::currentMSecsSinceEpoch();
+			m_DisRechargeRetried = false;
 			m_DisRecharging = true;
 			emit Status("Magic遥控：开始脱离充电桩");
 		}

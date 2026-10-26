@@ -320,7 +320,10 @@ private:
 	QTimer *m_ReconnectTimer = nullptr;     // 断线自动重连定时器（2026-10-24 C2 初始化）
 	bool m_NavTaskActive = false;
 	bool m_NavTaskSeenRunning = false;
-	bool m_DisRecharging = false;			// 2026-10-24 T45：脱离充电桩进行中（轮询 status 用）	// 2026-10-24 T43：导航任务运行观察标志（防下发瞬间误判完成）	// 2026-10-24 重构 T03：工作流导航任务激活标记
+	bool m_DisRecharging = false;			// 2026-10-24 T45：脱离充电桩进行中（轮询 status 用）
+	qint64 m_DisRechargeStartMs = 0;		// 2026-10-26 现场：脱桩指令下发时间（status=1 兜底重发/超时判定）
+	bool m_DisRechargeRetried = false;		// 2026-10-26 现场：已重发一次脱离指令标记
+	int m_LastRechargeStatus = -1;			// 2026-10-26 现场：回充状态变化检测（日志刷屏治理）	// 2026-10-24 T43：导航任务运行观察标志（防下发瞬间误判完成）	// 2026-10-24 重构 T03：工作流导航任务激活标记
 	int m_PollCounter = 0;        // 轮询计数器（用于频率分级）
 	int m_ConsecutiveErrors = 0;  // 连续错误计数（用于触发重连）
 	int m_ReconnectAttempt = 0;   // 重连尝试次数（指数退避）
