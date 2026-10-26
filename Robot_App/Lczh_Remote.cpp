@@ -116,7 +116,9 @@ void c_Lczh_Remote::Scan_Monitor_Connect(QString ip, quint16 port)
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Scan_Tran_Connect(QString ip, quint16 port)
 {
-	emit Signal_Tran_Connect(ip, port);
+	// 2026-10-26 现场定稿：机械臂消息转发 Socket 监听 192.168.6.35:9000（CGXi TCP 转发通道）
+	c_Log::Info("SCAN", "Tran", QString("listen 192.168.6.35:%1").arg(port));
+	emit Signal_Tran_Connect("192.168.6.35", port);
 }
 
 /*************************************************************************************************************************************************
