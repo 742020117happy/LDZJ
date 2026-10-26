@@ -39,6 +39,12 @@ void c_Scan_Client::Connect_Device(QString ip, int port)
 	// 30 = 绑定失败（与 23-29 同域新增）
 	if (!m_Socket->bind(QHostAddress(ip), port)) {
 		emit Status(30);
+		// 2026-10-26 现场：bind 失败日志（含本地地址端口）
+		c_Log::Error("SCAN", "Listen", QString("bind failed local=%1:%2").arg(ip).arg(port));
+	}
+	else {
+		// 2026-10-26 现场：监听地址日志（发送端=本地套接字地址）
+		c_Log::Info("SCAN", "Listen", QString("bind ok local=%1:%2").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()));
 	}
 }
 
@@ -60,12 +66,21 @@ void c_Scan_Client::Read_String()
 	if(m_Socket->hasPendingDatagrams()){
 		QByteArray dataGram;
 		dataGram.resize(static_cast<int>(m_Socket->pendingDatagramSize()));
-		//接受信息
-		qint64 len = m_Socket->readDatagram(dataGram.data(),dataGram.size());
+		//接受信息（2026-10-26 现场：带来源地址参数，供日志显示发送端 IP/端口）
+		QHostAddress senderAddr;
+		quint16 senderPort = 0;
+		qint64 len = m_Socket->readDatagram(dataGram.data(),dataGram.size(), &senderAddr, &senderPort);
 		//如果消息不为空则发送消息到主线程
 		if(len > 0){
 			// 2026-08-19 走查修复：去除可能的 \0/\r\n 尾随字符，避免影响精确匹配
 			QString str = QString::fromUtf8(dataGram).trimmed();
+
+			// 2026-10-26 现场：接收日志（接收端=本地套接字地址；发送端=数据来源地址端口）
+			if (str.size() <= 128) {
+				c_Log::Info("SCAN", "Feedback", QString("udp recv local=%1:%2 from=%3:%4 msg=%5")
+					.arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort())
+					.arg(senderAddr.toString()).arg(senderPort).arg(str));
+			}
 
 			if (str.isEmpty()) { return; }
 
@@ -99,6 +114,10 @@ void c_Scan_Client::Write_String(QString ip, int port, QString value)
 	}
 	//发送消息
 	if(m_Socket->writeDatagram(value.toUtf8(), QHostAddress(ip), port) != -1){
+		// 2026-10-26 现场：发送日志（发送端=本地套接字地址；接收端=对端地址端口；不打印消息内容，消息语义由上层 SCAN Cmd 日志覆盖）
+		c_Log::Info("SCAN", "Cmd", QString("udp send local=%1:%2 remote=%3:%4 bytes=%5")
+			.arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort())
+			.arg(ip).arg(port).arg(value.size()));
 		emit Write_String_Done();
 	}
 	else {
