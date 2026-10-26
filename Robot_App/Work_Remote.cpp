@@ -289,10 +289,25 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	}
 	else {
 		// 双工位：一条线全点走行，点位归属执行（2026-10-25 用户定稿）
+		// 走行点 = 任务1 positions ∪ 任务2 positions（按规范全序合并；两任务各携本工位侧点集）
 		// 工位1 侧点 {P1,P1.1,P4.1,P5,P6} → 配方1[posId-1]；工位2 侧点 {P1.1,P2,P3,P4,P4.1} → 配方2[posId_2-1]；
 		// 共用点（P1.1/P4.1）先 1 后 2；非两侧点判"巡检点不存在"
-		for (int i = 0; i < positions.size(); i++) {
-			QString Point_Name = positions.at(i).toString();
+		QStringList canonical;
+		canonical << "P1" << "P1.1" << "P2" << "P3" << "P4" << "P4.1" << "P5" << "P6";
+		QStringList p1_list;
+		for (int k = 0; k < positions.size(); k++) { p1_list << positions.at(k).toString(); }
+		QStringList p2_list;
+		QJsonArray positions_2 = wp2.value("positions").toArray();
+		for (int k = 0; k < positions_2.size(); k++) { p2_list << positions_2.at(k).toString(); }
+		QStringList merged_points;
+		for (int k = 0; k < canonical.size(); k++) {
+			if (p1_list.contains(canonical.at(k)) || p2_list.contains(canonical.at(k))) {
+				merged_points << canonical.at(k);
+			}
+		}
+		c_Log::Info("WORK", "Flow", QString("route dual points=%1").arg(merged_points.join("->")));
+		for (int i = 0; i < merged_points.size(); i++) {
+			QString Point_Name = merged_points.at(i);
 			const bool isPos1 = (Point_Name == "P1" || Point_Name == "P1.1" || Point_Name == "P4.1" || Point_Name == "P5" || Point_Name == "P6");
 			const bool isPos2 = (Point_Name == "P1.1" || Point_Name == "P2" || Point_Name == "P3" || Point_Name == "P4" || Point_Name == "P4.1");
 			if (!isPos1 && !isPos2) { fail_step("巡检点不存在", "PA007"); return; }
