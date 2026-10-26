@@ -319,15 +319,18 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			if (!wait_StartTask(Point_Name)) { fail_step("机器人定位失败", "PA022"); return; }
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			if (isPos1) {
+				// 2026-10-26 现场矫正：工位1 取数组第一条（at(0)）
 				QJsonArray arr1 = prog_kind1.value(Point_Name).toArray();
-				if (posId >= 1 && posId <= arr1.size()) {
-					if (!wait_CGXi_Prog_Start(arr1.at(posId - 1).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
+				if (!arr1.isEmpty()) {
+					if (!wait_CGXi_Prog_Start(arr1.at(0).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
 				}
 			}
+			// 2026-10-26 现场矫正：工位2 取数组最后一条——单条点（P2/P3/P4）仅工位2 轨迹即该条；
+			// 双条点（P1.1/P4.1）第二条=工位2 轨迹。原 at(posId_2-1) 在单条数组越界被静默跳过 → P2/P3/P4 未执行轨迹
 			if (isPos2) {
 				QJsonArray arr2 = prog_kind2.value(Point_Name).toArray();
-				if (posId_2 >= 1 && posId_2 <= arr2.size()) {
-					if (!wait_CGXi_Prog_Start(arr2.at(posId_2 - 1).toInt())) { fail_step("机械臂运行失败（第二工位轨迹）", "PA003"); return; }
+				if (!arr2.isEmpty()) {
+					if (!wait_CGXi_Prog_Start(arr2.at(arr2.size() - 1).toInt())) { fail_step("机械臂运行失败（第二工位轨迹）", "PA003"); return; }
 				}
 			}
 		}
