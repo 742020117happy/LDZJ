@@ -509,13 +509,7 @@ bool c_Work_Remote::wait_IO_Robot_ON()
 			return true;
 		}
 	}
-	// 2026-10-25 NN3：首部断连快查——IO 未连接则开动脉冲无法下发，快速失败（原等待无退出源）
-	bool ioConnected = false;
-	{
-		QReadLocker locker(&c_Variable::g_lock);
-		ioConnected = c_Variable::getInstance().g_IO.Connected;
-	}
-	if (!ioConnected) { emit Status("机械臂开机失败：远程 IO 未连接"); return false; }
+	// 2026-10-26 现场矫正：移除 IO 断连快查——现场 IO 站未连接时机械臂亦可正常开机（完成信号来自 CGXi CO1 位），快查误判致"机械臂开机失败"
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::IO_Robot_ON_Done, &loop, &QEventLoop::quit);
 	QObject::connect(this, &c_Work_Remote::IO_Disconnected, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006
@@ -542,13 +536,7 @@ bool c_Work_Remote::wait_Coils_1001()
 			return true;
 		}
 	}
-	// 2026-10-25 NN3：首部断连快查——CGXi 未连接则使能指令无法下发，快速失败
-	bool cgxiConnected = false;
-	{
-		QReadLocker locker(&c_Variable::g_lock);
-		cgxiConnected = c_Variable::getInstance().g_CGXi.Connected;
-	}
-	if (!cgxiConnected) { emit Status("机械臂使能失败：机械臂未连接"); return false; }
+	// 2026-10-26 现场矫正：移除 CGXi 断连快查——机械臂已使能时 CO0 位快路径即可命中，快查误判致"机械臂使能失败"
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::Coils_1001_Done, &loop, &QEventLoop::quit);
 	QObject::connect(this, &c_Work_Remote::CGXi_Disconnected, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006
