@@ -144,7 +144,7 @@ void c_Lczh_Remote::Start_Scan()
 		.arg(c_Variable::getInstance().g_Work_DB.taskId)
 		.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
 		.arg(c_Variable::getInstance().g_Work_DB.axleNo));
-	emit Signal_Remote_Write(m_CameraIP, m_CameraPort, cmd);
+	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
 }
 
 /*************************************************************************************************************************************************
@@ -162,7 +162,7 @@ void c_Lczh_Remote::Collector()
 			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
 			.arg(m_LastPhotoName);
 	}
-	emit Signal_Remote_Write(m_CameraIP, m_CameraPort, cmd);
+	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
 	// 2026-10-25 L：PHOTO 指令发送（照片文件名允许打印）
 	c_Log::Info("SCAN", "Cmd", QString("send PHOTO name=%1").arg(m_LastPhotoName));
 	emit Photo_Written(m_LastPhotoName);
@@ -173,7 +173,7 @@ void c_Lczh_Remote::Collector()
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Finish_Scan()
 {
-	emit Signal_Remote_Write(m_CameraIP, m_CameraPort, "PHOTO&FINISH");
+	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, "PHOTO&FINISH");
 	{	// 2026-10-24 T86：workState 跨线程读，写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.workState = 4;
@@ -196,7 +196,7 @@ void c_Lczh_Remote::Change_GAIN(QString gain)
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.currentGain = val;
 	}
-	emit Signal_Remote_Write(m_CameraIP, m_CameraPort, QString("CHANGE&GAIN&%1").arg(val));
+	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, QString("CHANGE&GAIN&%1").arg(val));
 }
 
 /*************************************************************************************************************************************************
@@ -368,7 +368,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			.arg(wheelsetNo)
 			.arg(axleNo)
 			.arg(taskId);
-		emit Signal_Remote_Write(m_CameraIP, m_CameraPort, cmd);
+		emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
 	}
 	else if (msg.startsWith("CHANG&GAIN&")) {
 		// 校验：以 ! 结尾
@@ -426,7 +426,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 
 		if (curGain != m_LastGain) {
 			m_LastGain = curGain;
-			emit Signal_Remote_Write(m_CameraIP, m_CameraPort,
+			emit Signal_Remote_Write("192.168.6.34", m_CameraPort,
 				QString("CHANGE&GAIN&%1").arg(curGain));
 		}
 
@@ -439,13 +439,13 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 
 		m_LastPhotoName = Build_Photo_Filename();
 
-		emit Signal_Remote_Write(m_CameraIP, m_CameraPort,
+		emit Signal_Remote_Write("192.168.6.34", m_CameraPort,
 			QString("PHOTO&%1%2&%3").arg(wheelsetNo, axleNo, m_LastPhotoName));
 		emit Photo_Written(m_LastPhotoName);
 	}
 	else if (msg == "PHOTO&FINISH!") {
 		// 无需额外校验，直接转发
-		emit Signal_Remote_Write(m_CameraIP, m_CameraPort, "PHOTO&FINISH");
+		emit Signal_Remote_Write("192.168.6.34", m_CameraPort, "PHOTO&FINISH");
 		{	// 2026-10-24 CC/T86：currentPos 写侧持锁（原无锁别名写为数据竞争）
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.currentPos++;
