@@ -23,6 +23,7 @@ signals:
 	void Read_String_Error();//读错误
 	void Write_String_Error(); //写错误
 	void Status(int state);//通讯状态
+	void Status_Text(QString msg);//2026-10-26 现场：文本状态（IP/端口日志桥接至模块分文件）
 	void Collect(int num);
 
 private:

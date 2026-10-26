@@ -41,10 +41,12 @@ void c_Scan_Client::Connect_Device(QString ip, int port)
 		emit Status(30);
 		// 2026-10-26 现场：bind 失败日志（含本地地址端口）
 		c_Log::Error("SCAN", "Listen", QString("bind failed local=%1:%2").arg(ip).arg(port));
+		emit Status_Text(QString("绑定失败 本机=%1:%2").arg(ip).arg(port));
 	}
 	else {
 		// 2026-10-26 现场：监听地址日志（发送端=本地套接字地址）
 		c_Log::Info("SCAN", "Listen", QString("bind ok local=%1:%2").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()));
+		emit Status_Text(QString("通道绑定成功 本机=%1:%2").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()));
 	}
 }
 
@@ -80,6 +82,7 @@ void c_Scan_Client::Read_String()
 				c_Log::Info("SCAN", "Feedback", QString("udp recv local=%1:%2 from=%3:%4 msg=%5")
 					.arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort())
 					.arg(senderAddr.toString()).arg(senderPort).arg(str));
+				emit Status_Text(QString("接收 本机=%1:%2 来源=%3:%4").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()).arg(senderAddr.toString()).arg(senderPort));
 			}
 
 			if (str.isEmpty()) { return; }
@@ -118,6 +121,8 @@ void c_Scan_Client::Write_String(QString ip, int port, QString value)
 		c_Log::Info("SCAN", "Cmd", QString("udp send local=%1:%2 remote=%3:%4 bytes=%5")
 			.arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort())
 			.arg(ip).arg(port).arg(value.size()));
+		// 2026-10-26 现场：发送日志双通道（中心日志 + 模块分文件）
+		emit Status_Text(QString("发送 本机=%1:%2 对端=%3:%4").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()).arg(ip).arg(port));
 		emit Write_String_Done();
 	}
 	else {

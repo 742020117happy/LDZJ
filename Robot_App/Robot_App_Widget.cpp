@@ -1696,7 +1696,7 @@ void c_Robot_App_Widget::MySql_DB()
 	ui->MySql_Port->setText(QString::number(DB::getInstance().g_Communicate_DB.value("MySql_Port").toInt(3306)));
 	ui->MySql_User->setText(DB::getInstance().g_Communicate_DB.value("MySql_User").toString("root"));
 	ui->MySql_Password->setText(DB::getInstance().g_Communicate_DB.value("MySql_Password").toString("root"));
-	ui->MySql_Database->setText(DB::getInstance().g_Communicate_DB.value("MySql_Database").toString("robot_db"));
+	ui->MySql_Database->setText(DB::getInstance().g_Communicate_DB.value("MySql_Database").toString("wheel"));
 
 	QObject::connect(ui->Pre_Scan_120_MySql_Server, &QLineEdit::textChanged, this, [=](QString ip) { Write_Communicate_DB("Web_Server_Ip", ip); });
 

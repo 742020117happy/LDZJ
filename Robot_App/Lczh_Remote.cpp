@@ -68,6 +68,9 @@ void c_Lczh_Remote::Init()
 	QObject::connect(&m_Scan_Tran, &c_Robot_Server::Read_Done, this, &c_Lczh_Remote::On_CGXi_Data);
 	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Read_String_Done, this, &c_Lczh_Remote::On_Camera_Feedback);
 
+	// 2026-10-26 现场：Scan_Client 文本状态桥接至模块日志（IP/端口显示于左精扫消息.log）
+	QObject::connect(&m_Scan_Remote, &c_Scan_Client::Status_Text, this, [this](QString msg) { emit Status(msg); });
+	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Status_Text, this, [this](QString msg) { emit Status(msg); });
 	QObject::connect(&m_Scan_Remote, &c_Scan_Client::Connect_Done, this, &c_Lczh_Remote::Scan_Remote_Connect_Done);
 	QObject::connect(&m_Scan_Remote, &c_Scan_Client::Disconnect_Done, this, &c_Lczh_Remote::Scan_Remote_Disconnect_Done);
 	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Connect_Done, this, &c_Lczh_Remote::Scan_Monitor_Connect_Done);
