@@ -34,17 +34,19 @@ void c_Scan_Client::Connect_Device(QString ip, int port)
 	}
 	//绑定主机、监听信号
 	m_Port = port;
+	// 2026-10-26 现场矫正：bind 一律用 AnyIPv4（本机任意地址）——ip 参数为对端地址仅用于发送，
+	// 原 bind(ip) 在对端非本机时必然失败（本机无该地址），且误将"对端 IP"当"本机 IP"绑定
 	// 2026-10-24 T53：bind 失败显式告警（原静默，上层误以为已连接）
 	// 2026-10-24 T64：Status 为 int 状态码信号（原 T53 误发 QString 导致编译失败），
 	// 30 = 绑定失败（与 23-29 同域新增）
-	if (!m_Socket->bind(QHostAddress(ip), port)) {
+	if (!m_Socket->bind(QHostAddress::AnyIPv4, port)) {
 		emit Status(30);
-		// 2026-10-26 现场：bind 失败日志（含本地地址端口）
-		c_Log::Error("SCAN", "Listen", QString("bind failed local=%1:%2").arg(ip).arg(port));
-		emit Status_Text(QString("绑定失败 本机=%1:%2").arg(ip).arg(port));
+		// 2026-10-26 现场：bind 失败日志（含本地端口）
+		c_Log::Error("SCAN", "Listen", QString("bind failed local_port=%1").arg(port));
+		emit Status_Text(QString("绑定失败 本地端口=%1").arg(port));
 	}
 	else {
-		// 2026-10-26 现场：监听地址日志（发送端=本地套接字地址）
+		// 2026-10-26 现场：监听地址日志（AnyIPv4:本地端口）
 		c_Log::Info("SCAN", "Listen", QString("bind ok local=%1:%2").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()));
 		emit Status_Text(QString("通道绑定成功 本机=%1:%2").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()));
 	}
@@ -76,7 +78,7 @@ void c_Scan_Client::Read_String()
 		if(len > 0){
 			// 2026-08-19 走查修复：去除可能的 \0/\r\n 尾随字符，避免影响精确匹配
 			QString str = QString::fromUtf8(dataGram).trimmed();
-
+			if (str == "CAMERA&OK"){return;}
 			// 2026-10-26 现场：接收日志（接收端=本地套接字地址；发送端=数据来源地址端口）
 			if (str.size() <= 128) {
 				c_Log::Info("SCAN", "Feedback", QString("udp recv local=%1:%2 from=%3:%4 msg=%5")
