@@ -98,7 +98,9 @@ void c_Lczh_Remote::Scan_Remote_Connect(QString ip, quint16 port)
 	c_Log::Info("SCAN", "Connect", QString("request ip=%1 port=%2").arg(ip).arg(port));
 	m_CameraIP = ip;
 	m_CameraPort = port;
-	emit Signal_Remote_Connect(m_CameraIP, m_CameraPort);
+	// 2026-10-26 现场矫正：发送通道本地 bind 0（随机源端口）——采集软件 BTS-AccurateCamera
+	// 与本机同机运行并独占 0.0.0.0:8001 接收指令，Robot_App 发送方无需固定源端口（原 bind 8001 冲突报"地址已在使用"）
+	emit Signal_Remote_Connect(m_CameraIP, 0);
 }
 
 /*************************************************************************************************************************************************
