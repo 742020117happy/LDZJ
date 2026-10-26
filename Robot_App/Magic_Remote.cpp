@@ -1914,6 +1914,8 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	if (path == "/cmd/dis_recharge") {
 		// 2026-10-24 T45：data=1 开始脱离（需轮询 status）；data=2 未充电不需脱离（直接完成）
 		int d = dataVal.toInt(1);
+		// 2026-10-26 综合定位：打印响应 data 原始值（现场 NOTHING 恒 1 诊断关键）
+		c_Log::Info("CHASSIS", "DisRecharge", QString("post resp data=%1").arg(d));
 		if (d == 2) {
 			emit Status("Magic遥控：不需脱离充电桩");
 			emit Dis_Recharge_Done();

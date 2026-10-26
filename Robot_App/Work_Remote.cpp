@@ -81,6 +81,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			}
 		}]
 	}*/
+	emit Status("接收到任务：" + QString(QJsonDocument(object).toJson()));
 	QJsonObject return_cmd;
 	return_cmd.insert("Cmd_Name", "START_INSPECTION");
 
@@ -466,6 +467,12 @@ bool c_Work_Remote::wait_StartTask(QString task_name)
 bool c_Work_Remote::wait_Dis_Recharge()
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
+	// 2026-10-26 综合定位：前置检查充电状态——NOTHING(1)=不在桩，无需脱离直接完成（官方 data=2 场景的前置规避）
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		int cs = c_Variable::getInstance().g_Magic.ReadData.chargeStatus;
+		if (cs == 1) { emit Status("脱离充电桩：充电状态为未在桩，跳过"); return true; }
+	}
 	// 2026-10-24 DD5：链路补全——T45 的 Dis_Recharge_Failed 已发但等待侧未接，脱离失败将永久阻塞
 	QEventLoop loop;
 	QObject::connect(this, &c_Work_Remote::Dis_Recharge_Done, &loop, &QEventLoop::quit);
