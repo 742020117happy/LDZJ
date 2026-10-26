@@ -81,46 +81,29 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			}
 		}]
 	}*/
+	QJsonObject return_cmd;
+	return_cmd.insert("Cmd_Name", "START_INSPECTION");
 
+	// ================= 1. 指令完整性校验 =================
 	if (object.value("Checksum") == QJsonValue::Undefined) {
 		emit Status("缺少校验信息推出任务");
 		return;
 	}
-	QString Checksum = object.value("Checksum").toString();
-	//{"Checksum":"A1B2C3D4","Cmd_Name":"START_INSPECTION","Message":"轮对质检","Status":"Success","Value":true}
-	QJsonObject return_cmd;
-	return_cmd.insert("Cmd_Name", "START_INSPECTION");
-	return_cmd.insert("Checksum", Checksum);
+	return_cmd.insert("Checksum", object.value("Checksum").toString());
 
-	if (object.value("Cmd_Name") == QJsonValue::Undefined) {
-		return_cmd.insert("Message", "指令缺少Cmd_Name");
+	// 缺失字段 → Error 应答（2026-10-25 整合：13 个重复块收敛为 lambda）
+	auto reply_missing = [this, &return_cmd](const QString &field) {
+		return_cmd.insert("Message", QString("指令缺少%1").arg(field));
 		return_cmd.insert("Status", "Error");
 		return_cmd.insert("Value", false);
 		emit Write_Json(return_cmd);
-		return;
-	}
-	if (object.value("Value") == QJsonValue::Undefined) {
-		return_cmd.insert("Message", "指令缺少Value");
-		return_cmd.insert("Status", "Error");
-		return_cmd.insert("Value", false);
-		emit Write_Json(return_cmd);
-		return;
-	}
-	if (object.value("wheelsetCount") == QJsonValue::Undefined) {
-		return_cmd.insert("Message", "指令缺少wheelsetCount");
-		return_cmd.insert("Status", "Error");
-		return_cmd.insert("Value", false);
-		emit Write_Json(return_cmd);
-		return;
-	}
-	if (object.value("tasks") == QJsonValue::Undefined) {
-		return_cmd.insert("Message", "指令缺少tasks");
-		return_cmd.insert("Status", "Error");
-		return_cmd.insert("Value", false);
-		emit Write_Json(return_cmd);
-		return;
-	}
+	};
+	if (object.value("Cmd_Name") == QJsonValue::Undefined) { reply_missing("Cmd_Name"); return; }
+	if (object.value("Value") == QJsonValue::Undefined) { reply_missing("Value"); return; }
+	if (object.value("wheelsetCount") == QJsonValue::Undefined) { reply_missing("wheelsetCount"); return; }
+	if (object.value("tasks") == QJsonValue::Undefined) { reply_missing("tasks"); return; }
 
+	// ================= 2. 任务状态门控 =================
 	bool valve = object.value("Value").toBool();
 	if (c_Variable::getInstance().g_Work.Connected && valve) {
 		return_cmd.insert("Message", "任务进行中，请等待");
@@ -145,949 +128,215 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		return;
 	}
 
+	// ================= 3. tasks 解析与字段校验 =================
 	int wheelsetCount = object.value("wheelsetCount").toInt();
 	QJsonArray tasks = object.value("tasks").toArray();
+	c_Log::Info("WORK", "Cmd", QString("recv START_INSPECTION wheelsetCount=%1 tasks=%2").arg(wheelsetCount).arg(tasks.size()));
 
-	QJsonDocument cmd_doc(object);
-	QString jsonStr = QString::fromUtf8(cmd_doc.toJson(QJsonDocument::Compact));
-	emit Status(jsonStr);
-	// 2026-10-25 L：START_INSPECTION 指令解析完成（只打印允许字段：任务ID/车型/轮对类型/工位数；完整指令串仅走 UI Status 原有行为）
-	c_Log::Info("WORK", "Cmd", QString("recv START_INSPECTION wheelsetCount=%1 tasks=%2")
-		.arg(wheelsetCount).arg(tasks.size()));
-
-	//只有一个工位有轮对的情况
-	if (wheelsetCount == 1) {
-		// 2026-10-24 Z1：tasks 空数组防护（wheelsetCount==1 但数组为空时 at(0) 越界）
-		if (tasks.isEmpty()) {
-			return_cmd.insert("Message", "tasks 数组为空");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		QJsonObject tasks_object = tasks.at(0).toObject();
-		if (tasks_object.value("taskId") == QJsonValue::Undefined){
-			return_cmd.insert("Message", "指令缺少taskId");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("carType") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少carType");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("wheelsetKind") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetKind");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("axleType") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少axleType");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("wheelsetNo") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetNo");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("axleNo") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少axleNo");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("sendUnit") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少sendUnit");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("startTime") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少startTime");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("repairLevel") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少repairLevel");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("wheelsetPosition") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetPosition");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-	
-		{	// 2026-10-24 T89：g_Work_DB 字段跨线程读（MySql/Server/Lczh），写侧持写锁（T83 修复点）
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.taskId = tasks_object.value("taskId").toString();
-			c_Variable::getInstance().g_Work_DB.carType = tasks_object.value("carType").toString();
-			c_Variable::getInstance().g_Work_DB.wheelsetKind = tasks_object.value("wheelsetKind").toString();
-			c_Variable::getInstance().g_Work_DB.wheelsetNo = tasks_object.value("wheelsetNo").toString();
-			c_Variable::getInstance().g_Work_DB.axleNo = tasks_object.value("axleNo").toString();
-			c_Variable::getInstance().g_Work_DB.sendUnit = tasks_object.value("sendUnit").toString();
-			c_Variable::getInstance().g_Work_DB.repairLevel = tasks_object.value("repairLevel").toString();
-		}
-
-		QJsonObject wheelsetPosition = tasks_object.value("wheelsetPosition").toObject();
-
-		if (wheelsetPosition.value("posId") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少posId");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (wheelsetPosition.value("mapPointName") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少mapPointName");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (wheelsetPosition.value("positions") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少positions");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-	
-		int posId = wheelsetPosition.value("posId").toInt();
-		QString mapPointName = wheelsetPosition.value("mapPointName").toString();
-		QJsonArray positions = wheelsetPosition.value("positions").toArray();
-
-		if (!wait_IO_Robot_ON()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "机械臂开机失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_Dis_Recharge()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA008）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA008");
-			return_cmd.insert("Message", "机器人脱桩失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_RefreshMapList()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA007");
-			return_cmd.insert("Message", "机器人刷新地图失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_SwitchMap(mapPointName)) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA007");
-			return_cmd.insert("Message", "机器人加载地图失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_RefreshNavPoints()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA007");
-			return_cmd.insert("Message", "机器人刷新导航点失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_DynamicInit("P001")) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA022）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA022");
-			return_cmd.insert("Message", "机器人动态初始化失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		emit Voice_Event("PA014");	// 2026-10-25 FF1：初始化运行完成（T48 设计、T93 重写后遗失补回）
-		if (!wait_Coils_1001()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "机械臂使能失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		
-		/*{
-			"CR400BF": {
-				"T3C": {
-					"P1": [22],
-						"P1.1" : [28, 29],
-						"P2" : [23],
-						"P3" : [24],
-						"P4" : [25],
-						"P4.1" : [30, 31],
-						"P5" : [26],
-						"P6" : [27]
-				},
-					"GBD": {
-						"P1": [13],
-							"P1.1" : [15, 18],
-							"P2" : [16],
-							"P3" : [17],
-							"P4" : [19],
-							"P4.1" : [21, 20],
-							"P5" : [14],
-							"P6" : [12]
-					}
-			},
-				"CRH380B": {
-				"M3B": {
-					"P1": [32],
-						"P1.1" : [34, 37],
-						"P2" : [35],
-						"P3" : [36],
-						"P4" : [38],
-						"P4.1" : [40, 39],
-						"P5" : [33],
-						"P6" : [41]
-				},
-					"T3B": {
-						"P1": [1],
-							"P1.1" : [7, 8],
-							"P2" : [2],
-							"P3" : [3],
-							"P4" : [4],
-							"P4.1" : [10, 20],
-							"P5" : [5],
-							"P6" : [6]
-					}
-			}
-		}*/
-
-		QString path = QCoreApplication::applicationDirPath() + "/Work_DB/InspectionPlan.json";	// 2026-10-25 D-005：exe 目录定位（防 CWD 依赖）
-		QFile file(path);
-		if (file.open(QIODevice::ReadOnly)) {
-			QJsonParseError err;
-			QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &err);
-			if (err.error != QJsonParseError::NoError) {
-				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA003");
-				return_cmd.insert("Message", "巡检配方解析失败");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				file.close();
-				return;
-			}
-			m_Work_Program = doc.object();
-			emit Status("巡检配方已加载：" + path);
-			file.close();
-		}
-		else {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "巡检配方加载失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		// 2026-10-24 T89：配方层级 {carType:{wheelsetKind:{点:[轨迹]}}}，须先取车型层
-		QJsonObject Work_Program_CarType = m_Work_Program.value(c_Variable::getInstance().g_Work_DB.carType).toObject();
-		if (Work_Program_CarType.value(c_Variable::getInstance().g_Work_DB.wheelsetKind) == QJsonValue::Undefined) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "无当前车型巡检配方");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		c_Variable::getInstance().g_Work.Connected = true;
-		{	// 2026-10-24 T93：巡检运行→workState=2 采集中（黄灯 PA001 联动）
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.workState = 2;
-		}
-		emit Voice_Event("PA001");
-		// 2026-10-25 L：巡检开始（只记录允许字段：任务ID/轮对号/工位）
-		c_Log::Info("WORK", "Flow", QString("start task_id=%1 wheel=%2 pos=1")
-			.arg(c_Variable::getInstance().g_Work_DB.taskId)
-			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo));
-		return_cmd.insert("Message", "开始巡检");
-		return_cmd.insert("Status", "Success");
-		return_cmd.insert("Value", true);
+	// 2026-10-24 Z1：数组越界防护
+	if (tasks.isEmpty()) {
+		return_cmd.insert("Message", "tasks 数组为空");
+		return_cmd.insert("Status", "Error");
+		return_cmd.insert("Value", false);
 		emit Write_Json(return_cmd);
-		emit actualStartTime();
+		return;
+	}
+	if (wheelsetCount == 2 && tasks.size() < 2) {
+		return_cmd.insert("Message", "tasks 数组元素不足 2 个");
+		return_cmd.insert("Status", "Error");
+		return_cmd.insert("Value", false);
+		emit Write_Json(return_cmd);
+		return;
+	}
 
-		QJsonObject Work_Program_wheelsetKind = Work_Program_CarType.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
-		emit  precisScanStartTime();
+	// 任务1 字段齐全校验
+	QJsonObject t1 = tasks.at(0).toObject();
+	QStringList required;
+	required << "taskId" << "carType" << "wheelsetKind" << "axleType" << "wheelsetNo"
+		<< "axleNo" << "sendUnit" << "startTime" << "repairLevel" << "wheelsetPosition";
+	for (int i = 0; i < required.size(); i++) {
+		if (t1.value(required.at(i)) == QJsonValue::Undefined) { reply_missing(required.at(i)); return; }
+	}
+	QJsonObject wp1 = t1.value("wheelsetPosition").toObject();
+	QStringList required_wp;
+	required_wp << "posId" << "mapPointName" << "positions";
+	for (int i = 0; i < required_wp.size(); i++) {
+		if (wp1.value(required_wp.at(i)) == QJsonValue::Undefined) { reply_missing(required_wp.at(i)); return; }
+	}
 
-		// 2026-10-25 用户设计：单工位按 posId 过滤走行点（保序跳过非本工位点）
-		// posId==1：P1→P1.1→P4.1→P5→P6；posId==2：P1.1→P2→P3→P4→P4.1；其他 posId 不过滤（保持旧行为）
+	// 任务2 字段齐全校验（双工位）
+	QJsonObject t2;
+	QJsonObject wp2;
+	if (wheelsetCount == 2) {
+		t2 = tasks.at(1).toObject();
+		for (int i = 0; i < required.size(); i++) {
+			if (t2.value(required.at(i)) == QJsonValue::Undefined) { reply_missing(required.at(i)); return; }
+		}
+		wp2 = t2.value("wheelsetPosition").toObject();
+		for (int i = 0; i < required_wp.size(); i++) {
+			if (wp2.value(required_wp.at(i)) == QJsonValue::Undefined) { reply_missing(required_wp.at(i)); return; }
+		}
+	}
+
+	// 任务1 字段写入 g_Work_DB（2026-10-24 T83：跨线程读，写侧持写锁）
+	{
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.taskId = t1.value("taskId").toString();
+		c_Variable::getInstance().g_Work_DB.carType = t1.value("carType").toString();
+		c_Variable::getInstance().g_Work_DB.wheelsetKind = t1.value("wheelsetKind").toString();
+		c_Variable::getInstance().g_Work_DB.wheelsetNo = t1.value("wheelsetNo").toString();
+		c_Variable::getInstance().g_Work_DB.axleNo = t1.value("axleNo").toString();
+		c_Variable::getInstance().g_Work_DB.sendUnit = t1.value("sendUnit").toString();
+		c_Variable::getInstance().g_Work_DB.repairLevel = t1.value("repairLevel").toString();
+	}
+
+	int posId = wp1.value("posId").toInt();
+	QString mapPointName = wp1.value("mapPointName").toString();
+	QJsonArray positions = wp1.value("positions").toArray();
+	int posId_2 = 0;
+	if (wheelsetCount == 2) { posId_2 = wp2.value("posId").toInt(); }
+
+	// 工序失败统一处理（2026-10-25 整合：workState=5 + 语音 + Error 应答收敛为 lambda）
+	auto fail_step = [this, &return_cmd](const QString &msg, const QString &pa) {
+		{
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.workState = 5;
+		}
+		emit Voice_Event(pa);
+		return_cmd.insert("Message", msg);
+		return_cmd.insert("Status", "Error");
+		return_cmd.insert("Value", false);
+		emit Write_Json(return_cmd);
+	};
+
+	// ================= 4. 工序链（两场景共用） =================
+	if (!wait_IO_Robot_ON()) { fail_step("机械臂开机失败", "PA003"); return; }
+	if (!wait_Dis_Recharge()) { fail_step("机器人脱桩失败", "PA008"); return; }
+	if (!wait_RefreshMapList()) { fail_step("机器人刷新地图失败", "PA007"); return; }
+	if (!wait_SwitchMap(mapPointName)) { fail_step("机器人加载地图失败", "PA007"); return; }
+	if (!wait_RefreshNavPoints()) { fail_step("机器人刷新导航点失败", "PA007"); return; }
+	if (!wait_DynamicInit("P001")) { fail_step("机器人动态初始化失败", "PA022"); return; }
+	emit Voice_Event("PA014");	// 2026-10-25 FF1：初始化运行完成
+	if (!wait_Coils_1001()) { fail_step("机械臂使能失败", "PA003"); return; }
+
+	// ================= 5. 配方加载与三层查找（T89） =================
+	QString path = QCoreApplication::applicationDirPath() + "/Work_DB/InspectionPlan.json";	// 2026-10-25 D-005：exe 目录定位
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly)) { fail_step("巡检配方加载失败", "PA003"); return; }
+	QJsonParseError err;
+	QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &err);
+	file.close();
+	if (err.error != QJsonParseError::NoError || !doc.isObject()) { fail_step("巡检配方解析失败", "PA003"); return; }
+	m_Work_Program = doc.object();
+
+	// 配方1：{carType:{wheelsetKind:{点:[轨迹]}}}，先取车型层（T89）
+	QJsonObject prog_car1 = m_Work_Program.value(c_Variable::getInstance().g_Work_DB.carType).toObject();
+	if (prog_car1.value(c_Variable::getInstance().g_Work_DB.wheelsetKind) == QJsonValue::Undefined) {
+		fail_step("无当前车型巡检配方", "PA003");
+		return;
+	}
+	QJsonObject prog_kind1 = prog_car1.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
+
+	// 配方2（双工位第二任务车型/轮对；2026-10-25 QQ1 补层 + 用户定稿）
+	QString carType_2 = (wheelsetCount == 2) ? t2.value("carType").toString() : QString();
+	QString wheelsetKind_2 = (wheelsetCount == 2) ? t2.value("wheelsetKind").toString() : QString();
+	QJsonObject prog_kind2;
+	if (wheelsetCount == 2) {
+		QJsonObject prog_car2 = m_Work_Program.value(carType_2).toObject();
+		if (prog_car2.value(wheelsetKind_2) == QJsonValue::Undefined) {
+			fail_step("无当前车型巡检配方（第二工位）", "PA003");
+			return;
+		}
+		prog_kind2 = prog_car2.value(wheelsetKind_2).toObject();
+	}
+
+	// ================= 6. 巡检启动 =================
+	c_Variable::getInstance().g_Work.Connected = true;
+	{
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.workState = 2;
+	}
+	emit Voice_Event("PA001");
+	c_Log::Info("WORK", "Flow", QString("start task_id=%1 wheel=%2 pos=%3")
+		.arg(c_Variable::getInstance().g_Work_DB.taskId)
+		.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
+		.arg(posId));
+	return_cmd.insert("Message", "开始巡检");
+	return_cmd.insert("Status", "Success");
+	return_cmd.insert("Value", true);
+	emit Write_Json(return_cmd);
+	emit actualStartTime();
+	emit precisScanStartTime();
+
+	// ================= 7. 巡检走行 =================
+	if (wheelsetCount == 1) {
+		// 单工位：按 posId 过滤走行点（2026-10-25 用户定稿）
+		// posId==1：P1→P1.1→P4.1→P5→P6；posId==2：P1.1→P2→P3→P4→P4.1；每点执行 配方[posId-1]
 		QStringList allowedPoints;
 		if (posId == 1)      { allowedPoints << "P1" << "P1.1" << "P4.1" << "P5" << "P6"; }
 		else if (posId == 2) { allowedPoints << "P1.1" << "P2" << "P3" << "P4" << "P4.1"; }
 		c_Log::Info("WORK", "Flow", QString("route posId=%1 points=%2").arg(posId).arg(allowedPoints.isEmpty() ? "all" : allowedPoints.join("->")));
-
 		for (int i = 0; i < positions.size(); i++) {
 			QString Point_Name = positions.at(i).toString();
-			// 2026-10-25 用户设计：本工位不走行集合之外的点（P0/P001 由初始化/回充工序覆盖）
-			if (!allowedPoints.isEmpty() && !allowedPoints.contains(Point_Name)) {
-				continue;
-			}
-			if (Work_Program_wheelsetKind.value(Point_Name) == QJsonValue::Undefined) {
-				c_Variable::getInstance().g_Work.Connected = false;
-				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA007");
-				return_cmd.insert("Message", "巡检点不存在");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				return;
-			}
-			if (!wait_StartTask(Point_Name)) {
-				c_Variable::getInstance().g_Work.Connected = false;
-				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA022）+ 语音
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA022");
-				return_cmd.insert("Message", "机器人定位失败");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				return;
-			}
+			if (!allowedPoints.isEmpty() && !allowedPoints.contains(Point_Name)) { continue; }
+			if (prog_kind1.value(Point_Name) == QJsonValue::Undefined) { fail_step("巡检点不存在", "PA007"); return; }
+			if (!wait_StartTask(Point_Name)) { fail_step("机器人定位失败", "PA022"); return; }
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
-			QJsonArray Work_Program_Point = Work_Program_wheelsetKind.value(Point_Name).toArray();
-			// 2026-10-25 用户修改加固：轨迹按工位号索引（posId-1）；越界防护防 at() 崩溃（不改索引语义）
-			if (posId < 1 || posId > Work_Program_Point.size()) {
-				c_Variable::getInstance().g_Work.Connected = false;
-				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA003");
-				return_cmd.insert("Message", "巡检点工位轨迹越界");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				return;
-			}
-			int program_index = Work_Program_Point.at(posId - 1).toInt();
-			if (!wait_CGXi_Prog_Start(program_index)) {
-				c_Variable::getInstance().g_Work.Connected = false;
-					{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-						QWriteLocker locker(&c_Variable::g_lock);
-						c_Variable::getInstance().g_Work_DB.workState = 5;
-					}
-				emit Voice_Event("PA003");
-				return_cmd.insert("Message", "机械臂运行失败");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				return;
-			}
+			QJsonArray arr = prog_kind1.value(Point_Name).toArray();
+			if (posId < 1 || posId > arr.size()) { fail_step("巡检点工位轨迹越界", "PA003"); return; }
+			if (!wait_CGXi_Prog_Start(arr.at(posId - 1).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
 		}
-
-		emit  precisScanEndTime();
-		if (!wait_StartRecharge("P0")) {
-			c_Variable::getInstance().g_Work.Connected = false;
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA008）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA008");
-			return_cmd.insert("Message", "回充失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-		}
-		msleep(5000);//等待系统响应
-		{	// 2026-10-24 T93：巡检完成→workState=0（绿灯）
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.workState = 0;
-		}
-	c_Variable::getInstance().g_Work.Connected = false;
-	emit  actualReturnTime();
-	// 2026-10-25 L：巡检完成（单工位；只记录）
-	c_Log::Info("WORK", "Flow", QString("finish task_id=%1").arg(c_Variable::getInstance().g_Work_DB.taskId));
-	emit Status("巡检完成");
-}
-//两个工位有轮对的情况
-	if (wheelsetCount ==2) {
-		// 2026-10-24 Z1：tasks 数组不足 2 个防护（wheelsetCount==2 但数组元素 <2 时 at(1) 越界）
-		if (tasks.size() < 2) {
-			return_cmd.insert("Message", "tasks 数组元素不足 2 个");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		QJsonObject tasks_object = tasks.at(0).toObject();
-		QJsonObject tasks_object_2 = tasks.at(1).toObject();
-		if (tasks_object.value("taskId") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少taskId");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("carType") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少carType");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("wheelsetKind") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetKind");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("axleType") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少axleType");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("wheelsetNo") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetNo");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("axleNo") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少axleNo");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("sendUnit") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少sendUnit");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("startTime") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少startTime");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("repairLevel") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少repairLevel");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object.value("wheelsetPosition") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetPosition");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		if (tasks_object_2.value("taskId") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少taskId");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("carType") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少carType");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("wheelsetKind") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetKind");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("axleType") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少axleType");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("wheelsetNo") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetNo");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("axleNo") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少axleNo");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("sendUnit") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少sendUnit");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("startTime") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少startTime");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("repairLevel") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少repairLevel");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (tasks_object_2.value("wheelsetPosition") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少wheelsetPosition");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		{	// 2026-10-24 T89：g_Work_DB 字段跨线程读（MySql/Server/Lczh），写侧持写锁（T83 修复点）
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.taskId = tasks_object.value("taskId").toString();
-			c_Variable::getInstance().g_Work_DB.carType = tasks_object.value("carType").toString();
-			c_Variable::getInstance().g_Work_DB.wheelsetKind = tasks_object.value("wheelsetKind").toString();
-			c_Variable::getInstance().g_Work_DB.wheelsetNo = tasks_object.value("wheelsetNo").toString();
-			c_Variable::getInstance().g_Work_DB.axleNo = tasks_object.value("axleNo").toString();
-			c_Variable::getInstance().g_Work_DB.sendUnit = tasks_object.value("sendUnit").toString();
-			c_Variable::getInstance().g_Work_DB.repairLevel = tasks_object.value("repairLevel").toString();
-		}
-
-		QJsonObject wheelsetPosition = tasks_object.value("wheelsetPosition").toObject();
-		QJsonObject wheelsetPosition_2 = tasks_object_2.value("wheelsetPosition").toObject();
-
-		if (wheelsetPosition.value("posId") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少posId");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (wheelsetPosition.value("mapPointName") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少mapPointName");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (wheelsetPosition.value("positions") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少positions");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		if (wheelsetPosition_2.value("posId") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少posId");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (wheelsetPosition_2.value("mapPointName") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少mapPointName");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (wheelsetPosition_2.value("positions") == QJsonValue::Undefined) {
-			return_cmd.insert("Message", "指令缺少positions");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		int posId = wheelsetPosition.value("posId").toInt();
-		QString mapPointName = wheelsetPosition.value("mapPointName").toString();
-		QJsonArray positions = wheelsetPosition.value("positions").toArray();
-
-		if (!wait_IO_Robot_ON()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "机械臂开机失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_Dis_Recharge()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA008）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA008");
-			return_cmd.insert("Message", "机器人脱桩失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_RefreshMapList()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA007");
-			return_cmd.insert("Message", "机器人刷新地图失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_SwitchMap(mapPointName)) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA007");
-			return_cmd.insert("Message", "机器人加载地图失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_RefreshNavPoints()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA007");
-			return_cmd.insert("Message", "机器人刷新导航点失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		if (!wait_DynamicInit("P001")) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA022）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA022");
-			return_cmd.insert("Message", "机器人动态初始化失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		emit Voice_Event("PA014");	// 2026-10-25 FF1：初始化运行完成（T48 设计、T93 重写后遗失补回）
-		if (!wait_Coils_1001()) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "机械臂使能失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		/*{
-		"CR400BF": {
-		"T3C": {
-		"P1": ["22"],
-		"P1.1" : ["28,29"],
-		"P2" : ["23"],
-		"P3" : ["24"],
-		"P4" : ["25"],
-		"P4.1" : ["30,31"],
-		"P5" : ["26"],
-		"P6" : ["27"]
-		},
-		"GBD": {
-		"P1": ["22"],
-		"P1.1" : ["15,18"],
-		"P2" : ["16"],
-		"P3" : ["17"],
-		"P4" : ["25"],
-		"P4.1" : ["30,31"],
-		"P5" : ["14"],
-		"P6" : ["27"]
-		}
-		}
-		}*/
-		QString path = QCoreApplication::applicationDirPath() + "/Work_DB/InspectionPlan.json";	// 2026-10-25 D-005：exe 目录定位（防 CWD 依赖）
-		QFile file(path);
-		if (file.open(QIODevice::ReadOnly)) {
-			QJsonParseError err;
-			QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &err);
-			if (err.error != QJsonParseError::NoError) {
-				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA003");
-				return_cmd.insert("Message", "巡检配方解析失败");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				file.close();
-				return;
-			}
-			m_Work_Program = doc.object();
-			emit Status("巡检配方已加载：" + path);
-			file.close();
-		}
-		else {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "巡检配方加载失败");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		emit actualStartTime();
-
-		// 2026-10-24 T89：配方层级 {carType:{wheelsetKind:{点:[轨迹]}}}，须先取车型层
-		QJsonObject Work_Program_CarType = m_Work_Program.value(c_Variable::getInstance().g_Work_DB.carType).toObject();
-		if (Work_Program_CarType.value(c_Variable::getInstance().g_Work_DB.wheelsetKind) == QJsonValue::Undefined) {
-			{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA003）+ 语音
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "无当前车型巡检配方");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-
-		c_Variable::getInstance().g_Work.Connected = true;
-		{	// 2026-10-24 T93：巡检运行→workState=2 采集中（黄灯 PA001 联动）
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.workState = 2;
-		}
-		emit Voice_Event("PA001");
-		// 2026-10-25 L：巡检开始（双工位首工位；只记录允许字段）
-		c_Log::Info("WORK", "Flow", QString("start task_id=%1 wheel=%2 pos=1")
-			.arg(c_Variable::getInstance().g_Work_DB.taskId)
-			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo));
-		return_cmd.insert("Message", "开始巡检");
-		return_cmd.insert("Status", "Success");
-		return_cmd.insert("Value", true);
-		emit Write_Json(return_cmd);
-
-		QJsonObject Work_Program_wheelsetKind = Work_Program_CarType.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
-		// 2026-10-25 用户设计：双工位共用一条定位线（P0→P001→P1→P1.1→…→P6→P0），
-		// 仅 P1.1/P4.1 等配方数组含双条的点位依次执行 1 号工位轨迹 + 2 号工位轨迹
-		// 配方2 用第二任务车型/轮对提前查表（局部变量，不依赖 g_Work_DB 写入时序）
-		QString carType_2 = tasks_object_2.value("carType").toString();
-		QString wheelsetKind_2 = tasks_object_2.value("wheelsetKind").toString();
-		int posId_2 = wheelsetPosition_2.value("posId").toInt();
-		QJsonObject Work_Program_CarType_2 = m_Work_Program.value(carType_2).toObject();
-		if (Work_Program_CarType_2.value(wheelsetKind_2) == QJsonValue::Undefined) {
-			c_Variable::getInstance().g_Work.Connected = false;
-			{
-				QWriteLocker locker(&c_Variable::g_lock);
-				c_Variable::getInstance().g_Work_DB.workState = 5;
-			}
-			emit Voice_Event("PA003");
-			return_cmd.insert("Message", "无当前车型巡检配方（第二工位）");
-			return_cmd.insert("Status", "Error");
-			return_cmd.insert("Value", false);
-			emit Write_Json(return_cmd);
-			return;
-		}
-		QJsonObject Work_Program_wheelsetKind_2 = Work_Program_CarType_2.value(wheelsetKind_2).toObject();
-		emit precisScanStartTime();
+	}
+	else {
+		// 双工位：一条线全点走行，点位归属执行（2026-10-25 用户定稿）
+		// 工位1 侧点 {P1,P1.1,P4.1,P5,P6} → 配方1[posId-1]；工位2 侧点 {P1.1,P2,P3,P4,P4.1} → 配方2[posId_2-1]；
+		// 共用点（P1.1/P4.1）先 1 后 2；非两侧点判"巡检点不存在"
 		for (int i = 0; i < positions.size(); i++) {
 			QString Point_Name = positions.at(i).toString();
-			// 2026-10-25 用户定稿：双工位点位归属执行——工位1 侧点 {P1,P1.1,P4.1,P5,P6} 执行 配方1[0]；
-			// 工位2 侧点 {P1.1,P2,P3,P4,P4.1} 执行 配方2[1]；共用点（P1.1/P4.1）先 1 后 2；非两侧点判"巡检点不存在"
 			const bool isPos1 = (Point_Name == "P1" || Point_Name == "P1.1" || Point_Name == "P4.1" || Point_Name == "P5" || Point_Name == "P6");
 			const bool isPos2 = (Point_Name == "P1.1" || Point_Name == "P2" || Point_Name == "P3" || Point_Name == "P4" || Point_Name == "P4.1");
-			if (!isPos1 && !isPos2) {
-				c_Variable::getInstance().g_Work.Connected = false;
-				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA007");
-				return_cmd.insert("Message", "巡检点不存在");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				return;
-			}
-			if (!wait_StartTask(Point_Name)) {
-				c_Variable::getInstance().g_Work.Connected = false;
-				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA022）+ 语音
-					QWriteLocker locker(&c_Variable::g_lock);
-					c_Variable::getInstance().g_Work_DB.workState = 5;
-				}
-				emit Voice_Event("PA022");
-				return_cmd.insert("Message", "机器人定位失败");
-				return_cmd.insert("Status", "Error");
-				return_cmd.insert("Value", false);
-				emit Write_Json(return_cmd);
-				return;
-			}
+			if (!isPos1 && !isPos2) { fail_step("巡检点不存在", "PA007"); return; }
+			if (!wait_StartTask(Point_Name)) { fail_step("机器人定位失败", "PA022"); return; }
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
-			// 1 号工位侧轨迹：配方1[point][posId-1]（越界防护）
 			if (isPos1) {
-				QJsonArray arr1 = Work_Program_wheelsetKind.value(Point_Name).toArray();
+				QJsonArray arr1 = prog_kind1.value(Point_Name).toArray();
 				if (posId >= 1 && posId <= arr1.size()) {
-					int program_index = arr1.at(posId - 1).toInt();
-					if (!wait_CGXi_Prog_Start(program_index)) {
-						c_Variable::getInstance().g_Work.Connected = false;
-						{
-							QWriteLocker locker(&c_Variable::g_lock);
-							c_Variable::getInstance().g_Work_DB.workState = 5;
-						}
-						emit Voice_Event("PA003");
-						return_cmd.insert("Message", "机械臂运行失败");
-						return_cmd.insert("Status", "Error");
-						return_cmd.insert("Value", false);
-						emit Write_Json(return_cmd);
-						return;
-					}
+					if (!wait_CGXi_Prog_Start(arr1.at(posId - 1).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
 				}
 			}
-			// 2 号工位侧轨迹：配方2[point][posId_2-1]（越界防护）
 			if (isPos2) {
-				QJsonArray arr2 = Work_Program_wheelsetKind_2.value(Point_Name).toArray();
+				QJsonArray arr2 = prog_kind2.value(Point_Name).toArray();
 				if (posId_2 >= 1 && posId_2 <= arr2.size()) {
-					int program_index_2 = arr2.at(posId_2 - 1).toInt();
-					if (!wait_CGXi_Prog_Start(program_index_2)) {
-						c_Variable::getInstance().g_Work.Connected = false;
-						{
-							QWriteLocker locker(&c_Variable::g_lock);
-							c_Variable::getInstance().g_Work_DB.workState = 5;
-						}
-						emit Voice_Event("PA003");
-						return_cmd.insert("Message", "机械臂运行失败（第二工位轨迹）");
-						return_cmd.insert("Status", "Error");
-						return_cmd.insert("Value", false);
-						emit Write_Json(return_cmd);
-						return;
-					}
+					if (!wait_CGXi_Prog_Start(arr2.at(posId_2 - 1).toInt())) { fail_step("机械臂运行失败（第二工位轨迹）", "PA003"); return; }
 				}
 			}
 		}
-		emit precisScanEndTime();
+	}
 
-		{	// 2026-10-25 GG1：双工位第二工位 g_Work_DB 写入补写锁（T83/T86 遗漏点，跨线程撕裂风险）
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.taskId = tasks_object_2.value("taskId").toString();
-			c_Variable::getInstance().g_Work_DB.carType = tasks_object_2.value("carType").toString();
-			c_Variable::getInstance().g_Work_DB.wheelsetKind = tasks_object_2.value("wheelsetKind").toString();
-			c_Variable::getInstance().g_Work_DB.wheelsetNo = tasks_object_2.value("wheelsetNo").toString();
-			c_Variable::getInstance().g_Work_DB.axleNo = tasks_object_2.value("axleNo").toString();
-			c_Variable::getInstance().g_Work_DB.sendUnit = tasks_object_2.value("sendUnit").toString();
-			c_Variable::getInstance().g_Work_DB.repairLevel = tasks_object_2.value("repairLevel").toString();
-		}
-		msleep(5000);//等待系统响应
-		{	// 2026-10-24 T93：巡检完成→workState=0（绿灯）
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.workState = 0;
-		}
+	// ================= 8. 收尾：双工位切第二任务字段 + 回充 + 完成 =================
+	emit precisScanEndTime();
+	if (wheelsetCount == 2) {
+		// 2026-10-25 GG1：第二工位字段写入补写锁（T83/T86 遗漏点）
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.taskId = t2.value("taskId").toString();
+		c_Variable::getInstance().g_Work_DB.carType = t2.value("carType").toString();
+		c_Variable::getInstance().g_Work_DB.wheelsetKind = t2.value("wheelsetKind").toString();
+		c_Variable::getInstance().g_Work_DB.wheelsetNo = t2.value("wheelsetNo").toString();
+		c_Variable::getInstance().g_Work_DB.axleNo = t2.value("axleNo").toString();
+		c_Variable::getInstance().g_Work_DB.sendUnit = t2.value("sendUnit").toString();
+		c_Variable::getInstance().g_Work_DB.repairLevel = t2.value("repairLevel").toString();
+	}
+	if (!wait_StartRecharge("P0")) { fail_step("回充失败", "PA008"); return; }
+	msleep(5000);//等待系统响应
+	{
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.workState = 0;
+	}
 	c_Variable::getInstance().g_Work.Connected = false;
 	emit actualReturnTime();
-	// 2026-10-25 L：巡检完成（双工位；只记录）
 	c_Log::Info("WORK", "Flow", QString("finish task_id=%1").arg(c_Variable::getInstance().g_Work_DB.taskId));
 	emit Status("巡检完成");
 }
-}
-
 //等待刷新地图列表
 bool c_Work_Remote::wait_RefreshMapList()
 {
