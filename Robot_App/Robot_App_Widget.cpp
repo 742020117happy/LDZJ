@@ -2190,8 +2190,8 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	// 读侧快照（2026-10-25 QQ2：合并为单次读锁快照——原 cameraFail/anyDisconn/taskError/chargeFail/paused 等散落无锁读为技术债）
 	// 2026-10-24 CC：全局变量直接访问（原 magic/work/scan 别名已消除）
 	s_CGXi_DB cgxi;
-	bool emergency, localizedLost, batteryLow, chassisWarn;
-	bool cameraFail, anyDisconn, chargeFail, obstacle;
+	bool emergency;
+	bool cameraFail, anyDisconn;
 	bool ioConnected;
 	int workState;
 	bool magicConn = c_Variable::getInstance().g_Magic.is_connected;
@@ -2199,11 +2199,6 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 		QReadLocker locker(&c_Variable::g_lock);
 		cgxi = c_Variable::getInstance().g_CGXi;
 		emergency     = c_Variable::getInstance().g_Magic.ReadData.emergencyStop;
-		localizedLost = magicConn && !c_Variable::getInstance().g_Magic.ReadData.localized;
-		batteryLow    = magicConn && c_Variable::getInstance().g_Magic.ReadData.battery > 0 && c_Variable::getInstance().g_Magic.ReadData.battery < 20;
-		chassisWarn   = magicConn && c_Variable::getInstance().g_Magic.ReadData.errorCode != 0;
-		chargeFail    = (c_Variable::getInstance().g_Magic.ReadData.chargeStatus == 3);
-		obstacle      = (c_Variable::getInstance().g_Magic.ReadData.antiCollision != 0);
 		workState     = c_Variable::getInstance().g_Work_DB.workState;
 		ioConnected   = c_Variable::getInstance().g_IO.Connected;
 		cameraFail    = !(c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected && c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
@@ -2213,13 +2208,15 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	anyDisconn    = !magicConn || !cgxi.Connected || !ioConnected;
 	bool robotError    = (cgxi.data.last_error_code != 0);
 	bool taskError     = (workState == 5);
-	bool paused        = (workState == 3);
 	bool inspecting    = (workState == 2);	// 2026-10-25 EE1：巡检中（PA001）
 	bool armMoving     = (cgxi.data.robot_moving != 0);						// 2026-10-25 EE1：机械臂运行中（PA006）
 
 	int level;
 	QString voice;
 	QString alarmCode;	// 2026-10-25 EE5：报警码（日志/上报）
+
+	// 2026-10-26 用户定稿：三色灯语义精简——仅"错误"显示红、运动显示黄、静止显示绿（无错回充原点后停播）
+	// 错误 = 急停/断连/相机故障/机械臂错误/任务失败（原警告类电量低/定位丢失/充电故障/障碍/底盘警告/暂停不再影响灯色）
 	if (emergency || cameraFail || anyDisconn || robotError || taskError) {
 		level = 2;
 		if (emergency)          { voice = "PA020"; alarmCode = AlarmCode::A01_ESTOP; }
@@ -2228,19 +2225,14 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 		else if (robotError)    { voice = "PA003"; alarmCode = AlarmCode::A03_ROBOT_ERROR; }
 		else                    { voice = "PA003"; alarmCode = AlarmCode::A04_TASK_FAILED; }
 	}
-	else if (batteryLow || localizedLost || chargeFail || obstacle || chassisWarn || paused || inspecting || armMoving) {
+	else if (inspecting || armMoving) {
+		// 2026-10-26 用户定稿：运动显示黄（巡检中/机械臂运行）
 		level = 1;
-		if (batteryLow)         { voice = "PA004"; alarmCode = AlarmCode::A11_LOW_BATTERY; }
-		else if (localizedLost) { voice = "PA022"; alarmCode = AlarmCode::A12_LOST_LOCAL; }
-		else if (chargeFail)    { voice = "PA008"; alarmCode = AlarmCode::A13_CHARGE_FAULT; }
-		else if (obstacle)      { voice = "PA002"; alarmCode = AlarmCode::A14_OBSTACLE; }
-		else if (chassisWarn)   { voice = "PA009"; alarmCode = AlarmCode::A15_CHASSIS_WARN; }
-		else if (paused)        { voice = "PA005"; alarmCode = AlarmCode::A16_PAUSED; }
-		else if (inspecting)    { voice = "PA001"; alarmCode = AlarmCode::A17_INSPECTING; }
+		if (inspecting)         { voice = "PA001"; alarmCode = AlarmCode::A17_INSPECTING; }
 		else if (armMoving)     { voice = "PA006"; alarmCode = AlarmCode::A18_ARM_MOVING; }
 	}
 	else {
-		level = 0;	// 正常且静止：绿灯，语音无输出
+		level = 0;	// 2026-10-26 用户定稿：静止且无错 → 绿灯 + 停止语音播报
 	}
 
 	if (level == m_Last_Light_Level) return;	// 防抖：档位未变不动作
@@ -2251,17 +2243,12 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	if (level == 1) QMetaObject::invokeMethod(m_IO_Remote, "Set_Alarm_Yellow", Qt::QueuedConnection);
 	if (level == 0) QMetaObject::invokeMethod(m_IO_Remote, "Set_Alarm_Green", Qt::QueuedConnection);
 
-	// 语音联动：进入红/黄档播对应语音一次；绿档无输出
+	// 2026-10-26 用户定稿：绿档（静止无错）停止语音播报；红档播错误语音、黄档播运动语音
+	if (level == 0) QMetaObject::invokeMethod(m_Voice_Remote, "Play", Qt::QueuedConnection, Q_ARG(int, 0));
 	if (level == 2 && voice == "PA020") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA020", Qt::QueuedConnection);
 	if (level == 2 && voice == "PA021") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA021", Qt::QueuedConnection);	// 2026-10-24 T48：精扫相机故障
 	if (level == 2 && voice == "PA007") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA007", Qt::QueuedConnection);
 	if (level == 2 && voice == "PA003") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA003", Qt::QueuedConnection);
-	if (level == 1 && voice == "PA004") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA004", Qt::QueuedConnection);
-	if (level == 1 && voice == "PA008") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA008", Qt::QueuedConnection);	// 2026-10-24 T48：充电机故障
-	if (level == 1 && voice == "PA002") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA002", Qt::QueuedConnection);	// 2026-10-24 T48：障碍物
-	if (level == 1 && voice == "PA022") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA022", Qt::QueuedConnection);
-	if (level == 1 && voice == "PA009") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA009", Qt::QueuedConnection);
-	if (level == 1 && voice == "PA005") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA005", Qt::QueuedConnection);
 	if (level == 1 && voice == "PA001") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA001", Qt::QueuedConnection);
 	if (level == 1 && voice == "PA006") QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA006", Qt::QueuedConnection);	// 2026-10-25 EE1：机械臂运行中
 
