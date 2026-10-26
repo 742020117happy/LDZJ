@@ -1,24 +1,52 @@
 ﻿{
-    "Cmd_Name": "START_INSPECTION",
-    "Value": true,
-    "Checksum": "A1B2C3D4",
-    "wheelsetCount": 1,
-    "tasks": [
-        {
-            "taskId": "202610241506&20260109-0029&109-GBD-04990&CR400BF",
-            "carType": "CR400BF",
-            "wheelsetKind": "GBD",
-            "axleType": "RD3A",
-            "wheelsetNo": "109 GBD 04990",
-            "axleNo": "AX-RD3A-261023-01",
-            "sendUnit": "上海动车段",
-            "startTime": "202610231631",
-            "repairLevel": "三级修",
-            "wheelsetPosition": {
-                "posId": 1,
-                "mapPointName": "Lunduizhijian001",
-                "positions": ["P1", "P1.1", "P2", "P3", "P4", "P4.1", "P5", "P6"]
-            }
-        }
-    ]
+	"Cmd_Name": "START_INSPECTION",
+	"Value": true,
+	"Checksum": "1792843238257",
+	"wheelsetCount": 2,
+	"tasks": [
+		{
+			"taskId": "202610261352&ZQ M3B22328&109-M3B-22328&CRH380B",
+			"carType": "CRH380B",
+			"wheelsetKind": "M3B",
+			"axleType": "22328",
+			"wheelsetNo": "109 M3B 22328",
+			"axleNo": "ZQ-M3B-22328-02",
+			"sendUnit": "上海动车段",
+			"startTime": "202610242000",
+			"repairLevel": "三级修",
+			"wheelsetPosition": {
+				"posId": 1,
+				"mapPointName": "Lunduizhijian001",
+				"positions": [
+					"P1",
+					"P1.1",
+					"P4.1",
+					"P5",
+					"P6"
+				]
+			}
+		},
+		{
+			"taskId": "202610261352&ZQ M3B22079&109-M3B-22079&CRH380B",
+			"carType": "CRH380B",
+			"wheelsetKind": "M3B",
+			"axleType": "22079",
+			"wheelsetNo": "109 M3B 22079",
+			"axleNo": "ZQ-M3B-22079-01",
+			"sendUnit": "上海动车段",
+			"startTime": "202610242000",
+			"repairLevel": "三级修",
+			"wheelsetPosition": {
+				"posId": 2,
+				"mapPointName": "Lunduizhijian001",
+				"positions": [
+					"P1.1",
+					"P2",
+					"P3",
+					"P4",
+					"P4.1"
+				]
+			}
+		}
+	]
 }
