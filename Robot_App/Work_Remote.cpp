@@ -478,8 +478,19 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		QJsonObject Work_Program_wheelsetKind = Work_Program_CarType.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
 		emit  precisScanStartTime();
 
+		// 2026-10-25 用户设计：单工位按 posId 过滤走行点（保序跳过非本工位点）
+		// posId==1：P1→P1.1→P4.1→P5→P6；posId==2：P1.1→P2→P3→P4→P4.1；其他 posId 不过滤（保持旧行为）
+		QStringList allowedPoints;
+		if (posId == 1)      { allowedPoints << "P1" << "P1.1" << "P4.1" << "P5" << "P6"; }
+		else if (posId == 2) { allowedPoints << "P1.1" << "P2" << "P3" << "P4" << "P4.1"; }
+		c_Log::Info("WORK", "Flow", QString("route posId=%1 points=%2").arg(posId).arg(allowedPoints.isEmpty() ? "all" : allowedPoints.join("->")));
+
 		for (int i = 0; i < positions.size(); i++) {
 			QString Point_Name = positions.at(i).toString();
+			// 2026-10-25 用户设计：本工位不走行集合之外的点（P0/P001 由初始化/回充工序覆盖）
+			if (!allowedPoints.isEmpty() && !allowedPoints.contains(Point_Name)) {
+				continue;
+			}
 			if (Work_Program_wheelsetKind.value(Point_Name) == QJsonValue::Undefined) {
 				c_Variable::getInstance().g_Work.Connected = false;
 				{	// 2026-10-24 T93：任务失败→workState=5（红灯 PA007）+ 语音
