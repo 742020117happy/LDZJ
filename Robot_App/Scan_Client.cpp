@@ -34,19 +34,18 @@ void c_Scan_Client::Connect_Device(QString ip, int port)
 	}
 	//绑定主机、监听信号
 	m_Port = port;
-	// 2026-10-26 现场矫正：bind 一律用 AnyIPv4（本机任意地址）——ip 参数为对端地址仅用于发送，
-	// 原 bind(ip) 在对端非本机时必然失败（本机无该地址），且误将"对端 IP"当"本机 IP"绑定
-	// 2026-10-24 T53：bind 失败显式告警（原静默，上层误以为已连接）
-	// 2026-10-24 T64：Status 为 int 状态码信号（原 T53 误发 QString 导致编译失败），
-	// 30 = 绑定失败（与 23-29 同域新增）
-	if (!m_Socket->bind(QHostAddress::AnyIPv4, port)) {
+	// 2026-10-26 现场定稿：Robot_App 固定绑定本机 192.168.6.35——
+	// 发送通道 6.35:8001 → 192.168.6.34:8001 采集指令；反馈通道 6.35:8000 ← 192.168.6.34:8000
+	// 注意：采集软件（BTS-AccurateCamera）如绑定 0.0.0.0:8001 会与本机 6.35:8001 冲突，
+	// 现场需将采集软件绑定地址改为 192.168.6.34（仅相机网卡）
+	if (!m_Socket->bind(QHostAddress("192.168.6.35"), port)) {
 		emit Status(30);
-		// 2026-10-26 现场：bind 失败日志（含本地端口）
-		c_Log::Error("SCAN", "Listen", QString("bind failed local_port=%1").arg(port));
-		emit Status_Text(QString("绑定失败 本地端口=%1").arg(port));
+		// 2026-10-26 现场：bind 失败日志（含本地端口与排查提示）
+		c_Log::Error("SCAN", "Listen", QString("bind failed local=192.168.6.35:%1 hint=check BTS-AccurateCamera bind address").arg(port));
+		emit Status_Text(QString("绑定失败 本机=192.168.6.35:%1（如 8001 被占请将采集软件绑定地址改为 192.168.6.34）").arg(port));
 	}
 	else {
-		// 2026-10-26 现场：监听地址日志（AnyIPv4:本地端口）
+		// 2026-10-26 现场：监听地址日志（192.168.6.35:端口）
 		c_Log::Info("SCAN", "Listen", QString("bind ok local=%1:%2").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()));
 		emit Status_Text(QString("通道绑定成功 本机=%1:%2").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()));
 	}
