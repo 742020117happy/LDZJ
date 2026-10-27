@@ -419,6 +419,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			c_Variable::getInstance().g_Work_DB.workState = 2;
 		}
 		m_LastGain = -1;
+		m_LastPart1.clear();	// 2026-10-27 现场：新轨迹复位一级部件变化检测
 		// 2026-10-24 CC：读侧持锁字段快照（禁止别名引用）
 		QString sendUnit, startTime, wheelsetNo, axleNo, taskId, carType, wheelsetKind;
 		{
@@ -481,6 +482,30 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			emit Status(m_Camera_num + "CGXi消息：部件名称或巡检点序号为空");
 			return;
 		}
+
+		// 2026-10-27 现场定稿：字段与分隔符严格控制——机械臂消息段白名单校验（仅字母/数字/点），
+		// 禁 &（协议帧分隔符）/空格/-（文件名段分隔符），防污染图像文件名/采集软件/数据库
+		{
+			bool segOk = true;
+			QStringList segs = (QStringList() << photo[1] << photo[2] << photo[3]);
+			for (int i = 0; i < segs.size() && segOk; i++) {
+				const QString &seg = segs.at(i);
+				for (int j = 0; j < seg.size(); j++) {
+					QChar ch = seg.at(j);
+					if (!(ch.isLetterOrNumber() || ch == '.')) { segOk = false; break; }
+				}
+			}
+			if (!segOk) {
+				emit Status(m_Camera_num + "CGXi消息：PHOTO参数段含非法字符（仅允许字母/数字/点）：" + parts[4]);
+				return;
+			}
+		}
+		// 2026-10-27 现场定稿：一级部件字段变化检测（日志发现 CRRH380B 笔误）——变化仅告警不拒绝（防机械臂卡死）
+		if (!m_LastPart1.isEmpty() && photo[1] != m_LastPart1) {
+			c_Log::Warn("SCAN", "Field", QString("part1 changed %1→%2 (check arm script)").arg(m_LastPart1, photo[1]));
+			emit Status(m_Camera_num + QString("CGXi消息：一级部件字段变化（%1→%2），疑似机械臂脚本错误").arg(m_LastPart1, photo[1]));
+		}
+		m_LastPart1 = photo[1];
 
 		{	// 2026-10-24 CC/T86：采集参数写侧持锁
 			QWriteLocker locker(&c_Variable::g_lock);

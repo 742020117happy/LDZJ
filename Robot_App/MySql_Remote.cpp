@@ -183,8 +183,18 @@ void c_Sql_Remote::flush_collect_time()
 		.arg(escImage);
 
 	if (mysql_query(m_conn, sql.toStdString().c_str())) {
-		emit Status(imagePath + " 数据库更新失败：" + QString(mysql_error(m_conn)));
-		m_flushRetryMs = qMin(m_flushRetryMs * 2, 5000);	// 2026-10-24 重构 T20：失败指数退避（100ms→…→5s 封顶）
+		unsigned int errNo = mysql_errno(m_conn);
+		if (errNo == 1062) {
+			// 2026-10-27 现场定稿：Duplicate entry 幂等视为成功（任务重复执行时记录已存在），
+			// 停止无限重试防日志风暴（现场 153 次/5s 刷屏）
+			c_Log::Warn("DB", "Insert", QString("duplicate ignored name=%1").arg(imagePath));
+			m_imagePathList.removeFirst();
+			m_flushRetryMs = 100;
+		}
+		else {
+			emit Status(imagePath + " 数据库更新失败：" + QString(mysql_error(m_conn)));
+			m_flushRetryMs = qMin(m_flushRetryMs * 2, 5000);	// 2026-10-24 重构 T20：失败指数退避（100ms→…→5s 封顶）
+		}
 	}
 	else {
 		m_imagePathList.removeFirst();
