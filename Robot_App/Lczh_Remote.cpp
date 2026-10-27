@@ -133,6 +133,18 @@ void c_Lczh_Remote::Start_Scan()
 	m_LastGain = -1;
 	// 2026-10-24 T97：g_Work_DB 字段跨线程写，读侧持读锁快照后拼命令
 	QString cmd;
+	QString carType;
+	QString wheelsetKind;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		carType = c_Variable::getInstance().g_Work_DB.carType;
+		wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;
+	}
+	// 2026-10-27 现场：车型/轮对类型空值防御（协议 START 第5段，空值发畸形帧污染采集软件）
+	if (carType.isEmpty() || wheelsetKind.isEmpty()) {
+		c_Log::Warn("SCAN", "Cmd", "START rejected: carType/wheelsetKind empty（请先下发巡检任务）");
+		return;
+	}
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		// 2026-10-26 协议定稿：START&{sendUnit}&{yyyyMMdd}&{HHmm}&{carType}{wheelsetKind}&{taskId}
@@ -140,8 +152,8 @@ void c_Lczh_Remote::Start_Scan()
 			.arg(c_Variable::getInstance().g_Work_DB.sendUnit)
 			.arg(c_Variable::getInstance().g_Work_DB.startTime.left(8))
 			.arg(c_Variable::getInstance().g_Work_DB.startTime.right(4))
-			.arg(c_Variable::getInstance().g_Work_DB.carType)
-			.arg(c_Variable::getInstance().g_Work_DB.wheelsetKind)
+			.arg(carType)
+			.arg(wheelsetKind)
 			.arg(c_Variable::getInstance().g_Work_DB.taskId);
 	}
 	// 2026-10-25 L：START 指令发送（只打印允许字段：任务ID/轮对号/车轴号，不打印完整命令串）

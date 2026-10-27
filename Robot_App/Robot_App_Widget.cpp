@@ -1489,12 +1489,17 @@ void c_Robot_App_Widget::Pre_Scan_120_DB()
 
 	// ====== 默认值写入 g_Work_DB（来源：轮对质检机器人-图像采集上传协议第2.2节）======
 	// 2026-10-24 CC：全局变量直接访问（原 work 别名已消除）
+	// 2026-10-27 现场：补 carType/wheelsetKind/axleType/posId 默认值——手动调试按钮时协议帧（START 第5段/PHOTO 第2段/文件名）合规
 	c_Variable::getInstance().g_Work_DB.taskId = "202404231143RD3A001";
+	c_Variable::getInstance().g_Work_DB.carType = "CRH380B";
+	c_Variable::getInstance().g_Work_DB.wheelsetKind = "M3B";
+	c_Variable::getInstance().g_Work_DB.axleType = "22328";
 	c_Variable::getInstance().g_Work_DB.wheelsetNo = "LZ20240315";
 	c_Variable::getInstance().g_Work_DB.axleNo = "CP0012024";
 	c_Variable::getInstance().g_Work_DB.sendUnit = "SHDCD";
 	c_Variable::getInstance().g_Work_DB.startTime = "202404231143";
 	c_Variable::getInstance().g_Work_DB.repairLevel = "L3";
+	c_Variable::getInstance().g_Work_DB.posId = "1";
 	c_Variable::getInstance().g_Work_DB.currentTaskIndex = 0;
 	c_Variable::getInstance().g_Work_DB.currentGain = 20;
 	c_Variable::getInstance().g_Work_DB.currentPart1 = "TCLD";
