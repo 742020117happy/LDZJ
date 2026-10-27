@@ -236,6 +236,7 @@ struct s_Work_DB {
 	QString mapPointName;          // 巡检地图名称 (2026-10-24 新增, wait_SwitchMap 参数)
 	QStringList positions;         // 完整巡检点位序列 (2026-10-24 新增: P0充电/P001初始/P1~P6工位)
 	QString axleType;              // 轴型 (RD3A/RD4)
+	QString posId;                 // 2026-10-26 协议：工位号（图像文件名 {posId} 段）
 	QString wheelsetNo;            // 轮对号
 	QString axleNo;                // 车轴号
 	QString sendUnit;              // 送轮单位

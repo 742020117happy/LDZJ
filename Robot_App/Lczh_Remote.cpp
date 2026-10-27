@@ -135,12 +135,13 @@ void c_Lczh_Remote::Start_Scan()
 	QString cmd;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
+		// 2026-10-26 协议定稿：START&{sendUnit}&{yyyyMMdd}&{HHmm}&{carType}{wheelsetKind}&{taskId}
 		cmd = QString("START&%1&%2&%3&%4%5&%6")
 			.arg(c_Variable::getInstance().g_Work_DB.sendUnit)
 			.arg(c_Variable::getInstance().g_Work_DB.startTime.left(8))
 			.arg(c_Variable::getInstance().g_Work_DB.startTime.right(4))
-			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
-			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
+			.arg(c_Variable::getInstance().g_Work_DB.carType)
+			.arg(c_Variable::getInstance().g_Work_DB.wheelsetKind)
 			.arg(c_Variable::getInstance().g_Work_DB.taskId);
 	}
 	// 2026-10-25 L：START 指令发送（只打印允许字段：任务ID/轮对号/车轴号，不打印完整命令串）
@@ -285,21 +286,22 @@ void c_Lczh_Remote::Scan_Tran_Listen_Done()
 QString c_Lczh_Remote::Build_Photo_Filename()
 {
 	// 2026-10-24 T97：g_Work_DB 字段跨线程读，读侧持锁字段快照后拼命令
-	// 2026-10-26 现场矫正：文件名格式对齐 2026-10-22 现场验证版协议日志——
-	// 旧正确格式：N-T1-{startTime}-{repairLevel}-{sendUnit}-{wheelsetNo}-{axleNo}-{prog}-{carType}L-P{part1}{part2}-{seq}
-	// 示例：N-T1-202404231143-L3-SHDCD-LZ20240315-CP0012024-2-CRH380BL-P1T-01
-	// 原格式缺 carType 段且点位段拆分方式不符（P1-T-01 → P1T-01）
+	// 2026-10-26 协议定稿（质检机器人图像采集协议.docx）：
+	// 原始图像名称 = T1-{yyyyMMdd}-{carType}{wheelsetKind}-{axleType}{wheelsetNo}-{axleNo}-{posId}-{currentProg}-{currentPart1}-{currentPart2}-{currentPointStr}
+	// 示例：T1-20261024-CRH380BM3B-22079109M3B22079-ZQM3B2207901-2-33-ZDZZ-05-01
+	//（N- 前缀与 .tiff/.jpg/.xyz/.png 后缀由采集软件生成）
 	QString name;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		name = QString("N-T1-%1-%2-%3-%4-%5-%6-%7L-P%8%9-%10")
-			.arg(c_Variable::getInstance().g_Work_DB.startTime)
-			.arg(c_Variable::getInstance().g_Work_DB.repairLevel)
-			.arg(c_Variable::getInstance().g_Work_DB.sendUnit)
+		name = QString("T1-%1-%2%3-%4%5-%6-%7-%8-%9-%10-%11")
+			.arg(c_Variable::getInstance().g_Work_DB.startTime.left(8))
+			.arg(c_Variable::getInstance().g_Work_DB.carType)
+			.arg(c_Variable::getInstance().g_Work_DB.wheelsetKind)
+			.arg(c_Variable::getInstance().g_Work_DB.axleType)
 			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
 			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
+			.arg(c_Variable::getInstance().g_Work_DB.posId)
 			.arg(c_Variable::getInstance().g_Work_DB.currentProg)
-			.arg(c_Variable::getInstance().g_Work_DB.carType)
 			.arg(c_Variable::getInstance().g_Work_DB.currentPart1)
 			.arg(c_Variable::getInstance().g_Work_DB.currentPart2)
 			.arg(c_Variable::getInstance().g_Work_DB.currentPointStr);
@@ -350,7 +352,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		}
 		m_LastGain = -1;
 		// 2026-10-24 CC：读侧持锁字段快照（禁止别名引用）
-		QString sendUnit, startTime, wheelsetNo, axleNo, taskId;
+		QString sendUnit, startTime, wheelsetNo, axleNo, taskId, carType, wheelsetKind;
 		{
 			QReadLocker locker(&c_Variable::g_lock);
 			sendUnit   = c_Variable::getInstance().g_Work_DB.sendUnit;
@@ -358,6 +360,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			wheelsetNo = c_Variable::getInstance().g_Work_DB.wheelsetNo;
 			axleNo     = c_Variable::getInstance().g_Work_DB.axleNo;
 			taskId     = c_Variable::getInstance().g_Work_DB.taskId;
+			carType    = c_Variable::getInstance().g_Work_DB.carType;		// 2026-10-26 协议：START 第5段
+			wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;	// 2026-10-26 协议：START 第5段
 		}
 
 		if (sendUnit.isEmpty() || startTime.isEmpty() || wheelsetNo.isEmpty() || axleNo.isEmpty() || taskId.isEmpty()) {
@@ -365,12 +369,13 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			return;
 		}
 
+		// 2026-10-26 协议定稿：第5段=车型轮对类型
 		QString cmd = QString("START&%1&%2&%3&%4%5&%6")
 			.arg(sendUnit)
 			.arg(startTime.left(8))
 			.arg(startTime.right(4))
-			.arg(wheelsetNo)
-			.arg(axleNo)
+			.arg(carType)
+			.arg(wheelsetKind)
 			.arg(taskId);
 		emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
 	}
@@ -417,7 +422,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 
 		// 2026-10-24 CC：读侧持锁字段快照
 		int curGain;
-		QString wheelsetNo, axleNo, startTime, repairLevel, sendUnit;
+		QString wheelsetNo, axleNo, startTime, repairLevel, sendUnit, carType, wheelsetKind;
 		{
 			QReadLocker locker(&c_Variable::g_lock);
 			curGain    = c_Variable::getInstance().g_Work_DB.currentGain;
@@ -426,6 +431,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			startTime  = c_Variable::getInstance().g_Work_DB.startTime;
 			repairLevel = c_Variable::getInstance().g_Work_DB.repairLevel;
 			sendUnit   = c_Variable::getInstance().g_Work_DB.sendUnit;
+			carType    = c_Variable::getInstance().g_Work_DB.carType;		// 2026-10-26 协议：PHOTO 第2段
+			wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;	// 2026-10-26 协议：PHOTO 第2段
 		}
 
 		if (curGain != m_LastGain) {
@@ -443,8 +450,9 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 
 		m_LastPhotoName = Build_Photo_Filename();
 
+		// 2026-10-26 协议定稿：PHOTO&{carType}{wheelsetKind}&{原始图像名称}
 		emit Signal_Remote_Write("192.168.6.34", m_CameraPort,
-			QString("PHOTO&%1%2&%3").arg(wheelsetNo, axleNo, m_LastPhotoName));
+			QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName));
 		emit Photo_Written(m_LastPhotoName);
 	}
 	else if (msg == "PHOTO&FINISH!") {

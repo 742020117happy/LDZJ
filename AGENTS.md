@@ -3,8 +3,15 @@
 > 本文件是项目重构的权威约束。所有代码修改必须遵守本文件。
 > 2026-10-26 更新：第三十三阶段启动（RR 系列指令规范与联调收尾）。**累计 32 阶段 + 日志体系工程 + 缺陷工程（D-001~D-019）+ 现场联调系列（R156-R175）全部完成，代码规范终态见知识库 §51/§53/§35.4。**
 > **指令字段铁律（2026-10-26 用户定稿）**：巡检任务指令字段值禁止 空格、&、- 分隔符（防污染图像采集指令/文件名/数据库/EMIS）；软件校验层已强制拒绝。
-> **三通道地址定稿**：Remote 6.35:8001→6.34:8001；Monitor 6.35:8000←6.34:8000；Tran 6.35:9000。
+> **三通道地址定稿（协议 2026-10-26）**：Remote 6.35:8000→6.34:8000（发采集指令）；Monitor 6.35:8001←6.34:8001（收反馈）；Tran 6.35:9000（TCP，机械臂脚本触发）。
 > **三色灯定稿**：错→红、动→黄、静→绿（绿档停止语音播报）。
+> **图像采集协议（质检机器人图像采集协议.docx，2026-10-26 学习固化）**：
+> - START：`START&{sendUnit}&{yyyyMMdd}&{HHmm}&{carType}{wheelsetKind}&{taskId}`（第5段=车型轮对类型）
+> - CHANGE：`CHANGE&GAIN&{gain}`
+> - PHOTO：`PHOTO&{carType}{wheelsetKind}&{原始图像名称}`（第2段=车型轮对类型）
+> - 原始图像名称（11 段）：`T1-{yyyyMMdd}-{carType}{wheelsetKind}-{axleType}{wheelsetNo}-{axleNo}-{posId}-{currentProg}-{currentPart1}-{currentPart2}-{currentPointStr}`
+> - 反馈：采集软件发 `PHOTO&COMPLETE` → Robot_App 回机械臂 `<COMPLETE><T1>!`；结束 `PHOTO&FINISH`
+> - 采集软件生成文件：`N-{原始图像名称}.tiff/.jpg/.xyz/.png`；目录 `E:\RawImageDisk\PreScan_raw\{sendUnit}\{yyyyMMdd}\{HHmm}\{carType}{wheelsetKind}\{taskId}\`
 > **锁协议新铁律**：QReadWriteLock 非递归，严禁嵌套锁定（§38.6 / §43.9）。
 > **C++ 新铁律**：成员指针必须声明即初始化 = nullptr（C2 教训：未初始化指针致 T25 重入保护误判，偶发闪退最难排查）。
 > **语音报警新资产**：`轮对质检/语音报警（使用方法：…MicroUSB 拷贝…）/`（PA001-PA025 音频，YYBJQ 说明书格式 16kHz/16bit/mono WAV，PAxxx 文件夹结构）；报警码映射见 `报警码-语音-三色灯映射表.md`。

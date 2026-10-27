@@ -205,9 +205,15 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		c_Variable::getInstance().g_Work_DB.axleNo = t1.value("axleNo").toString();
 		c_Variable::getInstance().g_Work_DB.sendUnit = t1.value("sendUnit").toString();
 		c_Variable::getInstance().g_Work_DB.repairLevel = t1.value("repairLevel").toString();
+		c_Variable::getInstance().g_Work_DB.axleType = t1.value("axleType").toString();
 	}
 
 	int posId = wp1.value("posId").toInt();
+	// 2026-10-26 协议：posId 写入 g_Work_DB（图像文件名 {posId} 段）
+	{
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.posId = QString::number(posId);
+	}
 	QString mapPointName = wp1.value("mapPointName").toString();
 	QJsonArray positions = wp1.value("positions").toArray();
 	int posId_2 = 0;
