@@ -480,6 +480,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			c_Log::Info("SCAN", "Cmd", QString("send CHANGE gain=%1").arg(curGain));
 			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
 				QString("CHANGE&GAIN&%1").arg(curGain));
+			// 2026-10-27 现场定稿：增益调整与图像采集指令间间隔 50ms（采集软件时序要求）
+			msleep(50);
 		}
 
 		// 校验：文件名参数完整性
