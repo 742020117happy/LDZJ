@@ -167,6 +167,10 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 	}
 	m_HandledChecksum.insert(checksum);
 	m_LastChecksum = checksum;
+	{	// 2026-10-27 用户反馈：校验码写共享状态（Work_Checksum UI 显示），写侧持写锁
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.lastChecksum = checksum;
+	}
 }
 
 // 2026-10-25 L：WEB 指令接收（只打印指令名与校验码；指令体不打印）

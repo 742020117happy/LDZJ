@@ -1655,6 +1655,7 @@ void c_Robot_App_Widget::Pre_Scan_120_Scan()
 
 	// 2026-10-24 CC：全局变量直接访问（原 scan 别名已消除）
 	setIf(ui->Pre_Scan_120_Client_Num, QString::number(c_Variable::getInstance().g_Prec_Scan_120.num));
+	setIf(ui->Pre_Scan_120_Cam_Num, "T1");	// 2026-10-27 用户反馈：相机编号显示（单相机 T1）
 	ui->Pre_Scan_120_Remote_Light->Set_State(c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected);
 	ui->Pre_Scan_120_Monitor_Light->Set_State(c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected);
 	ui->Pre_Scan_120_Tran_Light->Set_State(c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
@@ -2390,17 +2391,21 @@ void c_Robot_App_Widget::Work_Scan()
 	setIf(ui->Work_Pos, QString::number(c_Variable::getInstance().g_Work_DB.currentPos + 1));
 	{
 		QString stateStr;
+		QString flowDesc;	// 2026-10-27 用户反馈：Work_Flow_Desc 显示流程描述
 		switch (c_Variable::getInstance().g_Work_DB.workState) {
-		case 0: stateStr = "空闲"; break;
-		case 1: stateStr = "就绪"; break;
-		case 2: stateStr = "采集中"; break;
-		case 3: stateStr = "暂停"; break;
-		case 4: stateStr = "完成"; break;
-		case 5: stateStr = "错误"; break;
-		default: stateStr = QString::number(c_Variable::getInstance().g_Work_DB.workState); break;
+		case 0: stateStr = "空闲";   flowDesc = "等待任务下发"; break;
+		case 1: stateStr = "就绪";   flowDesc = "任务就绪"; break;
+		case 2: stateStr = "采集中"; flowDesc = "巡检采集中"; break;
+		case 3: stateStr = "暂停";   flowDesc = "巡检已暂停"; break;
+		case 4: stateStr = "完成";   flowDesc = "巡检完成"; break;
+		case 5: stateStr = "错误";   flowDesc = "巡检异常"; break;
+		default: stateStr = QString::number(c_Variable::getInstance().g_Work_DB.workState); flowDesc = stateStr; break;
 		}
 		setIf(ui->Work_State, stateStr);
+		setIf(ui->Work_Flow_State, stateStr);	// 2026-10-27 用户反馈：工作流状态控件接入
+		setIf(ui->Work_Flow_Desc, flowDesc);	// 2026-10-27 用户反馈：工作流描述控件接入
 	}
+	setIf(ui->Work_Checksum, c_Variable::getInstance().g_Work_DB.lastChecksum);	// 2026-10-27 用户反馈：校验码显示（Server_Remote 写入）
 	setIf(ui->Work_Images, QString::number(c_Variable::getInstance().g_Work_DB.totalImages));
 	setIf(ui->Work_Gain, QString::number(c_Variable::getInstance().g_Work_DB.currentGain));
 	setIf(ui->Work_Part1, c_Variable::getInstance().g_Work_DB.currentPart1);
@@ -2414,6 +2419,12 @@ void c_Robot_App_Widget::Work_Scan()
 
 	ui->Work_Server_Light->Set_State(c_Variable::getInstance().g_Work.Connected);
 	ui->Work_Client_Light->Set_State(c_Variable::getInstance().g_Work.Connected);
+	// 2026-10-27 用户反馈：补全未使用控件——子系统状态指示灯（机械臂/底盘/相机）+ WEB 监听 + 客户端连接数
+	ui->Work_Arm_Light->Set_State(c_Variable::getInstance().g_CGXi.Connected);
+	ui->Work_Chassis_Light->Set_State(c_Variable::getInstance().g_Magic.is_connected);
+	ui->Work_Camera_Light->Set_State(c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected);
+	ui->Work_Listen_Light->Set_State(c_Variable::getInstance().g_Server.Tran_Listen);
+	setIf(ui->Work_Client_Num, QString::number(c_Variable::getInstance().g_Server.num));
 }
 /*************************************************************************************************************************************************
 **Function:工作流按钮事件绑定 - 开始/取消/复位/回零/回充/暂停等按钮信号

@@ -260,6 +260,7 @@ struct s_Work_DB {
 	int workState = 0;             // 0:空闲 1:就绪 2:采集中 3:暂停 4:完成 5:错误
 	int errorCode = 0;
 	int totalImages = 0;
+	QString lastChecksum;          // 2026-10-27 用户反馈：最后收到的 WEB 指令校验码（Work_Checksum UI 显示，Server_Remote 写）
 };
 // ==================== WEB 任务基本信息 ====================
 struct s_Work_Info {
