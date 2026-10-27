@@ -177,14 +177,14 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 c_Log::Info("WEB", "Cmd", QString("recv %1 checksum=%2").arg(cmd).arg(cmd == "Read_Ready" ? "-" : checksum));
 emit Status(QString::number(m_Port) + "->服务：收到 " + cmd);
 
-	if (cmd == "START_INSPECTION") {
+	if (cmd == QLatin1String("START_INSPECTION")) {	// 2026-10-27 WW2：QLatin1String 免 UTF-16 临时转换
 		// 2026-10-24 审查修复 S1：START_INSPECTION 增加状态门控（采集中/暂停中拒绝），防止重复下发污染运行中任务
 		if (!Check_State(cmd, SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR)) return;
 		Parse_Start_Inspection(json);
 		emit Start_Cmd(json);
 		return;
 	}
-	if (cmd == "Read_Ready") {
+	if (cmd == QLatin1String("Read_Ready")) {
 		// 2026-08-19 修复：协商版协议无 Value 字段，去除该门控，无条件响应状态
 		QJsonObject status = Build_System_Status();
 		Write_Json_With_Checksum(status);

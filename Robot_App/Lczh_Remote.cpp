@@ -173,7 +173,7 @@ void c_Lczh_Remote::Start_Scan()
 		.arg(c_Variable::getInstance().g_Work_DB.taskId)
 		.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
 		.arg(c_Variable::getInstance().g_Work_DB.axleNo));
-	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd.remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格
+	Send_To_Camera(cmd.remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格；WW1 目标地址收敛
 }
 
 /*************************************************************************************************************************************************
@@ -203,7 +203,7 @@ void c_Lczh_Remote::Collector()
 			.arg(wheelsetKind)
 			.arg(m_LastPhotoName);
 	}
-	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd.remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格
+	Send_To_Camera(cmd.remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格；WW1 目标地址收敛
 	// 2026-10-25 L：PHOTO 指令发送（照片文件名允许打印）
 	c_Log::Info("SCAN", "Cmd", QString("send PHOTO name=%1").arg(m_LastPhotoName));
 	emit Photo_Written(m_LastPhotoName);
@@ -214,7 +214,7 @@ void c_Lczh_Remote::Collector()
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Finish_Scan()
 {
-	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), "PHOTO&FINISH");
+	Send_To_Camera("PHOTO&FINISH");	// WW1 目标地址收敛（固定帧无空格）
 	{	// 2026-10-24 T86：workState 跨线程读，写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.workState = 4;
@@ -237,7 +237,7 @@ void c_Lczh_Remote::Change_GAIN(QString gain)
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.currentGain = val;
 	}
-	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), QString("CHANGE&GAIN&%1").arg(val).remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格
+	Send_To_Camera(QString("CHANGE&GAIN&%1").arg(val).remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格；WW1 目标地址收敛
 }
 
 /*************************************************************************************************************************************************
@@ -370,13 +370,22 @@ void c_Lczh_Remote::Send_Photo_Now()
 	}
 	m_LastPhotoName = Build_Photo_Filename();
 	// 2026-10-26 协议定稿：PHOTO&{carType}{wheelsetKind}&{原始图像名称}；2026-10-27 用户定稿：所有指令均无空格
-	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
-		QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName).remove(QRegExp("\\s")));
+	Send_To_Camera(QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName).remove(QRegExp("\\s")));
 	emit Photo_Written(m_LastPhotoName);
 }
 
 /*************************************************************************************************************************************************
-**Function:断开所有设备连接
+**Function:发送指令至采集软件（2026-10-27 WW1：目标地址获取收敛，消除 8 处重复）
+*************************************************************************************************************************************************/
+void c_Lczh_Remote::Send_To_Camera(const QString &payload)
+{
+	emit Signal_Remote_Write(
+		c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"),
+		c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
+		payload);
+}
+
+/*************************************************************************************************************************************************
 **Function:断开所有设备连接
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Disconnect_Device()
@@ -412,7 +421,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 	QString msg = QString::fromUtf8(buffer).trimmed();
 	if (msg.isEmpty()) { emit Status(m_Camera_num + "CGXi消息：UTF-8解码失败"); return; }
 
-	if (msg == "START&!") {
+	if (msg == QLatin1String("START&!")) {	// 2026-10-27 WW2：QLatin1String 免 UTF-16 临时转换（热路径）
 		// 2026-10-27 现场：日志补全——机械臂 START 脚本（每轨迹调用前）→ 准备采集指令
 		c_Log::Info("SCAN", "Cmd", "recv START&! from arm");
 		{	// 2026-10-24 CC/T86：workState 写侧持锁（原无锁别名写为数据竞争）
@@ -445,8 +454,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			.arg(carType)
 			.arg(wheelsetKind)
 			.arg(taskId);
-		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"),
-			c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd.remove(QRegExp("\\s")));
+		Send_To_Camera(cmd.remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格；WW1 目标地址收敛
 	}
 	else if (msg.startsWith("CHANG&GAIN&")) {
 		// 校验：以 ! 结尾
@@ -533,8 +541,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			m_LastGain = curGain;
 			// 2026-10-27 现场：日志补全——增益调整指令（机械臂 CHANG&GAIN 段）
 			c_Log::Info("SCAN", "Cmd", QString("send CHANGE gain=%1").arg(curGain));
-			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
-				QString("CHANGE&GAIN&%1").arg(curGain).remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格
+			Send_To_Camera(QString("CHANGE&GAIN&%1").arg(curGain).remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格；WW1 收敛
 			// 2026-10-27 现场定稿：增益调整与图像采集指令间间隔 50ms——
 			// **非阻塞延时**（singleShot 延迟 PHOTO 发送，不嵌套事件循环、不阻塞线程）
 			QTimer::singleShot(50, this, [this]() {
@@ -545,11 +552,11 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 
 		Send_Photo_Now();
 	}
-	else if (msg == "PHOTO&FINISH!") {
+	else if (msg == QLatin1String("PHOTO&FINISH!")) {
 		// 无需额外校验，直接转发；2026-10-27 现场：日志补全——机械臂 FINISH 脚本（轨迹最后一步）→ 采集结束指令
 		c_Log::Info("SCAN", "Cmd", "recv PHOTO&FINISH! from arm → send finish");
 		m_LastPart1.clear();	// 2026-10-27 轨迹边界复位一级部件检测（现场机械臂不发 START&!，以 FINISH 为边界）
-		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), "PHOTO&FINISH");
+		Send_To_Camera("PHOTO&FINISH");	// WW1 收敛（固定帧无空格）
 		{	// 2026-10-24 CC/T86：currentPos 写侧持锁（原无锁别名写为数据竞争）
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.currentPos++;
@@ -568,7 +575,7 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 	// 校验：非空
 	if (msg.isEmpty()) { emit Status(m_Camera_num + "相机反馈：空消息"); return; }
 
-	if (msg == "PHOTO&COMPLETE") {
+	if (msg == QLatin1String("PHOTO&COMPLETE")) {
 		// 2026-10-25 L：采集完成（只记录，不改变转发/计数逻辑）
 		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
@@ -578,7 +585,7 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 	}
 		emit Photo_Completed(m_LastPhotoName);	// 2026-08-19 修复：精确匹配分支补齐 MySQL 入库回调
 	}
-	else if (msg == "PHOTO&ERROR") {
+	else if (msg == QLatin1String("PHOTO&ERROR")) {
 		// 2026-10-25 L：采集失败 ERROR（只记录）
 		c_Log::Error("SCAN", "Feedback", QString("recv PHOTO&ERROR name=%1").arg(m_LastPhotoName));
 		emit Status(m_Camera_num + "相机反馈：采集失败");

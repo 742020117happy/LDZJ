@@ -1563,70 +1563,37 @@ void c_Robot_App_Widget::Pre_Scan_120_Button()
 
 	// ====== set_ 提交暂存 → g_Work_DB ======
 	QObject::connect(ui->set_Pre_Scan_120_TaskID, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T83：taskId 跨线程（MySql/Server 读），写侧持写锁
-		QWriteLocker locker(&c_Variable::g_lock);
-		c_Variable::getInstance().g_Work_DB.taskId = m_wTaskId;
-	}
+		Submit_Work_DB_Field(&s_Work_DB::taskId, m_wTaskId);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Wheelset, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.wheelsetNo 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.wheelsetNo = m_wWheelsetNo;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::wheelsetNo, m_wWheelsetNo);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Axle, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.axleNo 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.axleNo = m_wAxleNo;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::axleNo, m_wAxleNo);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_SendUnit, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.sendUnit 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.sendUnit = m_wSendUnit;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::sendUnit, m_wSendUnit);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_StartTime, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.startTime 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.startTime = m_wStartTime;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::startTime, m_wStartTime);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Repair, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.repairLevel 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.repairLevel = m_wRepair;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::repairLevel, m_wRepair);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_currentWheelset, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.currentTaskIndex 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.currentTaskIndex = m_wCurrentWheelset.toInt();
-		}
+		Submit_Work_DB_Field(&s_Work_DB::currentTaskIndex, m_wCurrentWheelset.toInt());
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Part1, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.currentPart1 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.currentPart1 = m_wPart1;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::currentPart1, m_wPart1);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Part2, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.currentPart2 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.currentPart2 = m_wPart2;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::currentPart2, m_wPart2);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Point, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-24 T86：g_Work_DB.currentPointStr 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.currentPointStr = m_wPointStr;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::currentPointStr, m_wPointStr);
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Gain, &QPushButton::clicked, this, [this]() {
-		{	// 2026-10-27 TT1：补写锁（原 Gain 写无锁，GG2 审计遗漏点）
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.currentGain = m_wGain;
-		}
+		Submit_Work_DB_Field(&s_Work_DB::currentGain, m_wGain);
 		QMetaObject::invokeMethod(m_Pre_Scan_120, "Change_GAIN", Qt::QueuedConnection,
 			Q_ARG(QString, QString::number(m_wGain)));
 	});

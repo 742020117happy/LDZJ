@@ -149,6 +149,15 @@ private:
 
 	void Do_Flush_Communicate_DB();		// 写入Communicate_DB到文件
 
+	// 2026-10-27 WW3：set_Pre_Scan_120_* 提交暂存辅助（模板成员函数须在头内定义；
+	// 原 11 处 lambda 各自持锁写 g_Work_DB 同构重复，收敛为单点持锁写入）
+	template <typename T>
+	void Submit_Work_DB_Field(T s_Work_DB::*field, const T &value)
+	{
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.*field = value;
+	}
+
 
 	private slots:
 	void Write_Communicate_DB(QString key, int value);		// 写入整型配置到Communicate_DB

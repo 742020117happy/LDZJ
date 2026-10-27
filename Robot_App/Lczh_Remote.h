@@ -66,5 +66,6 @@ private:
 	void Scan_Tran_Listen_Done();					// 传输通道监听完成
 
 	QString Build_Photo_Filename();
-	void Send_Photo_Now();	// 2026-10-27 现场：PHOTO 发送（自持锁快照+校验+发送），供非阻塞 50ms 延时路径调用		// 构建照片文件名
+	void Send_Photo_Now();	// 2026-10-27 现场：PHOTO 发送（自持锁快照+校验+发送），供非阻塞 50ms 延时路径调用
+	void Send_To_Camera(const QString &payload);	// 2026-10-27 WW1：发送指令至采集软件（目标地址获取收敛，消除 8 处重复）
 };
