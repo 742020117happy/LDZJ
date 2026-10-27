@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QElapsedTimer>
+#include <QRegExp>	// 2026-10-27 协议核对：startTime yyyyMMddHHmm 12位数字校验
 #include <QCoreApplication>	// 2026-10-25 D-005：applicationDirPath 替代 currentPath（防 CWD 依赖）
 /*************************************************************************************************************************************************
 **Function:构造函数
@@ -197,6 +198,17 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			return;
 		}
 	}
+	// 2026-10-27 协议核对：startTime 必须 yyyyMMddHHmm 12 位纯数字（START 帧第2/3段=前8位年月日+后4位时分）
+	{
+		QRegExp timeRe("^\\d{12}$");
+		if (!timeRe.exactMatch(t1.value("startTime").toString())) {
+			return_cmd.insert("Message", "指令字段 startTime 必须为 yyyyMMddHHmm 12位数字");
+			return_cmd.insert("Status", "Error");
+			return_cmd.insert("Value", false);
+			emit Write_Json(return_cmd);
+			return;
+		}
+	}
 	QJsonObject wp1 = t1.value("wheelsetPosition").toObject();
 	QStringList required_wp;
 	required_wp << "posId" << "mapPointName" << "positions";
@@ -214,6 +226,17 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			// 2026-10-26 用户定稿：任务2 字段同样禁止空格/&/-
 			if (t2.value(required.at(i)).toString().contains(' ') || t2.value(required.at(i)).toString().contains('&') || t2.value(required.at(i)).toString().contains('-')) {
 				return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(required.at(i)));
+				return_cmd.insert("Status", "Error");
+				return_cmd.insert("Value", false);
+				emit Write_Json(return_cmd);
+				return;
+			}
+		}
+		// 2026-10-27 协议核对：任务2 startTime 同样必须 yyyyMMddHHmm 12 位纯数字
+		{
+			QRegExp timeRe("^\\d{12}$");
+			if (!timeRe.exactMatch(t2.value("startTime").toString())) {
+				return_cmd.insert("Message", "指令字段 startTime 必须为 yyyyMMddHHmm 12位数字");
 				return_cmd.insert("Status", "Error");
 				return_cmd.insert("Value", false);
 				emit Write_Json(return_cmd);
