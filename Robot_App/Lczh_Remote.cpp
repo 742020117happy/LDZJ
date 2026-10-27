@@ -160,11 +160,23 @@ void c_Lczh_Remote::Collector()
 	m_LastPhotoName = Build_Photo_Filename();
 	// 2026-10-24 T97：读侧快照；2026-10-26 协议：PHOTO&{carType}{wheelsetKind}&{原始图像名称}
 	QString cmd;
+	QString carType;
+	QString wheelsetKind;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		carType = c_Variable::getInstance().g_Work_DB.carType;
+		wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;
+	}
+	// 2026-10-27 现场：车型/轮对类型空值防御（协议 PHOTO 第2段，空值会发畸形帧污染采集软件）
+	if (carType.isEmpty() || wheelsetKind.isEmpty()) {
+		c_Log::Warn("SCAN", "Cmd", "PHOTO rejected: carType/wheelsetKind empty");
+		return;
+	}
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		cmd = QString("PHOTO&%1%2&%3")
-			.arg(c_Variable::getInstance().g_Work_DB.carType)
-			.arg(c_Variable::getInstance().g_Work_DB.wheelsetKind)
+			.arg(carType)
+			.arg(wheelsetKind)
 			.arg(m_LastPhotoName);
 	}
 	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
@@ -364,8 +376,10 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;	// 2026-10-26 协议：START 第5段
 		}
 
-		if (sendUnit.isEmpty() || startTime.isEmpty() || wheelsetNo.isEmpty() || axleNo.isEmpty() || taskId.isEmpty()) {
-			emit Status(m_Camera_num + "CGXi消息：START指令缺少WEB任务参数");
+		if (sendUnit.isEmpty() || startTime.isEmpty() || wheelsetNo.isEmpty() || axleNo.isEmpty() || taskId.isEmpty()
+			|| carType.isEmpty() || wheelsetKind.isEmpty()) {
+			// 2026-10-27 现场：补 carType/wheelsetKind 空值校验（协议 START 第5段=车型轮对类型，空值会发畸形帧污染采集软件）
+			emit Status(m_Camera_num + "CGXi消息：START指令缺少WEB任务字段");
 			return;
 		}
 
