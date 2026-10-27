@@ -1,5 +1,6 @@
 ﻿#pragma execution_character_set("utf-8")
 #include "Lczh_Remote.h"
+#include <QRegExp>	// 2026-10-27 现场：START 帧 remove 空白防御
 
 /*************************************************************************************************************************************************
 **Function:构造函数
@@ -419,28 +420,24 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			c_Variable::getInstance().g_Work_DB.workState = 2;
 		}
 		m_LastGain = -1;
-		m_LastPart1.clear();	// 2026-10-27 现场：轨迹开始复位一级部件检测（轨迹边界=START/FINISH）
-		// 2026-10-24 CC：读侧持锁字段快照（禁止别名引用）
-		QString sendUnit, startTime, wheelsetNo, axleNo, taskId, carType, wheelsetKind;
+
+		// 2026-10-24 CC：读侧持锁字段快照（g_Work_DB 跨线程读写，锁外直读 QString 有 COW 引用计数竞争风险）
+		QString sendUnit, startTime, carType, wheelsetKind, taskId;
 		{
 			QReadLocker locker(&c_Variable::g_lock);
-			sendUnit   = c_Variable::getInstance().g_Work_DB.sendUnit;
-			startTime  = c_Variable::getInstance().g_Work_DB.startTime;
-			wheelsetNo = c_Variable::getInstance().g_Work_DB.wheelsetNo;
-			axleNo     = c_Variable::getInstance().g_Work_DB.axleNo;
-			taskId     = c_Variable::getInstance().g_Work_DB.taskId;
-			carType    = c_Variable::getInstance().g_Work_DB.carType;		// 2026-10-26 协议：START 第5段
-			wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;	// 2026-10-26 协议：START 第5段
+			sendUnit     = c_Variable::getInstance().g_Work_DB.sendUnit;
+			startTime    = c_Variable::getInstance().g_Work_DB.startTime;
+			carType      = c_Variable::getInstance().g_Work_DB.carType;
+			wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;
+			taskId       = c_Variable::getInstance().g_Work_DB.taskId;
 		}
-
-		if (sendUnit.isEmpty() || startTime.isEmpty() || wheelsetNo.isEmpty() || axleNo.isEmpty() || taskId.isEmpty()
-			|| carType.isEmpty() || wheelsetKind.isEmpty()) {
-			// 2026-10-27 现场：补 carType/wheelsetKind 空值校验（协议 START 第5段=车型轮对类型，空值会发畸形帧污染采集软件）
+		if (sendUnit.isEmpty() || startTime.isEmpty() || carType.isEmpty() || wheelsetKind.isEmpty() || taskId.isEmpty()) {
+			// 2026-10-27 现场：空值拒绝（协议 START 字段缺失会发畸形帧污染采集软件）
 			emit Status(m_Camera_num + "CGXi消息：START指令缺少WEB任务字段");
 			return;
 		}
 
-		// 2026-10-26 协议定稿：第5段=车型轮对类型
+		// 2026-10-26 协议定稿：第5段=车型轮对类型；remove 空白为防御（指令入口已禁，双保险）
 		QString cmd = QString("START&%1&%2&%3&%4%5&%6")
 			.arg(sendUnit)
 			.arg(startTime.left(8))
@@ -448,7 +445,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			.arg(carType)
 			.arg(wheelsetKind)
 			.arg(taskId);
-		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd);
+		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"),
+			c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd.remove(QRegExp("\\s")));
 	}
 	else if (msg.startsWith("CHANG&GAIN&")) {
 		// 校验：以 ! 结尾
@@ -535,7 +533,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			m_LastGain = curGain;
 			// 2026-10-27 现场：日志补全——增益调整指令（机械臂 CHANG&GAIN 段）
 			c_Log::Info("SCAN", "Cmd", QString("send CHANGE gain=%1").arg(curGain));
-			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
+			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"),
+				c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
 				QString("CHANGE&GAIN&%1").arg(curGain));
 			// 2026-10-27 现场定稿：增益调整与图像采集指令间间隔 50ms——
 			// **非阻塞延时**（singleShot 延迟 PHOTO 发送，不嵌套事件循环、不阻塞线程）
