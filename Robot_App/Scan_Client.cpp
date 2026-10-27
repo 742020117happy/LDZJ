@@ -77,7 +77,8 @@ void c_Scan_Client::Read_String()
 		if(len > 0){
 			// 2026-08-19 走查修复：去除可能的 \0/\r\n 尾随字符，避免影响精确匹配
 			QString str = QString::fromUtf8(dataGram).trimmed();
-			if (str == "CAMERA&OK"){return;}
+			// 2026-10-27 修正：删除旧过滤 if(str=="CAMERA&OK")return——其先于 Camera_Status 发射直接 return，
+			// 导致 CAMERA&OK 心跳被屏蔽、相机状态永远无法更新
 			// 2026-10-26 现场：接收日志（接收端=本地套接字地址；发送端=数据来源地址端口）
 			if (str.size() <= 128) {
 				c_Log::Info("SCAN", "Feedback", QString("udp recv local=%1:%2 from=%3:%4 msg=%5")
