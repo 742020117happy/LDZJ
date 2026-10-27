@@ -77,6 +77,8 @@ private:
 	QElapsedTimer m_Time;			// 计时器（帧率计算）
 	QString m_Debug_Path;			// 调试日志路径
 	quint16 m_Last_CO = 0;
+	bool m_EverCameraReady = false;	// 2026-10-27 现场：相机三通道曾就绪标记（未连接不报警，连接后断开才报）
+	bool m_EverAllConnected = false;	// 2026-10-27 现场：底盘/机械臂/IO 曾全部连接标记
 	int m_Last_Light_Level = -1;	// 2026-10-24 T41：状态灯联动档位（-1 未初始化 0绿 1黄 2红）			// 2026-10-24 重构 T18：上一轮 CO 值（上升沿检测）
 	bool m_Scan = true;				// 系统扫描开关
 	// 2026-10-24 重构 T16：m_UpdatingUI 死成员已移除（仅写无人读）

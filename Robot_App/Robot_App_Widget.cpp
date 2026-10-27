@@ -2211,11 +2211,18 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 		emergency     = c_Variable::getInstance().g_Magic.ReadData.emergencyStop;
 		workState     = c_Variable::getInstance().g_Work_DB.workState;
 		ioConnected   = c_Variable::getInstance().g_IO.Connected;
-		cameraFail    = !(c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected && c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
 	}
 
+	// 2026-10-27 现场矫正：未连接（启动待机态）不报警——只有"连接过后断开"才算断连/相机故障
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		bool cameraReadyNow = (c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected && c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
+		if (cameraReadyNow) m_EverCameraReady = true;
+		cameraFail = m_EverCameraReady && !cameraReadyNow;
+	}
+	if (magicConn && cgxi.Connected && ioConnected) m_EverAllConnected = true;
 	// 原因标志（2026-10-24 T48 扩展：相机故障/充电故障/障碍物，依据语音内容 xlsx）
-	anyDisconn    = !magicConn || !cgxi.Connected || !ioConnected;
+	anyDisconn    = m_EverAllConnected && (!magicConn || !cgxi.Connected || !ioConnected);
 	bool robotError    = (cgxi.data.last_error_code != 0);
 	bool taskError     = (workState == 5);
 	bool inspecting    = (workState == 2);	// 2026-10-25 EE1：巡检中（PA001）
