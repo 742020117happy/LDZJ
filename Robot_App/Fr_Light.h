@@ -29,7 +29,7 @@ signals:
 	void Error_State(bool state);
 
 protected:
-	void paintEvent(QPaintEvent *);
+	void paintEvent(QPaintEvent *) override;
 
 private:
 	int m_Radius = 50;
