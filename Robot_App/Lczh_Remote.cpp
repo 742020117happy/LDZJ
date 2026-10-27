@@ -173,7 +173,7 @@ void c_Lczh_Remote::Start_Scan()
 		.arg(c_Variable::getInstance().g_Work_DB.taskId)
 		.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
 		.arg(c_Variable::getInstance().g_Work_DB.axleNo));
-	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd);
+	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd.remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格
 }
 
 /*************************************************************************************************************************************************
@@ -203,7 +203,7 @@ void c_Lczh_Remote::Collector()
 			.arg(wheelsetKind)
 			.arg(m_LastPhotoName);
 	}
-	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd);
+	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd.remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格
 	// 2026-10-25 L：PHOTO 指令发送（照片文件名允许打印）
 	c_Log::Info("SCAN", "Cmd", QString("send PHOTO name=%1").arg(m_LastPhotoName));
 	emit Photo_Written(m_LastPhotoName);
@@ -237,7 +237,7 @@ void c_Lczh_Remote::Change_GAIN(QString gain)
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.currentGain = val;
 	}
-	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), QString("CHANGE&GAIN&%1").arg(val));
+	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), QString("CHANGE&GAIN&%1").arg(val).remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格
 }
 
 /*************************************************************************************************************************************************
@@ -369,9 +369,9 @@ void c_Lczh_Remote::Send_Photo_Now()
 		return;
 	}
 	m_LastPhotoName = Build_Photo_Filename();
-	// 2026-10-26 协议定稿：PHOTO&{carType}{wheelsetKind}&{原始图像名称}
+	// 2026-10-26 协议定稿：PHOTO&{carType}{wheelsetKind}&{原始图像名称}；2026-10-27 用户定稿：所有指令均无空格
 	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
-		QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName));
+		QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName).remove(QRegExp("\\s")));
 	emit Photo_Written(m_LastPhotoName);
 }
 
@@ -533,9 +533,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			m_LastGain = curGain;
 			// 2026-10-27 现场：日志补全——增益调整指令（机械臂 CHANG&GAIN 段）
 			c_Log::Info("SCAN", "Cmd", QString("send CHANGE gain=%1").arg(curGain));
-			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"),
-				c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
-				QString("CHANGE&GAIN&%1").arg(curGain));
+			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
+				QString("CHANGE&GAIN&%1").arg(curGain).remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格
 			// 2026-10-27 现场定稿：增益调整与图像采集指令间间隔 50ms——
 			// **非阻塞延时**（singleShot 延迟 PHOTO 发送，不嵌套事件循环、不阻塞线程）
 			QTimer::singleShot(50, this, [this]() {
