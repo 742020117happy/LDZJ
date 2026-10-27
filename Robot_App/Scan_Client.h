@@ -25,6 +25,8 @@ signals:
 	void Status(int state);//通讯状态
 	void Status_Text(QString msg);//2026-10-26 现场：文本状态（IP/端口日志桥接至模块分文件）
 	void Camera_Status(bool ok);//2026-10-27 现场：相机心跳（CAMERA&OK=true / CAMERA&ERROR=false）
+private:
+	int m_LastCameraOk = -1;	// 2026-10-27 现场：上次心跳状态（-1=未初始化；仅状态变化才发 Camera_Status，防 100ms 高频刷信号）
 	void Collect(int num);
 
 private:
