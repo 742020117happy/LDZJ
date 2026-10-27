@@ -345,6 +345,37 @@ QString c_Lczh_Remote::Build_Photo_Filename()
 }
 
 /*************************************************************************************************************************************************
+/*************************************************************************************************************************************************
+**Function:PHOTO 发送（2026-10-27 现场：自持锁快照+校验+发送，供非阻塞 50ms 延时路径调用）
+*************************************************************************************************************************************************/
+void c_Lczh_Remote::Send_Photo_Now()
+{
+	QString carType, wheelsetKind, startTime, repairLevel, sendUnit, wheelsetNo, axleNo;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		carType      = c_Variable::getInstance().g_Work_DB.carType;
+		wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;
+		startTime    = c_Variable::getInstance().g_Work_DB.startTime;
+		repairLevel  = c_Variable::getInstance().g_Work_DB.repairLevel;
+		sendUnit     = c_Variable::getInstance().g_Work_DB.sendUnit;
+		wheelsetNo   = c_Variable::getInstance().g_Work_DB.wheelsetNo;
+		axleNo       = c_Variable::getInstance().g_Work_DB.axleNo;
+	}
+	// 校验：文件名参数完整性
+	if (startTime.isEmpty() || repairLevel.isEmpty() || sendUnit.isEmpty() ||
+		wheelsetNo.isEmpty() || axleNo.isEmpty() || carType.isEmpty() || wheelsetKind.isEmpty()) {
+		emit Status(m_Camera_num + "CGXi消息：PHOTO指令缺少WEB任务参数");
+		return;
+	}
+	m_LastPhotoName = Build_Photo_Filename();
+	// 2026-10-26 协议定稿：PHOTO&{carType}{wheelsetKind}&{原始图像名称}
+	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
+		QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName));
+	emit Photo_Written(m_LastPhotoName);
+}
+
+/*************************************************************************************************************************************************
+**Function:断开所有设备连接
 **Function:断开所有设备连接
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Disconnect_Device()
@@ -480,23 +511,15 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			c_Log::Info("SCAN", "Cmd", QString("send CHANGE gain=%1").arg(curGain));
 			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
 				QString("CHANGE&GAIN&%1").arg(curGain));
-			// 2026-10-27 现场定稿：增益调整与图像采集指令间间隔 50ms（采集软件时序要求）
-			msleep(50);
-		}
-
-		// 校验：文件名参数完整性
-		if (startTime.isEmpty() || repairLevel.isEmpty() || sendUnit.isEmpty() ||
-			wheelsetNo.isEmpty() || axleNo.isEmpty()) {
-			emit Status(m_Camera_num + "CGXi消息：PHOTO指令缺少WEB任务参数");
+			// 2026-10-27 现场定稿：增益调整与图像采集指令间间隔 50ms——
+			// **非阻塞延时**（singleShot 延迟 PHOTO 发送，不嵌套事件循环、不阻塞线程）
+			QTimer::singleShot(50, this, [this]() {
+				Send_Photo_Now();
+			});
 			return;
 		}
 
-		m_LastPhotoName = Build_Photo_Filename();
-
-		// 2026-10-26 协议定稿：PHOTO&{carType}{wheelsetKind}&{原始图像名称}
-		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
-			QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName));
-		emit Photo_Written(m_LastPhotoName);
+		Send_Photo_Now();
 	}
 	else if (msg == "PHOTO&FINISH!") {
 		// 无需额外校验，直接转发；2026-10-27 现场：日志补全——机械臂 FINISH 脚本（轨迹最后一步）→ 采集结束指令

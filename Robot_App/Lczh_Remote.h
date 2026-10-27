@@ -64,5 +64,6 @@ private:
 	void Scan_Tran_Disconnect_Done();				// 传输通道断开完成
 	void Scan_Tran_Listen_Done();					// 传输通道监听完成
 
-	QString Build_Photo_Filename();		// 构建照片文件名
+	QString Build_Photo_Filename();
+	void Send_Photo_Now();	// 2026-10-27 现场：PHOTO 发送（自持锁快照+校验+发送），供非阻塞 50ms 延时路径调用		// 构建照片文件名
 };
