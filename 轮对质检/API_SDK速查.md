@@ -1,4 +1,4 @@
-# API & SDK 速查手册
+﻿# API & SDK 速查手册
 
 > 快速查阅 CGXi SDK 函数和 Magic 导航 REST API 接口。
 > 完整说明请参阅对应的 PDF 文档。
