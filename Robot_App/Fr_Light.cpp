@@ -21,7 +21,7 @@ void c_Fr_Light::Set_Working()
 	update();
 	emit Working_State(true);
 }
-bool c_Fr_Light::Get_State()
+bool c_Fr_Light::Get_State() const
 {
 	if (m_State == Working) { return true; }
 	else { return false; }

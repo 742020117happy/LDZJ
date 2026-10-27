@@ -345,7 +345,7 @@ void c_Server_Remote::Parse_Start_Inspection(const QJsonObject &json)
 		c_Variable::getInstance().g_Work_DB.mapPointName = wp.value("mapPointName").toString();
 		c_Variable::getInstance().g_Work_DB.positions.clear();
 		QJsonArray posArr = wp.value("positions").toArray();
-		for (int p = 0; p < posArr.size(); p++) c_Variable::getInstance().g_Work_DB.positions << posArr.at(p).toString();
+		for (const QJsonValue &v : posArr) c_Variable::getInstance().g_Work_DB.positions << v.toString();	// 2026-10-27 VV2：range-for 纯读取现代化
 	}
 
 	c_Variable::getInstance().g_Work_DB.currentPos = 0;

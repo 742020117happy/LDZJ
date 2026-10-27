@@ -456,7 +456,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		if (photoIdx < 0) { emit Status(m_Camera_num + "CGXi消息：CHANGE指令缺少PHOTO段"); return; }
 
 		QString s = msg.left(msg.length() - 1);
-		QStringList parts = s.split('&');
+		const QStringList parts = s.split('&');	// 2026-10-27 VV1：split 结果只读，const 固化
 		if (parts.size() < 5) { emit Status(m_Camera_num + "CGXi消息：CHANGE指令字段数不足"); return; }
 
 		// 校验：GAIN值
@@ -469,7 +469,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		}
 
 		// 校验：PHOTO参数段 (prog-part1-part2-point)
-		QStringList photo = parts[4].split('-');
+		const QStringList photo = parts[4].split('-');	// 2026-10-27 VV1：split 结果只读，const 固化
 		if (photo.size() < 4) { emit Status(m_Camera_num + "CGXi消息：PHOTO参数段格式错误"); return; }
 
 		bool progOk = false;

@@ -187,11 +187,11 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	QStringList required;
 	required << "taskId" << "carType" << "wheelsetKind" << "axleType" << "wheelsetNo"
 		<< "axleNo" << "sendUnit" << "startTime" << "repairLevel" << "wheelsetPosition";
-	for (int i = 0; i < required.size(); i++) {
-		if (t1.value(required.at(i)) == QJsonValue::Undefined) { reply_missing(required.at(i)); return; }
+	for (const QString &field : required) {
+		if (t1.value(field) == QJsonValue::Undefined) { reply_missing(field); return; }
 		// 2026-10-26 用户定稿：字段值含空格/&/- → 拒绝（防下游文件名/数据库/EMIS 携带分隔符）
-		if (t1.value(required.at(i)).toString().contains(' ') || t1.value(required.at(i)).toString().contains('&') || t1.value(required.at(i)).toString().contains('-')) {
-			return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(required.at(i)));
+		if (t1.value(field).toString().contains(' ') || t1.value(field).toString().contains('&') || t1.value(field).toString().contains('-')) {
+			return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(field));
 			return_cmd.insert("Status", "Error");
 			return_cmd.insert("Value", false);
 			emit Write_Json(return_cmd);
@@ -212,8 +212,8 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	QJsonObject wp1 = t1.value("wheelsetPosition").toObject();
 	QStringList required_wp;
 	required_wp << "posId" << "mapPointName" << "positions";
-	for (int i = 0; i < required_wp.size(); i++) {
-		if (wp1.value(required_wp.at(i)) == QJsonValue::Undefined) { reply_missing(required_wp.at(i)); return; }
+	for (const QString &field : required_wp) {
+		if (wp1.value(field) == QJsonValue::Undefined) { reply_missing(field); return; }
 	}
 
 	// 任务2 字段齐全校验（双工位）
@@ -221,11 +221,11 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	QJsonObject wp2;
 	if (wheelsetCount == 2) {
 		t2 = tasks.at(1).toObject();
-		for (int i = 0; i < required.size(); i++) {
-			if (t2.value(required.at(i)) == QJsonValue::Undefined) { reply_missing(required.at(i)); return; }
+		for (const QString &field : required) {
+			if (t2.value(field) == QJsonValue::Undefined) { reply_missing(field); return; }
 			// 2026-10-26 用户定稿：任务2 字段同样禁止空格/&/-
-			if (t2.value(required.at(i)).toString().contains(' ') || t2.value(required.at(i)).toString().contains('&') || t2.value(required.at(i)).toString().contains('-')) {
-				return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(required.at(i)));
+			if (t2.value(field).toString().contains(' ') || t2.value(field).toString().contains('&') || t2.value(field).toString().contains('-')) {
+				return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(field));
 				return_cmd.insert("Status", "Error");
 				return_cmd.insert("Value", false);
 				emit Write_Json(return_cmd);
@@ -244,8 +244,8 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			}
 		}
 		wp2 = t2.value("wheelsetPosition").toObject();
-		for (int i = 0; i < required_wp.size(); i++) {
-			if (wp2.value(required_wp.at(i)) == QJsonValue::Undefined) { reply_missing(required_wp.at(i)); return; }
+		for (const QString &field : required_wp) {
+			if (wp2.value(field) == QJsonValue::Undefined) { reply_missing(field); return; }
 		}
 	}
 
@@ -376,14 +376,14 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		QStringList canonical;
 		canonical << "P1" << "P1.1" << "P2" << "P3" << "P4" << "P4.1" << "P5" << "P6";
 		QStringList p1_list;
-		for (int k = 0; k < positions.size(); k++) { p1_list << positions.at(k).toString(); }
+		for (const QJsonValue &v : positions) { p1_list << v.toString(); }	// 2026-10-27 VV2：range-for 纯读取现代化
 		QStringList p2_list;
 		QJsonArray positions_2 = wp2.value("positions").toArray();
-		for (int k = 0; k < positions_2.size(); k++) { p2_list << positions_2.at(k).toString(); }
+		for (const QJsonValue &v : positions_2) { p2_list << v.toString(); }	// 2026-10-27 VV2：range-for 纯读取现代化
 		QStringList merged_points;
-		for (int k = 0; k < canonical.size(); k++) {
-			if (p1_list.contains(canonical.at(k)) || p2_list.contains(canonical.at(k))) {
-				merged_points << canonical.at(k);
+		for (const QString &pt : canonical) {
+			if (p1_list.contains(pt) || p2_list.contains(pt)) {
+				merged_points << pt;
 			}
 		}
 		c_Log::Info("WORK", "Flow", QString("route dual points=%1").arg(merged_points.join("->")));

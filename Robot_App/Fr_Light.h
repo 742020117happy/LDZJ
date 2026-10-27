@@ -21,7 +21,7 @@ public:
 	void Set_Null();
 	void Set_State(const bool state);
 	void Set_Radius(int value);
-	bool Get_State();
+	bool Get_State() const;	// 2026-10-27 VV1：getter 语义补 const
 
 signals:
 	void Working_State(bool state);
