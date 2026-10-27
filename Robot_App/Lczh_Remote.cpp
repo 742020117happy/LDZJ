@@ -158,13 +158,13 @@ void c_Lczh_Remote::Start_Scan()
 void c_Lczh_Remote::Collector()
 {
 	m_LastPhotoName = Build_Photo_Filename();
-	// 2026-10-24 T97：wheelsetNo/axleNo 读侧快照
+	// 2026-10-24 T97：读侧快照；2026-10-26 协议：PHOTO&{carType}{wheelsetKind}&{原始图像名称}
 	QString cmd;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		cmd = QString("PHOTO&%1%2&%3")
-			.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
-			.arg(c_Variable::getInstance().g_Work_DB.axleNo)
+			.arg(c_Variable::getInstance().g_Work_DB.carType)
+			.arg(c_Variable::getInstance().g_Work_DB.wheelsetKind)
 			.arg(m_LastPhotoName);
 	}
 	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
