@@ -419,7 +419,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			c_Variable::getInstance().g_Work_DB.workState = 2;
 		}
 		m_LastGain = -1;
-		m_LastPart1.clear();	// 2026-10-27 现场：新轨迹复位一级部件变化检测
+		m_LastPart1.clear();	// 2026-10-27 现场：轨迹开始复位一级部件检测（轨迹边界=START/FINISH）
 		// 2026-10-24 CC：读侧持锁字段快照（禁止别名引用）
 		QString sendUnit, startTime, wheelsetNo, axleNo, taskId, carType, wheelsetKind;
 		{
@@ -500,10 +500,11 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 				return;
 			}
 		}
-		// 2026-10-27 现场定稿：一级部件字段变化检测（日志发现 CRRH380B 笔误）——变化仅告警不拒绝（防机械臂卡死）
+		// 2026-10-27 用户定稿：一级部件/二级部件=机械臂脚本额外定义的零部件名称与分类（非车型），
+		// 程序透传不做语义校验；仅同一轨迹内（FINISH 边界）part1 突变才告警（日志发现 CRRH380B 笔误）
 		if (!m_LastPart1.isEmpty() && photo[1] != m_LastPart1) {
-			c_Log::Warn("SCAN", "Field", QString("part1 changed %1→%2 (check arm script)").arg(m_LastPart1, photo[1]));
-			emit Status(m_Camera_num + QString("CGXi消息：一级部件字段变化（%1→%2），疑似机械臂脚本错误").arg(m_LastPart1, photo[1]));
+			c_Log::Warn("SCAN", "Field", QString("part1 changed %1→%2 in one track (check arm script)").arg(m_LastPart1, photo[1]));
+			emit Status(m_Camera_num + QString("CGXi消息：同一轨迹内一级部件字段变化（%1→%2），疑似机械臂脚本错误").arg(m_LastPart1, photo[1]));
 		}
 		m_LastPart1 = photo[1];
 
@@ -549,6 +550,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 	else if (msg == "PHOTO&FINISH!") {
 		// 无需额外校验，直接转发；2026-10-27 现场：日志补全——机械臂 FINISH 脚本（轨迹最后一步）→ 采集结束指令
 		c_Log::Info("SCAN", "Cmd", "recv PHOTO&FINISH! from arm → send finish");
+		m_LastPart1.clear();	// 2026-10-27 轨迹边界复位一级部件检测（现场机械臂不发 START&!，以 FINISH 为边界）
 		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), "PHOTO&FINISH");
 		{	// 2026-10-24 CC/T86：currentPos 写侧持锁（原无锁别名写为数据竞争）
 			QWriteLocker locker(&c_Variable::g_lock);

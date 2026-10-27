@@ -47,7 +47,7 @@ private:
 
 	QString m_CameraIP;			// 相机IP
 	int m_LastGain = -1;		// 上次发送的增益值，初始-1确保首次必发
-	QString m_LastPart1;	// 2026-10-27 现场：一级部件字段变化检测（START 复位，PHOTO 比对告警）
+	QString m_LastPart1;	// 2026-10-27 现场：同一轨迹内一级部件突变检测（FINISH 复位；一级部件=机械臂脚本定义的零部件名称，非车型）
 	QString m_Camera_num = "T1";	// 相机编号
 	QByteArray m_CGXi_Buffer;		// TCP 粘包接收缓冲区
 	QString m_LastPhotoName;		// 最近一次发送的PHOTO文件名
