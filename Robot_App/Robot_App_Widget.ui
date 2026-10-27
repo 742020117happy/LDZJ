@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Robot_App_Widget</class>
  <widget class="QMainWindow" name="Robot_App_Widget">
@@ -100,8 +100,8 @@
           <property name="verticalSpacing">
            <number>6</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="Show_Work_Widget">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="Show_Magic_Widget">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -109,7 +109,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>任务</string>
+             <string>底盘</string>
             </property>
            </widget>
           </item>
@@ -126,19 +126,6 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="Show_CGXi_Widget">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>机械臂</string>
-            </property>
-           </widget>
-          </item>
           <item row="3" column="0">
            <widget class="QPushButton" name="Show_Pre_Scan_120_Widget">
             <property name="sizePolicy">
@@ -152,8 +139,8 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="Show_Magic_Widget">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="Show_Work_Widget">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -161,7 +148,20 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>底盘</string>
+             <string>任务</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="Show_CGXi_Widget">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>机械臂</string>
             </property>
            </widget>
           </item>
@@ -2000,6 +2000,32 @@
                </item>
                <item>
                 <widget class="QLineEdit" name="Pre_Scan_120_IP">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>192.168.6.34</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_120_IP_2">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>本地IP:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="Local_IP">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -5213,7 +5239,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="Work_Port">
+              <widget class="QLineEdit" name="Server_Port">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                  <horstretch>0</horstretch>
@@ -5221,7 +5247,7 @@
                 </sizepolicy>
                </property>
                <property name="readOnly">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>

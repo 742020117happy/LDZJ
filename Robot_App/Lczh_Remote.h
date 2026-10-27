@@ -46,7 +46,6 @@ private:
 	QThread *m_Tran_Thread = nullptr;		// 机械臂传输通道线程
 
 	QString m_CameraIP;			// 相机IP
-	int m_CameraPort = 8001;	// 相机端口
 	int m_LastGain = -1;		// 上次发送的增益值，初始-1确保首次必发
 	QString m_Camera_num = "T1";	// 相机编号
 	QByteArray m_CGXi_Buffer;		// TCP 粘包接收缓冲区

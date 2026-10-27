@@ -96,11 +96,9 @@ void c_Lczh_Remote::Scan_Remote_Connect(QString ip, quint16 port)
 {
 	// 2026-10-25 L：相机连接请求（只记录，不改变三通道连接流程）
 	c_Log::Info("SCAN", "Connect", QString("request ip=%1 port=%2").arg(ip).arg(port));
-	m_CameraIP = ip;
-	m_CameraPort = port;
 	// 2026-10-26 现场定稿：发送通道恢复绑定 8001（6.35:8001 → 6.34:8001 采集指令）；
 	// 与采集软件 0.0.0.0:8001 的冲突由现场将采集软件绑定地址改为 192.168.6.34 解决
-	emit Signal_Remote_Connect(m_CameraIP, m_CameraPort);
+	emit Signal_Remote_Connect(ip, port);
 }
 
 /*************************************************************************************************************************************************
@@ -118,7 +116,7 @@ void c_Lczh_Remote::Scan_Tran_Connect(QString ip, quint16 port)
 {
 	// 2026-10-26 现场定稿：机械臂消息转发 Socket 监听 192.168.6.35:9000（CGXi TCP 转发通道）
 	c_Log::Info("SCAN", "Tran", QString("listen 192.168.6.35:%1").arg(port));
-	emit Signal_Tran_Connect("192.168.6.35", port);
+	emit Signal_Tran_Connect(ip, port);
 }
 
 /*************************************************************************************************************************************************
@@ -161,7 +159,7 @@ void c_Lczh_Remote::Start_Scan()
 		.arg(c_Variable::getInstance().g_Work_DB.taskId)
 		.arg(c_Variable::getInstance().g_Work_DB.wheelsetNo)
 		.arg(c_Variable::getInstance().g_Work_DB.axleNo));
-	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
+	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd);
 }
 
 /*************************************************************************************************************************************************
@@ -191,7 +189,7 @@ void c_Lczh_Remote::Collector()
 			.arg(wheelsetKind)
 			.arg(m_LastPhotoName);
 	}
-	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
+	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd);
 	// 2026-10-25 L：PHOTO 指令发送（照片文件名允许打印）
 	c_Log::Info("SCAN", "Cmd", QString("send PHOTO name=%1").arg(m_LastPhotoName));
 	emit Photo_Written(m_LastPhotoName);
@@ -202,7 +200,7 @@ void c_Lczh_Remote::Collector()
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Finish_Scan()
 {
-	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, "PHOTO&FINISH");
+	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), "PHOTO&FINISH");
 	{	// 2026-10-24 T86：workState 跨线程读，写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.workState = 4;
@@ -225,7 +223,7 @@ void c_Lczh_Remote::Change_GAIN(QString gain)
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.currentGain = val;
 	}
-	emit Signal_Remote_Write("192.168.6.34", m_CameraPort, QString("CHANGE&GAIN&%1").arg(val));
+	emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), QString("CHANGE&GAIN&%1").arg(val));
 }
 
 /*************************************************************************************************************************************************
@@ -403,7 +401,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 			.arg(carType)
 			.arg(wheelsetKind)
 			.arg(taskId);
-		emit Signal_Remote_Write("192.168.6.34", m_CameraPort, cmd);
+		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), cmd);
 	}
 	else if (msg.startsWith("CHANG&GAIN&")) {
 		// 校验：以 ! 结尾
@@ -463,7 +461,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 
 		if (curGain != m_LastGain) {
 			m_LastGain = curGain;
-			emit Signal_Remote_Write("192.168.6.34", m_CameraPort,
+			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
 				QString("CHANGE&GAIN&%1").arg(curGain));
 		}
 
@@ -477,13 +475,13 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		m_LastPhotoName = Build_Photo_Filename();
 
 		// 2026-10-26 协议定稿：PHOTO&{carType}{wheelsetKind}&{原始图像名称}
-		emit Signal_Remote_Write("192.168.6.34", m_CameraPort,
+		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
 			QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName));
 		emit Photo_Written(m_LastPhotoName);
 	}
 	else if (msg == "PHOTO&FINISH!") {
 		// 无需额外校验，直接转发
-		emit Signal_Remote_Write("192.168.6.34", m_CameraPort, "PHOTO&FINISH");
+		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), "PHOTO&FINISH");
 		{	// 2026-10-24 CC/T86：currentPos 写侧持锁（原无锁别名写为数据竞争）
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.currentPos++;

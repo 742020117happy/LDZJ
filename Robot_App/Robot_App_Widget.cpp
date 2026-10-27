@@ -1437,6 +1437,12 @@ void c_Robot_App_Widget::Pre_Scan_120_Init()
 void c_Robot_App_Widget::Pre_Scan_120_DB()
 {
 	// 2026-10-24 CC：全局变量直接访问（原 cfg 别名已消除）
+	// ====== 从 Communicate_DB 读取初始值填充 UI ======
+	ui->Pre_Scan_120_IP->setText(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"));
+	ui->Pre_Scan_120_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000)));
+	ui->Pre_Scan_120_Monitor_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Monitor_Port").toInt(8001)));
+	ui->Pre_Scan_120_Tran_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Tran_Port").toInt(9000)));
+	ui->Local_IP->setText(c_Variable::getInstance().g_Communicate_DB.value("Local_IP").toString("192.168.6.35"));
 
 	// ====== 连接参数 textChanged → Communicate_DB ======
 	QObject::connect(ui->Pre_Scan_120_IP, &QLineEdit::textChanged, this, [this](const QString &text) {
@@ -1450,6 +1456,9 @@ void c_Robot_App_Widget::Pre_Scan_120_DB()
 	});
 	QObject::connect(ui->Pre_Scan_120_Tran_Port, &QLineEdit::textChanged, this, [this](const QString &text) {
 		Write_Communicate_DB("Pre_Scan_120_Tran_Port", text.toInt());
+	});
+	QObject::connect(ui->Local_IP, &QLineEdit::textChanged, this, [this](const QString &text) {
+		Write_Communicate_DB("Local_IP", text);
 	});
 
 	// ====== w_ 输入 → 暂存成员（set_按钮再提交到 g_Work_DB）======
@@ -1486,7 +1495,6 @@ void c_Robot_App_Widget::Pre_Scan_120_DB()
 	QObject::connect(ui->w_Pre_Scan_120_Gain, &QLineEdit::textChanged, this, [this](const QString &t) {
 		m_wGain = t.toInt();
 	});
-
 	// ====== 默认值写入 g_Work_DB（来源：轮对质检机器人-图像采集上传协议第2.2节）======
 	// 2026-10-24 CC：全局变量直接访问（原 work 别名已消除）
 	// 2026-10-27 现场：补 carType/wheelsetKind/axleType/posId 默认值——手动调试按钮时协议帧（START 第5段/PHOTO 第2段/文件名）合规
@@ -1507,11 +1515,7 @@ void c_Robot_App_Widget::Pre_Scan_120_DB()
 	c_Variable::getInstance().g_Work_DB.currentPointStr = "08";
 	c_Variable::getInstance().g_Work_DB.totalImages = 0;
 
-	// ====== 从 Communicate_DB 读取初始值填充 UI ======
-	ui->Pre_Scan_120_IP->setText(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString());
-	ui->Pre_Scan_120_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8001)));
-	ui->Pre_Scan_120_Monitor_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Monitor_Port").toInt(8000)));
-	ui->Pre_Scan_120_Tran_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Tran_Port").toInt(9000)));
+	
 
 	// 推送 g_Work_DB 默认值到界面
 	c_Robot_App_Widget::Pre_Scan_120_Scan();
@@ -1523,7 +1527,7 @@ void c_Robot_App_Widget::Pre_Scan_120_Button()
 {
 	// ====== 连接/断开 ======
 	QObject::connect(ui->Pre_Scan_120_Connect, &QPushButton::clicked, this, [this]() {
-		QString ip = ui->Pre_Scan_120_IP->text();
+		QString ip = ui->Local_IP->text();
 		quint16 port = ui->Pre_Scan_120_Port->text().toInt();
 		quint16 monPort = ui->Pre_Scan_120_Monitor_Port->text().toInt();
 		quint16 tranPort = ui->Pre_Scan_120_Tran_Port->text().toInt();
@@ -1702,13 +1706,14 @@ void c_Robot_App_Widget::MySql_DB()
 	ui->MySql_User->setText(DB::getInstance().g_Communicate_DB.value("MySql_User").toString("root"));
 	ui->MySql_Password->setText(DB::getInstance().g_Communicate_DB.value("MySql_Password").toString("root"));
 	ui->MySql_Database->setText(DB::getInstance().g_Communicate_DB.value("MySql_Database").toString("wheel"));
-
+	ui->Server_Port->setText(QString::number(DB::getInstance().g_Communicate_DB.value("Server_Port").toInt(520)));
 	QObject::connect(ui->Pre_Scan_120_MySql_Server, &QLineEdit::textChanged, this, [=](QString ip) { Write_Communicate_DB("Web_Server_Ip", ip); });
 
 	QObject::connect(ui->MySql_Port, &QLineEdit::textChanged, this, [=](QString port) { Write_Communicate_DB("MySql_Port", port.toInt()); });
 	QObject::connect(ui->MySql_User, &QLineEdit::textChanged, this, [=](QString user) { Write_Communicate_DB("MySql_User", user); });
 	QObject::connect(ui->MySql_Password, &QLineEdit::textChanged, this, [=](QString password) { Write_Communicate_DB("MySql_Password", password); });
 	QObject::connect(ui->MySql_Database, &QLineEdit::textChanged, this, [=](QString database) { Write_Communicate_DB("MySql_Database", database); });
+	QObject::connect(ui->Server_Port, &QLineEdit::textChanged, this, [=](QString port) { Write_Communicate_DB("Server_Port", port.toInt()); });
 
 	// 延迟触发首次连接
 	QTimer::singleShot(500, this, [this]() {

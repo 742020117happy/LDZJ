@@ -84,7 +84,7 @@ void c_Server_Remote::Init()
 
 	// 从配置读取监听地址 → 自动启动服务（2026-10-24 CC：直接访问）
 	{
-		QString ip = c_Variable::getInstance().g_Communicate_DB.value("Server_IP").toString("0.0.0.0");
+		QString ip = c_Variable::getInstance().g_Communicate_DB.value("Web_Server_Ip").toString("192.168.0.107");
 		int port = c_Variable::getInstance().g_Communicate_DB.value("Server_Port").toInt(520);
 		Connect(ip, port);
 		m_Port = port;
