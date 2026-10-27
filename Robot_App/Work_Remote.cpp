@@ -540,7 +540,7 @@ bool c_Work_Remote::wait_IO_Robot_ON()
 	{	// 2026-10-25 NN1：g_CGXi.data 跨线程读（CGXi 线程写），快路径改读锁快照
 		QReadLocker locker(&c_Variable::g_lock);
 		quint16 cdo = c_Variable::getInstance().g_CGXi.data.configurable_digital_output;
-		if (cdo & 0x0002) {
+		if (cdo & 0x0004) {
 			emit Status("机械臂已开机");
 			return true;
 		}

@@ -381,6 +381,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 	if (msg.isEmpty()) { emit Status(m_Camera_num + "CGXi消息：UTF-8解码失败"); return; }
 
 	if (msg == "START&!") {
+		// 2026-10-27 现场：日志补全——机械臂 START 脚本（每轨迹调用前）→ 准备采集指令
+		c_Log::Info("SCAN", "Cmd", "recv START&! from arm");
 		{	// 2026-10-24 CC/T86：workState 写侧持锁（原无锁别名写为数据竞争）
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.workState = 2;
@@ -474,6 +476,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 
 		if (curGain != m_LastGain) {
 			m_LastGain = curGain;
+			// 2026-10-27 现场：日志补全——增益调整指令（机械臂 CHANG&GAIN 段）
+			c_Log::Info("SCAN", "Cmd", QString("send CHANGE gain=%1").arg(curGain));
 			emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
 				QString("CHANGE&GAIN&%1").arg(curGain));
 		}
@@ -493,7 +497,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		emit Photo_Written(m_LastPhotoName);
 	}
 	else if (msg == "PHOTO&FINISH!") {
-		// 无需额外校验，直接转发
+		// 无需额外校验，直接转发；2026-10-27 现场：日志补全——机械臂 FINISH 脚本（轨迹最后一步）→ 采集结束指令
+		c_Log::Info("SCAN", "Cmd", "recv PHOTO&FINISH! from arm → send finish");
 		emit Signal_Remote_Write(c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"), c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000), "PHOTO&FINISH");
 		{	// 2026-10-24 CC/T86：currentPos 写侧持锁（原无锁别名写为数据竞争）
 			QWriteLocker locker(&c_Variable::g_lock);
