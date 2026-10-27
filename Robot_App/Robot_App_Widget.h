@@ -18,7 +18,7 @@ public:
 	explicit c_Robot_App_Widget(QWidget * parent = nullptr);	// 构造函数
 	virtual ~c_Robot_App_Widget();								// 析构函数
 
-	Ui_Robot_App_Widget *ui;			// UI对象
+	Ui_Robot_App_Widget *ui = nullptr;			// UI对象（2026-10-27 TT1：成员指针声明即初始化 = nullptr，构造函数 new 覆盖）
 	c_Object m_Object;					// 工具类对象
 
 public slots:

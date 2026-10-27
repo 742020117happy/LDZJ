@@ -346,8 +346,8 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	return_cmd.insert("Status", "Success");
 	return_cmd.insert("Value", true);
 	emit Write_Json(return_cmd);
-	emit actualStartTime();
-	emit precisScanStartTime();
+	emit actual_start_time();
+	emit precis_scan_start_time();
 
 	// ================= 7. 巡检走行 =================
 	if (wheelsetCount == 1) {
@@ -413,7 +413,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	}
 
 	// ================= 8. 收尾：双工位切第二任务字段 + 回充 + 完成 =================
-	emit precisScanEndTime();
+	emit precis_scan_end_time();
 	if (wheelsetCount == 2) {
 		// 2026-10-25 GG1：第二工位字段写入补写锁（T83/T86 遗漏点）
 		QWriteLocker locker(&c_Variable::g_lock);
@@ -434,7 +434,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		c_Variable::getInstance().g_Work_DB.workState = 0;
 	}
 	c_Variable::getInstance().g_Work.Connected = false;
-	emit actualReturnTime();
+	emit actual_return_time();
 	c_Log::Info("WORK", "Flow", QString("finish task_id=%1").arg(c_Variable::getInstance().g_Work_DB.taskId));
 	emit Status("巡检完成");
 }

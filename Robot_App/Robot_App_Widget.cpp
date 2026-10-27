@@ -1562,69 +1562,71 @@ void c_Robot_App_Widget::Pre_Scan_120_Button()
 	});
 
 	// ====== set_ 提交暂存 → g_Work_DB ======
-	using DB = c_Variable;
 	QObject::connect(ui->set_Pre_Scan_120_TaskID, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T83：taskId 跨线程（MySql/Server 读），写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
-		DB::getInstance().g_Work_DB.taskId = m_wTaskId;
+		c_Variable::getInstance().g_Work_DB.taskId = m_wTaskId;
 	}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Wheelset, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.wheelsetNo 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.wheelsetNo = m_wWheelsetNo;
+			c_Variable::getInstance().g_Work_DB.wheelsetNo = m_wWheelsetNo;
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Axle, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.axleNo 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.axleNo = m_wAxleNo;
+			c_Variable::getInstance().g_Work_DB.axleNo = m_wAxleNo;
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_SendUnit, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.sendUnit 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.sendUnit = m_wSendUnit;
+			c_Variable::getInstance().g_Work_DB.sendUnit = m_wSendUnit;
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_StartTime, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.startTime 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.startTime = m_wStartTime;
+			c_Variable::getInstance().g_Work_DB.startTime = m_wStartTime;
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Repair, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.repairLevel 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.repairLevel = m_wRepair;
+			c_Variable::getInstance().g_Work_DB.repairLevel = m_wRepair;
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_currentWheelset, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.currentTaskIndex 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.currentTaskIndex = m_wCurrentWheelset.toInt();
+			c_Variable::getInstance().g_Work_DB.currentTaskIndex = m_wCurrentWheelset.toInt();
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Part1, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.currentPart1 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.currentPart1 = m_wPart1;
+			c_Variable::getInstance().g_Work_DB.currentPart1 = m_wPart1;
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Part2, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.currentPart2 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.currentPart2 = m_wPart2;
+			c_Variable::getInstance().g_Work_DB.currentPart2 = m_wPart2;
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Point, &QPushButton::clicked, this, [this]() {
 		{	// 2026-10-24 T86：g_Work_DB.currentPointStr 跨线程读（Work/Lczh/Server/MySql），写侧持写锁
 			QWriteLocker locker(&c_Variable::g_lock);
-			DB::getInstance().g_Work_DB.currentPointStr = m_wPointStr;
+			c_Variable::getInstance().g_Work_DB.currentPointStr = m_wPointStr;
 		}
 	});
 	QObject::connect(ui->set_Pre_Scan_120_Gain, &QPushButton::clicked, this, [this]() {
-		DB::getInstance().g_Work_DB.currentGain = m_wGain;
+		{	// 2026-10-27 TT1：补写锁（原 Gain 写无锁，GG2 审计遗漏点）
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.currentGain = m_wGain;
+		}
 		QMetaObject::invokeMethod(m_Pre_Scan_120, "Change_GAIN", Qt::QueuedConnection,
 			Q_ARG(QString, QString::number(m_wGain)));
 	});
@@ -1699,14 +1701,12 @@ void c_Robot_App_Widget::MySql_Init()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::MySql_DB()
 {
-	using DB = c_Variable;
-
-	ui->Pre_Scan_120_MySql_Server->setText(DB::getInstance().g_Communicate_DB.value("Web_Server_Ip").toString("127.0.0.1"));
-	ui->MySql_Port->setText(QString::number(DB::getInstance().g_Communicate_DB.value("MySql_Port").toInt(3306)));
-	ui->MySql_User->setText(DB::getInstance().g_Communicate_DB.value("MySql_User").toString("root"));
-	ui->MySql_Password->setText(DB::getInstance().g_Communicate_DB.value("MySql_Password").toString("root"));
-	ui->MySql_Database->setText(DB::getInstance().g_Communicate_DB.value("MySql_Database").toString("wheel"));
-	ui->Server_Port->setText(QString::number(DB::getInstance().g_Communicate_DB.value("Server_Port").toInt(520)));
+	ui->Pre_Scan_120_MySql_Server->setText(c_Variable::getInstance().g_Communicate_DB.value("Web_Server_Ip").toString("127.0.0.1"));
+	ui->MySql_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("MySql_Port").toInt(3306)));
+	ui->MySql_User->setText(c_Variable::getInstance().g_Communicate_DB.value("MySql_User").toString("root"));
+	ui->MySql_Password->setText(c_Variable::getInstance().g_Communicate_DB.value("MySql_Password").toString("root"));
+	ui->MySql_Database->setText(c_Variable::getInstance().g_Communicate_DB.value("MySql_Database").toString("wheel"));
+	ui->Server_Port->setText(QString::number(c_Variable::getInstance().g_Communicate_DB.value("Server_Port").toInt(520)));
 	QObject::connect(ui->Pre_Scan_120_MySql_Server, &QLineEdit::textChanged, this, [=](QString ip) { Write_Communicate_DB("Web_Server_Ip", ip); });
 
 	QObject::connect(ui->MySql_Port, &QLineEdit::textChanged, this, [=](QString port) { Write_Communicate_DB("MySql_Port", port.toInt()); });
@@ -2325,7 +2325,7 @@ void c_Robot_App_Widget::Work_Init()
 	m_Emis_Remote_Thread = new QThread;
 	m_Emis_Remote = new c_Emis_Remote;
 	m_Emis_Remote->moveToThread(m_Emis_Remote_Thread);
-	QObject::connect(m_Emis_Remote_Thread, &QThread::started, m_Emis_Remote, &c_Emis_Remote::init);          // 线程启动MySQL初始化
+	QObject::connect(m_Emis_Remote_Thread, &QThread::started, m_Emis_Remote, &c_Emis_Remote::Init);          // 线程启动MySQL初始化
 	QObject::connect(m_Emis_Remote_Thread, &QThread::finished, m_Emis_Remote, &c_Emis_Remote::deleteLater);  // 线程结束自动释放
 	QObject::connect(m_Emis_Remote, &c_Emis_Remote::Status, this, &c_Robot_App_Widget::Write_Work_List);   // 状态信息写入巡检日志
 	// 2026-10-24 Z4：Update_Error 原无人连接（静默失败），桥接至巡检日志
@@ -2354,10 +2354,10 @@ void c_Robot_App_Widget::Work_Init()
 
 	QObject::connect(m_Work_Remote, &c_Work_Remote::Write_Json, m_Server_Remote, &c_Server_Remote::Write_Json);
 
-	QObject::connect(m_Work_Remote, &c_Work_Remote::actualStartTime, m_Emis_Remote, &c_Emis_Remote::actualStartTime);
-	QObject::connect(m_Work_Remote, &c_Work_Remote::precisScanStartTime, m_Emis_Remote, &c_Emis_Remote::precisScanStartTime);
-	QObject::connect(m_Work_Remote, &c_Work_Remote::precisScanEndTime, m_Emis_Remote, &c_Emis_Remote::precisScanEndTime);
-	QObject::connect(m_Work_Remote, &c_Work_Remote::actualReturnTime, m_Emis_Remote, &c_Emis_Remote::actualReturnTime);
+	QObject::connect(m_Work_Remote, &c_Work_Remote::actual_start_time, m_Emis_Remote, &c_Emis_Remote::actual_start_time);
+	QObject::connect(m_Work_Remote, &c_Work_Remote::precis_scan_start_time, m_Emis_Remote, &c_Emis_Remote::precis_scan_start_time);
+	QObject::connect(m_Work_Remote, &c_Work_Remote::precis_scan_end_time, m_Emis_Remote, &c_Emis_Remote::precis_scan_end_time);
+	QObject::connect(m_Work_Remote, &c_Work_Remote::actual_return_time, m_Emis_Remote, &c_Emis_Remote::actual_return_time);
 
 	c_Robot_App_Widget::Work_DB();
 	c_Robot_App_Widget::Work_Button();
@@ -2421,10 +2421,10 @@ void c_Robot_App_Widget::Work_Scan()
 void c_Robot_App_Widget::Work_Button()
 {
 
-	QObject::connect(ui->actualStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actualStartTime);
-	QObject::connect(ui->precisScanStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precisScanStartTime);
-	QObject::connect(ui->precisScanEndTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precisScanEndTime);
-	QObject::connect(ui->actualReturnTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actualReturnTime);
+	QObject::connect(ui->actualStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actual_start_time);
+	QObject::connect(ui->precisScanStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precis_scan_start_time);
+	QObject::connect(ui->precisScanEndTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precis_scan_end_time);
+	QObject::connect(ui->actualReturnTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actual_return_time);
 	// 2026-10-24 T92：Work 信号→Emis 已在 Work_Init 集中连接（2150-2152），此处原重复连接已删除（否则每时间点双报 EMIS）
 
 	QObject::connect(m_Work_Remote, &c_Work_Remote::RefreshMapList, ui->btn_RefreshMapList, &QPushButton::click);

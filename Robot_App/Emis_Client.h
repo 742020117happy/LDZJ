@@ -10,11 +10,11 @@ public:
 	virtual ~c_Emis_Remote();
 
 public slots:
-	void init();
-	void actualStartTime();//巡检开始时间
-	void precisScanStartTime();//精扫开始时间
-	void precisScanEndTime();//精扫结束时间
-	void actualReturnTime();//完成时间
+	void Init();
+	void actual_start_time();//巡检开始时间
+	void precis_scan_start_time();//精扫开始时间
+	void precis_scan_end_time();//精扫结束时间
+	void actual_return_time();//完成时间
 
 signals:
 	void Update_Done();

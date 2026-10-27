@@ -223,6 +223,27 @@
 
 **待现场**：T42（T41 现场验证清单）、T34（CGXi DO/CO 掩码写前规则，现场已验证有效，保留现状）
 
+### 5.35 第三十五阶段任务积压（全模块规范合规优化 TT 系列，2026-10-27 用户指令）
+
+> 用户指令：按 Qt5.12.1 + VS2015 msvc2015_64 编程规范，制定计划逐步优化完善各模块，修改不符合规范的代码。
+> 小步执行：每轮 1 任务 + MSBuild 编译验证；禁全项目格式化、禁大规模重构。
+
+| ID | 优先级 | 目标 | 内容 |
+|----|--------|------|------|
+| TT1 | P1 | 全项目 | 9 维度静态扫描生成违规清单：UTF-8 BOM/Tab 缩进/C++14（禁 C++17）/命名（c_Xxx/m_x/g_X/snake_case）/锁协议（非递归+读侧快照）/指针 nullptr 初始化/Qt 5.12.1 API/全局 getInstance 直访/死代码 |
+| TT2 | P1 | Variable/main/c_Log | 违规项修复 |
+| TT3 | P1 | ModeBusTCP_Client/ModeBusRTU_Master | 违规项修复 |
+| TT4 | P1 | Voice_Remote/IO_Remote | 违规项修复 |
+| TT5 | P1 | CGXi_Remote | 违规项修复 |
+| TT6 | P1 | Magic_Remote/HTTP_Client | 违规项修复 |
+| TT7 | P1 | Lczh_Remote/Scan_Client | 违规项修复 |
+| TT8 | P1 | Server_Remote/Robot_Server | 违规项修复 |
+| TT9 | P1 | Work_Remote | 违规项修复 |
+| TT10 | P1 | MySql_Remote/Emis_Client | 违规项修复 |
+| TT11 | P1 | Magic_Map_View/Lidar_View/Fr_Light | 违规项修复 |
+| TT12 | P1 | Robot_App_Widget | 违规项修复 |
+| TT13 | P2 | 终审 | 编译 0 错误 0 警告 + exe 部署 + 合规快照 |
+| TT14 | P2 | 文档 | 知识库/AGENTS.md/状态归档 |
 ## 6. 暂停与恢复
 
 - 暂停条件：用户叫停 / 全部任务 done / blocked ≥3

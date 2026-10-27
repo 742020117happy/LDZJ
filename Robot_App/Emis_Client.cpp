@@ -10,14 +10,14 @@ c_Emis_Remote::~c_Emis_Remote()
 	// 2026-10-24 T96：m_Mutex 为裸指针（init 时 new），析构释放防泄漏
 	if (m_Mutex) { delete m_Mutex; m_Mutex = nullptr; }
 }
-void c_Emis_Remote::init()
+void c_Emis_Remote::Init()
 {
 	m_Mutex = new QMutex;
 	m_Manager = new QNetworkAccessManager;
 	emit Status("Http 初始化！");
 }
 //巡检开始时间
-void c_Emis_Remote::actualStartTime() {
+void c_Emis_Remote::actual_start_time() {
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		emit Status("未在巡检中屏蔽巡检开始时间");
 		return;
@@ -25,7 +25,7 @@ void c_Emis_Remote::actualStartTime() {
 	c_Emis_Remote::Update_Info("actualStartTime"); 
 }
 //精扫开始时间
-void c_Emis_Remote::precisScanStartTime() { 
+void c_Emis_Remote::precis_scan_start_time() { 
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		emit Status("未在巡检中，屏蔽精扫开始时间");
 		return;
@@ -33,7 +33,7 @@ void c_Emis_Remote::precisScanStartTime() {
 	c_Emis_Remote::Update_Info("precisScanStartTime");
 }
 //精扫结束时间
-void c_Emis_Remote::precisScanEndTime() { 
+void c_Emis_Remote::precis_scan_end_time() { 
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		emit Status("未在巡检中，屏蔽精扫结束时间");
 		return;
@@ -41,7 +41,7 @@ void c_Emis_Remote::precisScanEndTime() {
 	c_Emis_Remote::Update_Info("precisScanEndTime");
 }
 //完成时间
-void c_Emis_Remote::actualReturnTime() { 
+void c_Emis_Remote::actual_return_time() { 
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		emit Status("未在巡检中，屏蔽发送完成时间");
 		return;

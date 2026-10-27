@@ -18,10 +18,10 @@ public slots:
 	void Prec_Scan_Write_Done(QString ip, int port, QString value);
 
 signals:
-	void actualStartTime();//巡检开始时间
-	void precisScanStartTime();//精扫开始时间
-	void precisScanEndTime();//精扫结束时间
-	void actualReturnTime();//完成时间
+	void actual_start_time();//巡检开始时间
+	void precis_scan_start_time();//精扫开始时间
+	void precis_scan_end_time();//精扫结束时间
+	void actual_return_time();//完成时间
 	// === 动作类（→ Widget 桥接到 Magic/IO/CGXi） ===
 	void RefreshMapList(bool check);//刷新地图列表
 	void SwitchMap(QString map);//加载地图
