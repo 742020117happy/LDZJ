@@ -87,8 +87,9 @@ void c_Scan_Client::Read_String()
 			// 2026-10-27 现场：相机心跳（100ms 高频）——仅状态变化才发 Camera_Status，且不打接收日志（防大量无用消息）
 			if (value.at(0) == "CAMERA") {
 				bool ok = (value.size() > 1 && value.at(1) == "OK");
-				if (ok != m_LastCameraOk) {
-					m_LastCameraOk = ok;
+				int okInt = ok ? 1 : 0;	// 2026-10-27 修正 C4805：bool 与 int 混合比较警告
+				if (okInt != m_LastCameraOk) {
+					m_LastCameraOk = okInt;
 					emit Camera_Status(ok);
 				}
 				return;
