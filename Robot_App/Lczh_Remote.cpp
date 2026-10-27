@@ -68,6 +68,19 @@ void c_Lczh_Remote::Init()
 	QObject::connect(&m_Scan_Tran, &c_Robot_Server::Read_Done, this, &c_Lczh_Remote::On_CGXi_Data);
 	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Read_String_Done, this, &c_Lczh_Remote::On_Camera_Feedback);
 
+	// 2026-10-27 现场：相机心跳桥接——CAMERA&OK/ERROR 更新相机状态（状态变化才输出，防持续心跳刷屏）
+	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Camera_Status, this, [this](bool ok) {
+		bool changed = false;
+		{
+			QWriteLocker locker(&c_Variable::g_lock);
+			changed = (c_Variable::getInstance().g_Prec_Scan_120.Camera_Ok != ok);
+			c_Variable::getInstance().g_Prec_Scan_120.Camera_Ok = ok;
+		}
+		if (changed) {
+			c_Log::Info("SCAN", "Camera", ok ? "status=ok" : "status=error");
+			emit Status(ok ? m_Camera_num + "相机状态：正常（CAMERA&OK）" : m_Camera_num + "相机状态：异常（CAMERA&ERROR）");
+		}
+	});
 	// 2026-10-26 现场：Scan_Client 文本状态桥接至模块日志（IP/端口显示于左精扫消息.log）
 	QObject::connect(&m_Scan_Remote, &c_Scan_Client::Status_Text, this, [this](QString msg) { emit Status(msg); });
 	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Status_Text, this, [this](QString msg) { emit Status(msg); });

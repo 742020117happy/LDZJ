@@ -24,6 +24,7 @@ signals:
 	void Write_String_Error(); //写错误
 	void Status(int state);//通讯状态
 	void Status_Text(QString msg);//2026-10-26 现场：文本状态（IP/端口日志桥接至模块分文件）
+	void Camera_Status(bool ok);//2026-10-27 现场：相机心跳（CAMERA&OK=true / CAMERA&ERROR=false）
 	void Collect(int num);
 
 private:

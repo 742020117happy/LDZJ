@@ -2216,8 +2216,8 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	// 2026-10-27 现场矫正：未连接（启动待机态）不报警——只有"连接过后断开"才算断连/相机故障
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		// 2026-10-27 现场定稿：cameraFail 仅检查 UDP 两通道（Remote/Monitor），不检查 TCP 转发服务（Tran）连接
-		bool cameraReadyNow = (c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected && c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected);
+		// 2026-10-27 现场定稿：cameraReady = UDP 双通道 + 相机心跳 CAMERA&OK（不含 TCP 转发服务）
+		bool cameraReadyNow = (c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected && c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected && c_Variable::getInstance().g_Prec_Scan_120.Camera_Ok);
 		if (cameraReadyNow) m_EverCameraReady = true;
 		cameraFail = m_EverCameraReady && !cameraReadyNow;
 	}

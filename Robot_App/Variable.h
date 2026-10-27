@@ -221,6 +221,7 @@ struct s_Scan_DB {
 	bool Monitor_Connected = false; // 精扫接收状态
 	bool Tran_Connected = false; // 精扫转发状态
 	bool Tran_Listen = false;//精扫监听
+	bool Camera_Ok = false; // 2026-10-27 现场：相机心跳状态（采集软件持续发 CAMERA&OK=正常 / CAMERA&ERROR=异常）
 	int num = 0;
 };
 // ==================== 轮对质检工作状态 ====================

@@ -92,7 +92,11 @@ void c_Scan_Client::Read_String()
 
 			if (value.isEmpty()) { return; }
 
-			if (value.at(0) == "CAMERA") { return; }
+			// 2026-10-27 现场：相机心跳——CAMERA&OK=正常 / CAMERA&ERROR=异常（不进入业务消息流）
+			if (value.at(0) == "CAMERA") {
+				emit Camera_Status(value.size() > 1 && value.at(1) == "OK");
+				return;
+			}
 
 			emit Read_String_Done(str);
 		}
