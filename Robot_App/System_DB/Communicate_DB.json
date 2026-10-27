@@ -79,7 +79,7 @@
   "Jaka_Monitor_Port": 10000,
   "Jaka_Remote_Port": 10001,
   "Left_Scan_Gain_Value": "25",
-  "Local_Ip": "192.168.3.35",
+  "Local_Ip": "192.168.6.35",
   "Local_Ip_2": "192.168.110.35",
   "Local_Monitor_Port": 520,
   "Local_Remote_Port": 521,
