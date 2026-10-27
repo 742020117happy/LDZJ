@@ -6495,13 +6495,6 @@
                       </property>
                      </widget>
                     </item>
-                    <item>
-                     <widget class="QLineEdit" name="lineEdit_TaskID">
-                      <property name="placeholderText">
-                       <string>任务ID</string>
-                      </property>
-                     </widget>
-                    </item>
                    </layout>
                   </widget>
                  </item>
