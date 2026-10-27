@@ -61,26 +61,57 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 {
 	/*{
 		"Cmd_Name": "START_INSPECTION",
-		"Value" : true,
-		"Checksum" : "A1B2C3D4",
-		"wheelsetCount" : 1,
-		"tasks" : [{
-			"taskId": "202610241506&20260109-0029&109-GBD-04990&CR400BF",
-			"carType" : "CR400BF",
-			"wheelsetKind" : "GBD",
-			"axleType" : "RD3A",
-			"wheelsetNo" : "109 GBD 04990",
-			"axleNo" : "AX-RD3A-261023-01",
+			"Value" : true,
+			"Checksum" : "1792843238257",
+			"wheelsetCount" : 2,
+			"tasks" : [
+		{
+			"taskId": "202610261352ZQM3B22328109M3B22328CRH380B",
+				"carType" : "CRH380B",
+				"wheelsetKind" : "M3B",
+				"axleType" : "22328",
+				"wheelsetNo" : "109M3B22328",
+				"axleNo" : "ZQM3B2232802",
+				"sendUnit" : "SHDCD",
+				"startTime" : "202610242000",
+				"repairLevel" : "L3",
+				"wheelsetPosition" : {
+				"posId": 1,
+					"mapPointName" : "Lunduizhijian001",
+					"positions" : [
+						"P1",
+							"P1.1",
+							"P4.1",
+							"P5",
+							"P6"
+					]
+			}
+		},
+		{
+			"taskId": "202610261352ZQM3B22079109M3B22079CRH380B",
+			"carType" : "CRH380B",
+			"wheelsetKind" : "M3B",
+			"axleType" : "22079",
+			"wheelsetNo" : "109M3B22079",
+			"axleNo" : "ZQM3B2207901",
 			"sendUnit" : "SHDCD",
-			"startTime" : "202610231631",
+			"startTime" : "202610242000",
 			"repairLevel" : "L3",
 			"wheelsetPosition" : {
-			"posId": 1,
-			"mapPointName" : "Lunduizhijian001",
-			"positions" : ["P1", "P1.1", "P2", "P3", "P4", "P4.1", "P5", "P6"]
-			}
-		}]
+			"posId": 2,
+				"mapPointName" : "Lunduizhijian001",
+				"positions" : [
+					"P1.1",
+						"P2",
+						"P3",
+						"P4",
+						"P4.1"
+				]
+		}
+		}
+			]
 	}*/
+
 	emit Status("接收到任务：" + QString(QJsonDocument(object).toJson()));
 	QJsonObject return_cmd;
 	return_cmd.insert("Cmd_Name", "START_INSPECTION");
@@ -366,10 +397,12 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		c_Variable::getInstance().g_Work_DB.taskId = t2.value("taskId").toString();
 		c_Variable::getInstance().g_Work_DB.carType = t2.value("carType").toString();
 		c_Variable::getInstance().g_Work_DB.wheelsetKind = t2.value("wheelsetKind").toString();
+		c_Variable::getInstance().g_Work_DB.axleType = t2.value("axleType").toString();	// 2026-10-27 协议核对补全
 		c_Variable::getInstance().g_Work_DB.wheelsetNo = t2.value("wheelsetNo").toString();
 		c_Variable::getInstance().g_Work_DB.axleNo = t2.value("axleNo").toString();
 		c_Variable::getInstance().g_Work_DB.sendUnit = t2.value("sendUnit").toString();
 		c_Variable::getInstance().g_Work_DB.repairLevel = t2.value("repairLevel").toString();
+		c_Variable::getInstance().g_Work_DB.posId = QString::number(posId_2);	// 2026-10-27 协议核对补全
 	}
 	if (!wait_StartRecharge("P0")) { fail_step("回充失败", "PA008"); return; }
 	msleep(5000);//等待系统响应
