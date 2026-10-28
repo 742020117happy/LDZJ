@@ -545,28 +545,30 @@ bool c_Work_Remote::wait_StartTask(QString task_name)
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
 
 	// 2026-10-28 用户定稿：定位失败判定——官方 is_finished=true 无法区分"完成/无法到达"，
-	// 任务结束后比对机器人当前栅格坐标与目标点栅格坐标距离（×分辨率换算米），
-	// 超阈值判定位失败退出（防机械臂在错误工位动作碰撞）
+	// 任务结束后比对机器人当前栅格坐标/角度与目标点栅格坐标/角度，
+	// 距离超阈值或角度偏差超阈值均判定位失败退出（防机械臂在错误工位动作碰撞）
 	{
-		double rx = 0, ry = 0, tx = 0, ty = 0, res = 0.05;
+		double rx = 0, ry = 0, ra = 0, tx = 0, ty = 0, ta = 0, res = 0.05;
 		bool found = false;
 		{
 			QReadLocker locker(&c_Variable::g_lock);
 			rx = c_Variable::getInstance().g_Magic.ReadData.gridX;
 			ry = c_Variable::getInstance().g_Magic.ReadData.gridY;
+			ra = c_Variable::getInstance().g_Magic.ReadData.angle;
 			res = c_Variable::getInstance().g_Magic.ReadData.resolution;
 			const QList<QJsonObject> &pts = c_Variable::getInstance().g_Magic.ReadData.navPoints;
 			for (const QJsonObject &obj : pts) {
 				if (obj["name"].toString() == task_name) {
 					tx = obj["gridX"].toDouble();
 					ty = obj["gridY"].toDouble();
+					ta = obj["angle"].toDouble();
 					found = true;
 					break;
 				}
 			}
 		}
 		// 2026-10-28 用户定稿：定位正常判定=导航任务完成（已由 StartTask_Done 退出保证）
-		// 且坐标距离正常（目标点在导航点列表且距离≤阈值）；其他一律定位异常 → 失败报警
+		// 且坐标距离+角度偏差均正常；其他一律定位异常 → 失败报警
 		if (!found) {
 			c_Log::Error("WORK", "Nav", QString("locate failed name=%1 not in navPoints").arg(task_name));
 			emit Status("导航定位失败：" + task_name + " 不在导航点列表，终止任务并报警");
@@ -578,7 +580,14 @@ bool c_Work_Remote::wait_StartTask(QString task_name)
 			emit Status(QString("导航定位失败：%1 距目标 %.2f 米（>%.2f），终止任务并报警").arg(task_name).arg(distM).arg(m_NavArriveTolerance));
 			return false;
 		}
-		c_Log::Info("WORK", "Nav", QString("locate ok name=%1 dist=%.2fm").arg(task_name).arg(distM));
+		double angDiff = qAbs(ra - ta);	// 2026-10-28 用户定稿：角度偏差判定（环形差处理）
+		if (angDiff > 180.0) { angDiff = 360.0 - angDiff; }
+		if (angDiff > m_NavAngleTolerance) {
+			c_Log::Error("WORK", "Nav", QString("locate failed name=%1 angDiff=%.1f° tol=%.1f°").arg(task_name).arg(angDiff).arg(m_NavAngleTolerance));
+			emit Status(QString("导航定位失败：%1 角度偏差 %.1f°（>%.1f°），终止任务并报警").arg(task_name).arg(angDiff).arg(m_NavAngleTolerance));
+			return false;
+		}
+		c_Log::Info("WORK", "Nav", QString("locate ok name=%1 dist=%.2fm ang=%.1f°").arg(task_name).arg(distM).arg(angDiff));
 	}
 	emit Status("导航点移动完成");
 	return true;
