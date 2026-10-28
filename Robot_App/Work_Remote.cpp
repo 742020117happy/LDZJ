@@ -293,12 +293,14 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	c_Variable::getInstance().g_Work.Connected = true;
 
 	if (!wait_IO_Robot_ON()) { fail_step("机械臂开机失败", "PA003"); return; }
-	if (!wait_Dis_Recharge()) { fail_step("机器人脱桩失败", "PA008"); return; }
 	if (!wait_RefreshMapList()) { fail_step("机器人刷新地图失败", "PA007"); return; }
 	if (!wait_SwitchMap(mapPointName)) { fail_step("机器人加载地图失败", "PA007"); return; }
 	if (!wait_RefreshNavPoints()) { fail_step("机器人刷新导航点失败", "PA007"); return; }
 	if (!wait_DynamicInit("P001")) { fail_step("机器人动态初始化失败", "PA022"); return; }
 	emit Voice_Event("PA014");	// 2026-10-25 FF1：初始化运行完成
+	// 2026-10-28 用户定稿：初始化点 P001=充电位置（与回充点 P0 同位置不同功能）——
+	// 先动态初始化 P001，再脱桩（原顺序脱桩→初始化，调整为初始化→脱桩）
+	if (!wait_Dis_Recharge()) { fail_step("机器人脱桩失败", "PA008"); return; }
 	if (!wait_Coils_1001()) { fail_step("机械臂使能失败", "PA003"); return; }
 
 	// ================= 5. 配方加载与三层查找（T89） =================
@@ -544,7 +546,7 @@ bool c_Work_Remote::wait_StartTask(QString task_name)
 	emit Status("导航点移动完成");
 	return true;
 }
-//等待脱离充电桩（2026-10-24 T45：脱离过程机器人自动移动到初始化点 P001，完成后才能动态初始化）
+//等待脱离充电桩（2026-10-28 用户定稿：动态初始化 P001（充电位置）完成后才脱桩；脱桩后机器人可移动至各巡检点）
 bool c_Work_Remote::wait_Dis_Recharge()
 {
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }
