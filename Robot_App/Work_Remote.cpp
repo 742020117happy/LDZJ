@@ -505,6 +505,7 @@ void c_Work_Remote::Switch_Work_Station(const QJsonObject &src, int stationPosId
 	c_Variable::getInstance().g_Work_DB.repairLevel   = src.value("repairLevel").toString();
 	c_Variable::getInstance().g_Work_DB.mapPointName  = src.value("wheelsetPosition").toObject().value("mapPointName").toString();
 	c_Variable::getInstance().g_Work_DB.posId         = QString::number(stationPosId);
+	c_Variable::getInstance().g_Work_DB.currentTaskIndex = stationPosId - 1;	// 2026-10-28 用户定稿：UI"轮对 x/总数"与 WEB 上报随工位切换（0=任务1/1=任务2）
 	c_Log::Info("WORK", "Station", QString("switch station posId=%1 task=%2").arg(stationPosId).arg(src.value("taskId").toString()));
 }
 
