@@ -9,6 +9,7 @@
 > **WEB TCP 服务**：Robot_App 监听 192.168.6.35:520（配置 Local_IP/Server_Port）。
 > **WEB 状态查询定稿（2026-10-28）**：工作站以 500ms 频率发 Read_Ready 查询；反馈状态 JSON **Key 全中文**（状态/时间/任务 21 字段/底盘/机械臂/相机/IO模块/语音/服务/最近报警 10 段）；Read_Ready 查询类指令抑制中心日志与 UI 状态（防 500ms 刷屏）。
 > **导航定位判定定稿（2026-10-28）**：任务完成+目标点在 navPoints+距离 ≤1.5m+角度偏差 ≤10°（环形差）才判定位正常，其他一律失败报警（防机械臂错误工位碰撞）。
+> **工位采集上下文切换铁律（2026-10-28 用户定稿）**：双工位走行每点采集前 `Switch_Work_Station(t1/t2, posId/posId_2)` 实时切换 g_Work_DB 12 项字段（taskId/carType/wheelsetKind/axleType/wheelsetNo/axleNo/sendUnit/startTime/repairLevel/mapPointName/positions/posId/currentTaskIndex）——保证 START/PHOTO/FINISH 帧、文件名、数据库、EMIS、UI/WEB 显示与当前工位一致；共用点（P1.1/P4.1）先 1 后 2 两次切换。消费方一律实时读 g_Work_DB，禁止缓存工位字段。
 > **图像采集协议（质检机器人图像采集协议.docx，2026-10-26 学习固化）**：
 > - START：`START&{sendUnit}&{yyyyMMdd}&{HHmm}&{carType}{wheelsetKind}&{taskId}`（第5段=车型轮对类型）
 > - CHANGE：`CHANGE&GAIN&{gain}`
