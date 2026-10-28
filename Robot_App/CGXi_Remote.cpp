@@ -51,7 +51,7 @@ void c_CGXi_Remote::Init() {
 	QObject::connect(m_ModeBusTCP, &c_ModeBusTCP_Client::Read_HoldingRegisters_Error, this, &c_CGXi_Remote::Read_HoldingRegisters_Done);
 	QObject::connect(m_ModeBusTCP, &c_ModeBusTCP_Client::Connect_Done, this, &c_CGXi_Remote::Connect_Done);
 	QObject::connect(m_ModeBusTCP, &c_ModeBusTCP_Client::Disconnect_Done, this, &c_CGXi_Remote::Disconnect_Done);
-	QObject::connect(m_ModeBusTCP, &c_ModeBusTCP_Client::Status, this, [=](int state) {emit Status("CGXi遥控： " + Modbus_Status(state)); });
+	QObject::connect(m_ModeBusTCP, QOverload<int>::of(&c_ModeBusTCP_Client::Status), this, [=](int state) {emit Status("CGXi遥控： " + Modbus_Status(state)); });
 
 	m_ModeBusTCP_Thread->start();
 	QTimer::singleShot(1500, this, &c_CGXi_Remote::Connect);

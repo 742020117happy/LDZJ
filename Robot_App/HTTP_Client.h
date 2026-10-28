@@ -10,7 +10,7 @@
 #include <QVariant>
 #include <QList>
 
-class c_HTTP_Client : public QObject
+class c_HTTP_Client : public c_Object	// 2026-10-28 YY1：通讯层共有父类 c_Object（三层架构定稿）
 {
 	Q_OBJECT
 public:
@@ -41,7 +41,6 @@ signals:
 	void Response_Done(QString api, QJsonObject body);
 	void Response_Raw_Done(QString api, QByteArray data);  // 二进制响应
 	void Response_Error(QString api, QString error_msg);
-	void Status(QString val);
 	private slots:
 	void Read_Ready(QNetworkReply *reply);
 

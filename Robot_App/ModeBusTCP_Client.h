@@ -23,7 +23,7 @@ struct s_ModBus_DB {
 // ================= 2. 注册元类型 =================
 Q_DECLARE_METATYPE(s_ModBus_DB)
 
-class c_ModeBusTCP_Client : public QObject
+class c_ModeBusTCP_Client : public c_Object	// 2026-10-28 YY1：通讯层共有父类 c_Object
 {
 	Q_OBJECT
 public:

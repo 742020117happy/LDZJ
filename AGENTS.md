@@ -26,6 +26,14 @@
 - **知识库**：`D:\Robot_App\轮对质检\知识库.md`（§1-§37，第十一阶段将新增 §38+ 模块学习章节）
 - **状态文件**：`重构状态.md` / `重构日志.md`（本目录）
 
+
+## 1.5 三层架构定稿（2026-10-28 用户定稿）
+
+- **界面层**（c_Robot_App_Widget + 视图组件）：实例化 UI 界面与所有业务层线程；只做界面刷新与信号槽桥接，不做协议解析/业务逻辑
+- **通讯层**（HTTP_Client/ModeBusTCP_Client/ModeBusRTU_Master/Scan_Client/Robot_Server）：只负责协议数据交换（收发），不做解析和业务逻辑处理
+- **业务层**（Magic/IO/CGXi/Voice/Lczh/Work/Server_Remote/MySql/Emis）：组合通讯层对象，完成协议解析与业务逻辑
+- **数据存储**：业务层解析的数据均在 c_Variable 全局变量中存储；各线程直接经 `c_Variable::getInstance().g_Xxx` 应用，禁止通过中间变量/引用别名
+- **公共父类**：c_Object 为业务层与通讯层共有父类（通用函数如非阻塞延时 msleep、模板接口）；界面视图类按 Qt 继承 QWidget/QMainWindow
 ## 2. 技术规范（硬约束）
 
 | 项 | 约束 |
@@ -255,6 +263,17 @@
 | VV2 | P1 | 全项目 | 索引遍历 range-for 现代化（19 处中安全可改项：纯读取遍历；带索引依赖/中断语义的不动） |
 | VV3 | P2 | 全项目 | C++14 风格终查：nullptr/static_cast/auto 用法一致性抽查 |
 | VV4 | P2 | 终审 | 编译 0 错误 0 警告 + exe 部署 + 合规快照 + 知识库/状态归档 |
+### 5.38 第三十九阶段任务积压（三层架构合规 YY 系列，2026-10-28 用户定稿）
+
+> 用户定稿：界面层/业务层/通讯层三层架构；通讯层只做数据交换不做解析；业务层解析数据入 c_Variable 全局直访；
+> c_Object 为业务层+通讯层共有父类。小步执行：每轮 1 任务 + MSBuild 编译验证。
+
+| ID | 优先级 | 目标 | 内容 |
+|----|--------|------|------|
+| YY1 | P1 | 通讯层 5 类 | 继承改 c_Object（HTTP_Client/ModeBusTCP_Client/ModeBusRTU_Master/Scan_Client/Robot_Server，原继承 QObject） |
+| YY2 | P1 | 通讯层 | 解析/业务残留核查（Scan_Client Status 13 处/HTTP_Client JSON 参数边界/Robot_Server 写帧） |
+| YY3 | P1 | Robot_App_Widget | 界面层业务泄漏：StartTask taskData 构造移至 Work_Remote（业务层） |
+| YY4 | P2 | 终审 | 编译 0 错误 0 警告 + exe 部署 + 知识库/状态归档 |
 ## 6. 暂停与恢复
 
 - 暂停条件：用户叫停 / 全部任务 done / blocked ≥3

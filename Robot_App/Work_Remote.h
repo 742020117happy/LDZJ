@@ -27,7 +27,7 @@ signals:
 	void SwitchMap(QString map);//加载地图
 	void RefreshNavPoints(bool check);//刷新导航点列表
 	void DynamicInit(QString point);//动态初始化
-	void StartTask(QString task_name);//导航点移动
+	void StartTask(QJsonObject task_data);//导航点移动（2026-10-28 YY3：taskData 构造移入业务层，界面层只桥接）
 	void StartRecharge(QString point);//回充
 	void Dis_Recharge();//脱离充电桩（2026-10-24 T45，Widget 桥到 Magic）
 

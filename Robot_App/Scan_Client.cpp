@@ -1,7 +1,7 @@
 ﻿#pragma execution_character_set("utf-8")
 #include "Scan_Client.h"
 
-c_Scan_Client::c_Scan_Client(QObject *parent) : QObject(parent)
+c_Scan_Client::c_Scan_Client(QObject *parent) : c_Object(parent)	// 2026-10-28 YY1
 {
 
 }

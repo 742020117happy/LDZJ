@@ -2172,34 +2172,8 @@ void c_Robot_App_Widget::Work_Button()
 				Q_ARG(QString, curMap), Q_ARG(QString, pointName));
 	});
 
-	QObject::connect(m_Work_Remote, &c_Work_Remote::StartTask, this, [=](QString TaskName) {
-		if (TaskName.isEmpty()) {
-			QMessageBox::warning(this, "提示", "请选择任务");
-			return;
-		}
-		// 2026-10-24 T98：ReadData 跨线程写，读侧持读锁快照
-		QString curMap;
-		{
-			QReadLocker locker(&c_Variable::g_lock);
-			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
-		}
-		QJsonObject taskData;
-		taskData.insert("map_name", curMap);
-		taskData.insert("loop", false);
-		taskData.insert("loop_count", 1);
-		QJsonArray tasks;
-		QJsonObject task;
-		QJsonObject start_param;
-		
-		start_param.insert("map_name", curMap);
-		start_param.insert("position_name", TaskName);
-
-		task.insert("name", "NavigationPointTask");
-		task.insert("start_param", start_param);
-
-		tasks.append(task);
-
-		taskData.insert("tasks", tasks);
+	QObject::connect(m_Work_Remote, &c_Work_Remote::StartTask, this, [=](QJsonObject taskData) {
+		// 2026-10-28 YY3：taskData 由业务层（Work_Remote）构造，界面层仅桥接至底盘业务对象
 		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection, Q_ARG(QJsonObject, taskData));
 	});
 

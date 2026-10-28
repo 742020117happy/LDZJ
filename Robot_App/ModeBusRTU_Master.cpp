@@ -17,7 +17,7 @@
  *   - Modbus over Serial Line V1.02：CRC16 低字节在前、t3.5 帧间静默、有限重试
  ******************************************************************************/
 
-c_ModeBusRTU_Master::c_ModeBusRTU_Master(QObject *parent) : QObject(parent) {
+c_ModeBusRTU_Master::c_ModeBusRTU_Master(QObject *parent) : c_Object(parent)	/* 2026-10-28 YY1 */ {
 	qRegisterMetaType<s_ModBus_DB>("s_ModBus_DB");
 }
 

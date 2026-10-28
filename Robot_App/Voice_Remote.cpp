@@ -78,7 +78,7 @@ void c_Voice_Remote::Init() {
 	QObject::connect(m_Voice_Remote, &c_ModeBusRTU_Master::Frame_Log, this, [this](QString msg) {
 		emit Status("语音播报器：" + msg);
 	});
-	QObject::connect(m_Voice_Remote, &c_ModeBusRTU_Master::Status, this, [=](int state) {
+	QObject::connect(m_Voice_Remote, QOverload<int>::of(&c_ModeBusRTU_Master::Status), this, [=](int state) {
 		emit Status("语音播报器：" + Modbus_Status(state));
 	});
 

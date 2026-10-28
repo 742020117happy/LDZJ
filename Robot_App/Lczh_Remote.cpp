@@ -94,9 +94,9 @@ void c_Lczh_Remote::Init()
 	QObject::connect(&m_Scan_Tran, &c_Robot_Server::Listen_Done, this, &c_Lczh_Remote::Scan_Tran_Listen_Done);
 
 	// ====== 状态日志 ======
-	QObject::connect(&m_Scan_Tran, &c_Robot_Server::Status, this, [=](int state) { emit Status(m_Camera_num + "相机指令：" + TCP_Status(state)); });
-	QObject::connect(&m_Scan_Remote, &c_Scan_Client::Status, this, [=](int state) { emit Status(m_Camera_num + "相机采集：" + TCP_Status(state)); });
-	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Status, this, [=](int state) { emit Status(m_Camera_num + "相机反馈：" + TCP_Status(state)); });
+	QObject::connect(&m_Scan_Tran, QOverload<int>::of(&c_Robot_Server::Status), this, [=](int state) { emit Status(m_Camera_num + "相机指令：" + TCP_Status(state)); });
+	QObject::connect(&m_Scan_Remote, QOverload<int>::of(&c_Scan_Client::Status), this, [=](int state) { emit Status(m_Camera_num + "相机采集：" + TCP_Status(state)); });
+	QObject::connect(&m_Scan_Monitor, QOverload<int>::of(&c_Scan_Client::Status), this, [=](int state) { emit Status(m_Camera_num + "相机反馈：" + TCP_Status(state)); });
 
 	m_Remote_Thread->start();
 	m_Monitor_Thread->start();

@@ -16,7 +16,7 @@
 #include <QVariant>
 
 // ================= 生命周期管理 =================
-c_HTTP_Client::c_HTTP_Client(QObject *parent) : QObject(parent) {}
+c_HTTP_Client::c_HTTP_Client(QObject *parent) : c_Object(parent) {}	// 2026-10-28 YY1：继承 c_Object
 
 // 析构：断开设备连接，释放网络管理器
 c_HTTP_Client::~c_HTTP_Client() {

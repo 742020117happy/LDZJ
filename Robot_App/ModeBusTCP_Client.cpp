@@ -2,7 +2,8 @@
 #include "ModeBusTCP_Client.h"
 
 // 构造：注册s_ModBus_DB元类型（确保跨线程信号槽可传递）
-c_ModeBusTCP_Client::c_ModeBusTCP_Client(QObject *parent) : QObject(parent) {
+c_ModeBusTCP_Client::c_ModeBusTCP_Client(QObject *parent) : c_Object(parent)	// 2026-10-28 YY1：继承 c_Object
+{
 	qRegisterMetaType<s_ModBus_DB>("s_ModBus_DB");
 }
 

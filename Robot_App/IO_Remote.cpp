@@ -69,7 +69,7 @@ void c_IO_Remote::Init()
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_HoldingRegisters_Error, this, &c_IO_Remote::Read_HoldingRegisters_Done);
 
 	// 状态日志
-	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Status, this, [this](int state) { emit Status("IO模块：" + Modbus_Status(state)); });
+	QObject::connect(m_IO_Remote, QOverload<int>::of(&c_ModeBusTCP_Client::Status), this, [this](int state) { emit Status("IO模块：" + Modbus_Status(state)); });
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_Coils_Error, this, [this](s_ModBus_DB) { emit Status("IO模块：读线圈失败"); });
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_DiscreteInputs_Error, this, [this](s_ModBus_DB) { emit Status("IO模块：读离散输入失败"); });
 	QObject::connect(m_IO_Remote, &c_ModeBusTCP_Client::Read_HoldingRegisters_Error, this, [this](s_ModBus_DB) { emit Status("IO模块：读保持寄存器失败"); });

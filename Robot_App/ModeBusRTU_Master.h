@@ -42,7 +42,7 @@
  *   - 响应校验：FC05/06 全回声逐字节一致；FC0F/10 为短确认帧（地址+功能码+
  *     起始地址+数量，如 01 10 00 03 00 02 B1 C8），统一按前 6 字节校验
  ******************************************************************************/
-class c_ModeBusRTU_Master : public QObject
+class c_ModeBusRTU_Master : public c_Object	/* 2026-10-28 YY1：通讯层共有父类 c_Object */
 {
 	Q_OBJECT
 public:

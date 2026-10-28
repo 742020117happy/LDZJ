@@ -537,7 +537,27 @@ bool c_Work_Remote::wait_StartTask(QString task_name)
 	QObject::connect(this, &c_Work_Remote::StartTask_Failed, &loop, [&loop]() { loop.exit(1); });	// 2026-10-25 D-006：exit-code 模式（receiver=loop 析构自动断连）
 	QObject::connect(this, &c_Work_Remote::Task_Cancelled, &loop, &QEventLoop::quit);
 	emit Status("等待导航点移动 " + task_name);
-	emit StartTask(task_name);   
+	// 2026-10-28 YY3：导航任务协议数据构造移入业务层（三层架构定稿：界面层只桥接不做业务）
+	{
+		QJsonObject taskData;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			const QString curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
+			taskData.insert("map_name", curMap);
+			taskData.insert("loop", false);
+			taskData.insert("loop_count", 1);
+			QJsonArray tasks;
+			QJsonObject task;
+			QJsonObject start_param;
+			start_param.insert("map_name", curMap);
+			start_param.insert("position_name", task_name);
+			task.insert("name", "NavigationPointTask");
+			task.insert("start_param", start_param);
+			tasks.append(task);
+			taskData.insert("tasks", tasks);
+		}
+		emit StartTask(taskData);
+	}
 
 	if (loop.exec() != 0) { emit Status("导航任务启动失败"); return false; }
 	if (!c_Variable::getInstance().g_Work.Connected) { return false; }

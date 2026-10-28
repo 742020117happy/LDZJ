@@ -36,7 +36,7 @@ void c_Server_Remote::Init()
 		m_Robot_Server, &c_Robot_Server::deleteLater);
 
 	// 底层状态日志
-	QObject::connect(m_Robot_Server, &c_Robot_Server::Status,
+	QObject::connect(m_Robot_Server, QOverload<int>::of(&c_Robot_Server::Status),
 		this, [=](int state) {
 		emit Status(QString::number(m_Port) + "->服务：错误码 " + QString::number(state));
 	});
