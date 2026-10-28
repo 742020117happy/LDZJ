@@ -383,31 +383,6 @@ void c_Robot_App_Widget::Magic_DB()
 		Write_Communicate_DB("Magic_Pass", text);
 	});
 
-	// ---------- 速度配置 ----------
-	QObject::connect(ui->spin_GoalSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.maxSpeedGoal = v; });
-	QObject::connect(ui->spin_GraphSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.maxSpeedGraph = v; });
-	QObject::connect(ui->spin_RecordSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.maxSpeedRecord = v; });
-
-	// ---------- 移动控制参数 ----------
-	QObject::connect(ui->spin_LinearSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.linearSpeed = v; });
-	QObject::connect(ui->spin_AngularSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.angularSpeed = v; });
-	QObject::connect(ui->spin_MoveTarget, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.moveTarget = v; });
-	QObject::connect(ui->combo_MoveMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
-		this, [this](int idx) { c_Variable::getInstance().g_Magic.WriteData.moveMode = idx + 1; });
-
-	// ---------- 定点导航输入 ----------
-	QObject::connect(ui->spin_FixedX, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.fixedNavX = v; });
-	QObject::connect(ui->spin_FixedY, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.fixedNavY = v; });
-	QObject::connect(ui->spin_FixedAngle, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		this, [this](double v) { c_Variable::getInstance().g_Magic.WriteData.fixedNavAngle = v; });
 
 	// ---------- 充电点名称 ----------
 	QObject::connect(ui->lineEdit_ChargePoint, &QLineEdit::textChanged,
@@ -527,7 +502,6 @@ void c_Robot_App_Widget::Magic_Scan()
 	setIf(ui->lineEdit_ErrorCode, QString::number(r.errorCode));
 	setIf(ui->lineEdit_ChassisVer, r.chassisVersion);
 	setIf(ui->lineEdit_NavVer, r.navigationVersion);
-	setIf(ui->lineEdit_MAC, r.sysMac);
 
 	// ========== IMU数据 ==========
 	setIf(ui->lineEdit_IMU_AVX, QString::number(r.imuAngVelX, 'f', 4));
@@ -555,11 +529,6 @@ void c_Robot_App_Widget::Magic_Scan()
 	setIf(ui->lineEdit_US_RF,  QString::number(r.ultrasonicRF, 'f', 0));
 	setIf(ui->lineEdit_US_RR2, QString::number(r.ultrasonicRR2, 'f', 0));
 
-	// ========== GPS ==========
-	setIf(ui->lineEdit_GPS_Lat, QString::number(r.gpsLatitude, 'f', 6));
-	setIf(ui->lineEdit_GPS_Lon, QString::number(r.gpsLongitude, 'f', 6));
-	setIf(ui->lineEdit_GPS_Alt, QString::number(r.gpsAltitude, 'f', 2));
-
 	// ========== 实时位姿 ==========
 	setIf(ui->lineEdit_CurrentMap, r.currentMap);
 	setIf(ui->lineEdit_WX, QString::number(r.worldX, 'f', 2));
@@ -577,13 +546,6 @@ void c_Robot_App_Widget::Magic_Scan()
 	case 4: chargeStr = "充电成功"; break;
 	default: chargeStr = "待命"; break;
 	}
-	setLblIf(ui->lbl_ChargeStatus, chargeStr);
-
-	// ========== 任务进度 ==========
-	setLblIf(ui->label_TaskStatusText, r.taskStatus == 1 ? "运行中" : "空闲");
-	if (ui->progress_Task) { int pv = r.taskProgress > 0.0 ? static_cast<int>(r.taskProgress * 100) : 0; if (ui->progress_Task->value() != pv) ui->progress_Task->setValue(pv); }
-	setLblIf(ui->label_RemainTimeValue, r.taskRemainSec > 0 ? QString::number(r.taskRemainSec) + "s" : "--");
-	setLblIf(ui->label_LoopInfo, QString("循环: %1/%2").arg(r.taskLoopTimes).arg(r.taskLoopCount));
 
 	// ========== 相机画面刷新（Qt scaledContents 自动缩放适配） ==========
 	// 2026-10-25 JJ1：cacheKey 变化检测——10ms 扫描下同一帧被重复 QPixmap 转换+setPixmap ≈10 次（10Hz 新帧时冗余 90%），
@@ -652,24 +614,6 @@ void c_Robot_App_Widget::Magic_Button()
 		if (!curMap.isEmpty())
 			QMetaObject::invokeMethod(m_Magic_Remote, "Dynamic_Init_Pose", Qt::QueuedConnection,
 				Q_ARG(QString, curMap), Q_ARG(QString, pointName));
-	});
-	QObject::connect(ui->btn_GridInit, &QPushButton::clicked, this, [this]() {
-		// 2026-10-24 T98：ReadData 跨线程写，读侧持读锁快照
-		QString curMap; int gx, gy; double ang;
-		{
-			QReadLocker locker(&c_Variable::g_lock);
-			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
-			gx = c_Variable::getInstance().g_Magic.ReadData.gridX;
-			gy = c_Variable::getInstance().g_Magic.ReadData.gridY;
-			ang = c_Variable::getInstance().g_Magic.ReadData.angle;
-		}
-		if (!curMap.isEmpty())
-			QMetaObject::invokeMethod(m_Magic_Remote, "Temp_Point_Init_Pose", Qt::QueuedConnection,
-				Q_ARG(QString, curMap), Q_ARG(int, gx), Q_ARG(int, gy),
-				Q_ARG(double, ang), Q_ARG(int, 1));
-	});
-	QObject::connect(ui->btn_InitResult, &QPushButton::clicked, this, [this]() {
-		QMetaObject::invokeMethod(m_Magic_Remote, "Get_Init_Pose_Result", Qt::QueuedConnection);
 	});
 	QObject::connect(ui->btn_StaticInit, &QPushButton::clicked, this, [this]() {
 		QString pointName = ui->combo_InitPoint->currentText();
@@ -794,141 +738,6 @@ void c_Robot_App_Widget::Magic_Button()
 		QMetaObject::invokeMethod(m_Magic_Remote, "Stop_Task", Qt::QueuedConnection);
 	});
 
-	// 任务日志与图片
-	QObject::connect(ui->btn_GetTaskLog, &QPushButton::clicked, this, [&]() {
-		// 2026-10-24 T99：ReadData 跨线程写，读侧持读锁快照
-		QString curMap;
-		{
-			QReadLocker locker(&c_Variable::g_lock);
-			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
-		}
-		QMetaObject::invokeMethod(m_Magic_Remote, "Get_Task_Log", Qt::QueuedConnection,
-			Q_ARG(QString, ""), Q_ARG(QString, ""), Q_ARG(QString, curMap));
-	});
-
-
-	// ========== 定点导航 ==========
-	QObject::connect(ui->btn_FixedNavStart, &QPushButton::clicked, this, [&]() {
-		// 2026-10-24 T99：ReadData 跨线程写，读侧持读锁快照
-		QString curMap;
-		{
-			QReadLocker locker(&c_Variable::g_lock);
-			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
-		}
-		QJsonObject taskData;
-		taskData.insert("map_name", curMap);
-		taskData.insert("loop", false);
-		taskData.insert("loop_count", 1);
-		QJsonObject dest;
-		dest.insert("angle", c_Variable::getInstance().g_Magic.WriteData.fixedNavAngle);
-		dest.insert("gridPosition", QJsonObject{ { "x", c_Variable::getInstance().g_Magic.WriteData.fixedNavX },{ "y", c_Variable::getInstance().g_Magic.WriteData.fixedNavY } });
-		QJsonArray tasks;
-		QJsonObject task;
-		task.insert("name", "NavigationPositionTask");
-		task.insert("start_param", QJsonObject{ { "destination", dest } });
-		tasks.append(task);
-		taskData.insert("tasks", tasks);
-		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection,
-			Q_ARG(QJsonObject, taskData));
-	});
-
-	QObject::connect(ui->btn_FixedNavLoop, &QPushButton::clicked, this, [&]() {
-		QJsonObject taskData;
-		taskData.insert("map_name", c_Variable::getInstance().g_Magic.ReadData.currentMap);
-		taskData.insert("loop", true);
-		taskData.insert("loop_count", c_Variable::getInstance().g_Magic.WriteData.loopCount);
-		QJsonObject dest;
-		dest.insert("angle", c_Variable::getInstance().g_Magic.WriteData.fixedNavAngle);
-		dest.insert("gridPosition", QJsonObject{ { "x", c_Variable::getInstance().g_Magic.WriteData.fixedNavX },{ "y", c_Variable::getInstance().g_Magic.WriteData.fixedNavY } });
-		QJsonArray tasks;
-		QJsonObject task;
-		task.insert("name", "NavigationPositionTask");
-		task.insert("start_param", QJsonObject{ { "destination", dest } });
-		tasks.append(task);
-		taskData.insert("tasks", tasks);
-		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection,
-			Q_ARG(QJsonObject, taskData));
-	});
-
-	// ========== 系统设置 ==========
-	QObject::connect(ui->btn_UpdateSpeed, &QPushButton::clicked, this, [this]() {
-		// 2026-10-24 CC：直接访问（原 w 别名已消除）
-		QJsonObject setting;
-		QJsonObject speed;
-		speed.insert("goal_follow", c_Variable::getInstance().g_Magic.WriteData.maxSpeedGoal);
-		speed.insert("graph_follow", c_Variable::getInstance().g_Magic.WriteData.maxSpeedGraph);
-		speed.insert("record_follow", c_Variable::getInstance().g_Magic.WriteData.maxSpeedRecord);
-		setting.insert("max_speed", speed);
-		QMetaObject::invokeMethod(m_Magic_Remote, "Update_Robot_Setting", Qt::QueuedConnection,
-			Q_ARG(QJsonObject, setting));
-	});
-
-	// ========== Logo/背景管理 ==========
-	if (ui->btn_GetLogoBase64) {
-		QObject::connect(ui->btn_GetLogoBase64, &QPushButton::clicked, this, [this]() {
-			QMetaObject::invokeMethod(m_Magic_Remote, "Get_Logo_Base64", Qt::QueuedConnection);
-		});
-	}
-	if (ui->btn_GetBackgroundBase64) {
-		QObject::connect(ui->btn_GetBackgroundBase64, &QPushButton::clicked, this, [this]() {
-			QMetaObject::invokeMethod(m_Magic_Remote, "Get_Background_Base64", Qt::QueuedConnection);
-		});
-	}
-
-	// ========== 日志管理 ==========
-	if (ui->btn_DownLogs) {
-		QObject::connect(ui->btn_DownLogs, &QPushButton::clicked, this, [this]() {
-			QString logType = ui->combo_LogType ? ui->combo_LogType->currentText() : "operation";
-			QString fileName = ui->lineEdit_LogFileName ? ui->lineEdit_LogFileName->text() : "";
-			QMetaObject::invokeMethod(m_Magic_Remote, "Down_Logs", Qt::QueuedConnection,
-				Q_ARG(QString, logType), Q_ARG(QString, fileName));
-		});
-	}
-	if (ui->btn_DropLogs) {
-		QObject::connect(ui->btn_DropLogs, &QPushButton::clicked, this, [this]() {
-			QString logType = ui->combo_LogType ? ui->combo_LogType->currentText() : "operation";
-			QString fileName = ui->lineEdit_LogFileName ? ui->lineEdit_LogFileName->text() : "";
-			if (fileName.isEmpty()) {
-				QMessageBox::warning(this, "提示", "删除日志需要指定文件名");
-				return;
-			}
-			QMetaObject::invokeMethod(m_Magic_Remote, "Drop_Logs", Qt::QueuedConnection,
-				Q_ARG(QString, logType), Q_ARG(QString, fileName));
-		});
-	}
-
-	// ========== 相机按钮 ==========
-	if (ui->btn_GetFrontRGB) {
-		QObject::connect(ui->btn_GetFrontRGB, &QPushButton::clicked, this, [this]() {
-			QMetaObject::invokeMethod(m_Magic_Remote, "Get_Ahl1_RGB_Img", Qt::QueuedConnection);
-		});
-	}
-	if (ui->btn_GetFrontDepth) {
-		QObject::connect(ui->btn_GetFrontDepth, &QPushButton::clicked, this, [this]() {
-			QMetaObject::invokeMethod(m_Magic_Remote, "Get_Ahl1D_RGB_Img", Qt::QueuedConnection);
-		});
-	}
-	if (ui->btn_GetFrontPointCloud) {
-		QObject::connect(ui->btn_GetFrontPointCloud, &QPushButton::clicked, this, [this]() {
-			QMetaObject::invokeMethod(m_Magic_Remote, "Get_Front_Camera", Qt::QueuedConnection);
-		});
-	}
-	if (ui->btn_GetRearRGB) {
-		QObject::connect(ui->btn_GetRearRGB, &QPushButton::clicked, this, [this]() {
-			QMetaObject::invokeMethod(m_Magic_Remote, "Get_Ahl2_RGB_Img", Qt::QueuedConnection);
-		});
-	}
-	if (ui->btn_GetRearDepth) {
-		QObject::connect(ui->btn_GetRearDepth, &QPushButton::clicked, this, [this]() {
-			QMetaObject::invokeMethod(m_Magic_Remote, "Get_Ahl2D_RGB_Img", Qt::QueuedConnection);
-		});
-	}
-	if (ui->btn_GetRearPointCloud) {
-		QObject::connect(ui->btn_GetRearPointCloud, &QPushButton::clicked, this, [this]() {
-			QMetaObject::invokeMethod(m_Magic_Remote, "Get_Rear_Camera", Qt::QueuedConnection);
-		});
-	}
-
 	// ========== 充电 ==========
 	QObject::connect(ui->btn_StartRecharge, &QPushButton::clicked, this, [&]() {
 		// 2026-10-24 T99：ReadData 跨线程写，读侧持读锁快照
@@ -980,71 +789,6 @@ void c_Robot_App_Widget::Magic_Button()
 			Q_ARG(double, lv), Q_ARG(double, av), Q_ARG(double, 0.0));
 	});
 
-	// 前进：按pressed启动定时器持续发送，released停止
-	QObject::connect(ui->btn_MoveForward, &QPushButton::pressed, this, [&]() {
-		m_MoveDirection = 1;
-		if (!m_MoveTimer->isActive()) m_MoveTimer->start();
-		// 2026-10-25 EE3：手动操作事件播报（PA012 手动前进）
-		QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA012", Qt::QueuedConnection);
-	});
-	QObject::connect(ui->btn_MoveForward, &QPushButton::released, this, [&]() {
-		m_MoveDirection = 0;
-		m_MoveTimer->stop();
-		QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move_Stop", Qt::QueuedConnection);
-	});
-	// 后退
-	QObject::connect(ui->btn_MoveBackward, &QPushButton::pressed, this, [&]() {
-		m_MoveDirection = 2;
-		if (!m_MoveTimer->isActive()) m_MoveTimer->start();
-		// 2026-10-25 EE3：手动操作事件播报（PA013 手动后退）
-		QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA013", Qt::QueuedConnection);
-	});
-	QObject::connect(ui->btn_MoveBackward, &QPushButton::released, this, [&]() {
-		m_MoveDirection = 0;
-		m_MoveTimer->stop();
-		QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move_Stop", Qt::QueuedConnection);
-	});
-	// 左旋
-	QObject::connect(ui->btn_TurnLeft, &QPushButton::pressed, this, [&]() {
-		m_MoveDirection = 3;
-		if (!m_MoveTimer->isActive()) m_MoveTimer->start();
-	});
-	QObject::connect(ui->btn_TurnLeft, &QPushButton::released, this, [&]() {
-		m_MoveDirection = 0;
-		m_MoveTimer->stop();
-		QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move_Stop", Qt::QueuedConnection);
-	});
-	// 右旋
-	QObject::connect(ui->btn_TurnRight, &QPushButton::pressed, this, [&]() {
-		m_MoveDirection = 4;
-		if (!m_MoveTimer->isActive()) m_MoveTimer->start();
-	});
-	QObject::connect(ui->btn_TurnRight, &QPushButton::released, this, [&]() {
-		m_MoveDirection = 0;
-		m_MoveTimer->stop();
-		QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move_Stop", Qt::QueuedConnection);
-	});
-	// 停止按钮
-	QObject::connect(ui->btn_StopMove, &QPushButton::clicked, this, [&]() {
-		m_MoveDirection = 0;
-		m_MoveTimer->stop();
-		QMetaObject::invokeMethod(m_Magic_Remote, "Robot_Move_Stop", Qt::QueuedConnection);
-	});
-
-	// ========== 定距离/定角度移动 ==========
-	QObject::connect(ui->btn_ExecuteMoveParams, &QPushButton::clicked, this, [&]() {
-		// 2026-10-24 CC：直接访问（原 w 别名已消除）
-		int mode = c_Variable::getInstance().g_Magic.WriteData.moveMode;
-		double target = c_Variable::getInstance().g_Magic.WriteData.moveTarget;
-		QMetaObject::invokeMethod(m_Magic_Remote, "Move_With_Params", Qt::QueuedConnection,
-			Q_ARG(double, c_Variable::getInstance().g_Magic.WriteData.linearSpeed), Q_ARG(double, c_Variable::getInstance().g_Magic.WriteData.angularSpeed),
-			Q_ARG(double, mode == 1 ? target : 0.0),
-			Q_ARG(double, mode == 2 ? target : 0.0),
-			Q_ARG(int, mode));
-	});
-	QObject::connect(ui->btn_CancelMoveParams, &QPushButton::clicked, this, [&]() {
-		QMetaObject::invokeMethod(m_Magic_Remote, "Cancel_Move_With_Params", Qt::QueuedConnection);
-	});
 }
 /*************************************************************************************************************************************************
 **Function:写入底盘日志 - 追加到Magic_Log控件并写入文件
