@@ -910,61 +910,18 @@ void c_Magic_Remote::Get_Robot_Setting() {
 void c_Magic_Remote::Reset_Robot_Base_Default() {
 	emit Signal_Send_POST("/cmd/robot_reset_base_default", QJsonObject(), QJsonObject());
 }
-// ======================== 统一响应解析 ========================
-void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
+/*************************************************************************************************************************************************
+**Function:4.1 登录认证响应解析（2026-10-28 BBB1 自 On_Response_Done 提取，详细注释）
+** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁。
+** 处理接口：
+**   4.1.1 POST /auth/token          登录响应：data.token（必填）+ data.refresh_token（可选）
+**                                    → 写 g_Magic.token/refreshToken + Signal_Set_Token（同步 HTTP 客户端 Bearer）
+**   4.1.2 POST /auth/token/refresh  刷新响应：data.token → 同上 + 状态播报"Token已刷新"
+*************************************************************************************************************************************************/
+void c_Magic_Remote::On_Resp_Auth(const QString &path, const QJsonValue &dataVal)
 {
-	// 2026-10-24 崩溃修复 C1：函数级 QWriteLocker 覆盖整函数（T13），
-	// 内层 T84 的 token 写锁属嵌套锁定——QReadWriteLock 非递归，登录/401 响应必死锁
-	// （症状：Qt5Core.dll 0xc0000005 卡死闪退）。内层锁已删除，token 写入由外层锁统一保护。
-	QWriteLocker locker(&c_Variable::g_lock);
-	// ========== 剥离 Query 参数，精确匹配路径 ==========
-	QString path = api.split('?').first();
-
-	// ================= 1. 通用解析 =================
-	bool successed = body["successed"].toBool();
-	QString msg = body["msg"].toString();
-	int errCode = body["errCode"].toInt();
-	QJsonValue dataVal = body["data"];
-
-	// 2026-10-24 CC：全局变量直接访问（原 magicDB/read/write 别名已全部替换为 getInstance() 直访）
-
-	// ================= 2. 失败/鉴权处理 =================
-	if (!successed) {
-		if (errCode == 401) {
-			// 2026-10-25 LL2：401 自动重登（只记录，不改变重登链路）
-			c_Log::Warn("CHASSIS", "Login", "token_expired=401 auto_relogin=1000ms");
-			emit Status("Magic遥控：Token已过期或无效(401)，自动重新登录");
-			c_Variable::getInstance().g_Magic.token = "";	// 2026-10-24 C1：外层写锁已覆盖，勿再嵌套加锁
-			emit Signal_Set_Token("");
-			// 2026-10-24 审查修复 D1：401 后停轮询 → 用缓存凭证自动重登一次（原链路断裂永不恢复）
-			if (m_PollTimer) m_PollTimer->stop();
-			if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：401 停相机轮询（重登成功后由 Set_Token_Done 重启）
-			if (!m_LastUser.isEmpty()) QTimer::singleShot(1000, this, [this]() { Login(m_LastUser, m_LastPass); });
-		}
-		else {
-			emit Status(QString("Magic遥控：接口失败 [%1] errCode=%2 msg=%3")
-				.arg(api).arg(errCode).arg(msg));
-		}
-		// 2026-10-25 MM1：切换地图失败 → 通知工作流（原无失败信号致 wait_SwitchMap 永久阻塞）
-		if (api.contains("/cmd/use_map") && api.contains("map_name")) {
-			emit SwitchMap_Failed();
-		}
-		// 2026-10-25 NN2：等待链失败信号（MM1 同款断裂修复）
-		if (api.contains("/data/list_maps")) emit RefreshMapList_Failed();
-		if (api.contains("/data/poslist")) emit RefreshNavPoints_Failed();
-		if (api.contains("/real_time_data/dynamic_init_pose")) emit DynamicInit_Failed();
-		if (api.contains("/task_queue/start")) emit StartTask_Failed();
-		return;
-	}
-
-	// 2026-10-25 D-008：连续错误计数清零策略明确化——成功响应即清零（"连续"语义），
-	// 原仅在连接/登录时清零，长期运行中偶发网络抖动会永久累积计数 → 凑满 3 次触发假自动重连
-	m_ConsecutiveErrors = 0;
-
-	// ================= 3. 按API路径分类解析 =================
-
-	// --- 4.1 登录认证 ---
 	if (path == "/auth/token") {
+		// 登录：token 非空才生效，缺字段仅状态告警（不中断链路）
 		QJsonObject dataObj = dataVal.toObject();
 		QString token = dataObj["token"].toString();
 		QString refreshToken = dataObj["refresh_token"].toString();
@@ -980,6 +937,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	}
 
 	if (path == "/auth/token/refresh") {
+		// 刷新：与登录同构，token 非空才生效
 		QJsonObject dataObj = dataVal.toObject();
 		QString newToken = dataObj["token"].toString();
 		if (!newToken.isEmpty()) {
@@ -989,7 +947,17 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		}
 		return;
 	}
+}
 
+/*************************************************************************************************************************************************
+**Function:4.2 地图模块响应解析（2026-10-28 BBB2 自 On_Response_Done 提取）
+** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁。
+** 处理接口：/data/list_maps（列表）/single_map_info（元数据）/down_map_png（底图）
+**          /cmd/use_map（切图）/begin_map、stop_scan_map、cancel_scan_map（建图控制）
+**          /cmd/rename_map、delete_map（重命名/删除）/data/map_png、obstacle、edit_map（编辑）
+*************************************************************************************************************************************************/
+void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal, const QString &api, QWriteLocker *locker)
+{
 	// --- 4.2 地图模块 ---
 
 	// 4.2.7 获取地图列表
@@ -1106,7 +1074,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			c_Variable::getInstance().g_Magic.ReadData.mapping = false;
 			emit Status("Magic遥控：建图完成，地图已保存");
 			emit update_MapStatus();
-	
+
 		}
 		return;
 	}
@@ -1137,9 +1105,9 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			// 2026-10-24 AA2：GUI 线程禁止长时间锁阻塞——base64 解码为重 CPU 操作，
 			// 移至锁外解码（本地 QImage），锁内仅做隐式共享赋值（O(1)）
 			QImage decoded;
-			locker.unlock();
+			locker->unlock();
 			decoded.loadFromData(imgData);
-			locker.relock();
+			locker->relock();
 			if (!decoded.isNull()) {
 				c_Variable::getInstance().g_Magic.ReadData.mapImage = decoded;
 				c_Variable::getInstance().g_Magic.ReadData.mapLoaded = true;
@@ -1156,7 +1124,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 				emit Status(QString("Magic遥控：地图底图加载成功 size=%1x%2")
 					.arg(c_Variable::getInstance().g_Magic.ReadData.mapImage.width()).arg(c_Variable::getInstance().g_Magic.ReadData.mapImage.height()));
 				emit update_MapStatus();
-		
+
 			}
 			else {
 				emit Status("Magic遥控：地图底图 Base64 解码失败");
@@ -1165,6 +1133,15 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		return;
 	}
 
+}
+
+/*************************************************************************************************************************************************
+**Function:4.6 实时数据（位姿/硬件/进度/IMU/激光/相机等）响应解析（2026-10-28 BBB 系列自 On_Response_Done 提取）
+** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
+** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
+*************************************************************************************************************************************************/
+void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dataVal, QWriteLocker *locker)
+{
 	// --- 4.6 实时数据 ---
 	// --- 4.6.1 机器人实时位置 ---
 	if (path == "/real_time_data/robot_pos") {
@@ -1423,9 +1400,9 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
 			// 2026-10-24 AA2：解码移出锁，锁内仅赋值
 			QImage decoded;
-			locker.unlock();
+			locker->unlock();
 			decoded.loadFromData(imgData);
-			locker.relock();
+			locker->relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
 				c_Variable::getInstance().g_Magic.ReadData.frontCameraImage = decoded;
 				c_Variable::getInstance().g_Magic.ReadData.frontFrameSeq++;	// 2026-10-25 HH2：帧率统计
@@ -1441,9 +1418,9 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
 			// 2026-10-24 AA2：解码移出锁，锁内仅赋值
 			QImage decoded;
-			locker.unlock();
+			locker->unlock();
 			decoded.loadFromData(imgData);
-			locker.relock();
+			locker->relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
 				c_Variable::getInstance().g_Magic.ReadData.rearCameraImage = decoded;
 				c_Variable::getInstance().g_Magic.ReadData.rearFrameSeq++;	// 2026-10-25 HH2：帧率统计
@@ -1459,9 +1436,9 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
 			// 2026-10-24 AA2：解码移出锁，锁内仅赋值
 			QImage decoded;
-			locker.unlock();
+			locker->unlock();
 			decoded.loadFromData(imgData);
-			locker.relock();
+			locker->relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
 				c_Variable::getInstance().g_Magic.ReadData.frontDepthImage = decoded;
 				emit update_DriveStatus();
@@ -1476,9 +1453,9 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			QByteArray imgData = QByteArray::fromBase64(b64.toUtf8());
 			// 2026-10-24 AA2：解码移出锁，锁内仅赋值
 			QImage decoded;
-			locker.unlock();
+			locker->unlock();
 			decoded.loadFromData(imgData);
-			locker.relock();
+			locker->relock();
 			if (imgData.size() < 50000000 && !decoded.isNull()) {
 				c_Variable::getInstance().g_Magic.ReadData.rearDepthImage = decoded;
 				emit update_DriveStatus();
@@ -1508,213 +1485,15 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		return;
 	}
 
-	// --- 4.2.1 扫图响应 ---
-	if (path == "/cmd/begin_map") {
-		c_Variable::getInstance().g_Magic.ReadData.mapping = true;
-		emit Status("Magic遥控：建图已开始");
-		return;
-	}
+}
 
-	// --- 4.2.12/4.2.13 特殊区域 (POST/GET 共用 /obstacle) ---
-	// 响应可能是设置结果 或 区域数据列表，统一日志
-	// 具体数据可通过 dataVal 进一步解析
-
-	// --- 4.2.14 原图编辑 ---
-	if (path == "/cmd/edit_map") {
-		emit Status("Magic遥控：地图编辑成功");
-		return;
-	}
-
-	// --- 4.2.15 动态初始化 ---
-	if (path == "/real_time_data/dynamic_init_pose") {
-		emit Status("Magic遥控：动态位姿初始化指令已下发（小车原地旋转中...），将在3秒后检查结果");
-		QTimer::singleShot(3000, this, [this]() { Get_Init_Pose_Result(); });
-		QTimer::singleShot(5000, this, [this]() { Get_Robot_Local_Status(); });
-		return;
-	}
-
-	// --- 4.2.16 栅格初始化 ---
-	if (path == "/real_time_data/temp_point_init_pose") {
-		emit Status("Magic遥控：栅格坐标初始化指令已下发（小车原地旋转中...），将在3秒后检查结果");
-		QTimer::singleShot(3000, this, [this]() { Get_Init_Pose_Result(); });
-		QTimer::singleShot(5000, this, [this]() { Get_Robot_Local_Status(); });
-		return;
-	}
-
-	// --- 4.2.18 初始化结果 ---
-	if (path == "/real_time_data/init_pose_result") {
-	bool initOk = (dataVal.isBool() && dataVal.toBool()) || (dataVal.toString() == "true");
-	emit Status(QString("Magic遥控：初始化结果 -> %1").arg(initOk ? "成功" : "失败"));
-	if (initOk) {
-		// 2026-10-24 新增：通知 Work_Remote 动态初始化完成（修复 wait_DynamicInit 无退出源挂死）
-		// 2026-10-25 L：动态初始化结果（只记录，不改变通知链路）
-		c_Log::Info("CHASSIS", "DynamicInit", "result=success");
-		emit DynamicInit_Done();
-		// 初始化成功后再次检查定位状态
-		QTimer::singleShot(2000, this, [this]() { Get_Robot_Local_Status(); });
-	}
-	else {
-		// 2026-10-25 NN2：初始化结果失败 → 通知工作流退出等待（原失败无信号致永久阻塞）
-		c_Log::Error("CHASSIS", "DynamicInit", "result=failed");
-		emit DynamicInit_Failed();
-		}
-		return;
-	}
-
-	// --- 4.2.x 静态位姿初始化 ---
-	if (path == "/real_time_data/static_init_pose") {
-		emit Status("Magic遥控：静态位姿初始化指令已下发");
-		return;
-	}
-
-	// --- 4.2.x 恢复地图 ---
-	if (path == "/cmd/recover_map") {
-		emit Status("Magic遥控：地图恢复指令已下发");
-		emit update_MapStatus();
-
-		return;
-	}
-
-	// --- 4.4 任务模块 ---
-	if (path == "/task_queue/task/is_finished" || path == "/task_queue/is_finished") {
-		// 2026-10-24 走查 T43：两接口语义不同——task/is_finished 返回 bool（true=已结束：
-		// 完成/无法到达/取消），queue/is_finished 返回三态 int（0未运行/1运行中/2已暂停）
-		bool isTaskFinishedApi = (path == "/task_queue/task/is_finished");
-		if (dataVal.isBool()) {
-			bool finished = dataVal.toBool();
-			c_Variable::getInstance().g_Magic.ReadData.taskStatus = finished ? 0 : 1;
-			// 2026-10-24 DD6：任务完成判定唯一来源——4.4.11 is_finished（官方文档指定，
-			// 替代原 task_process_status 双源；要求先观察到运行中再结束，防下发瞬间误判）
-			if (isTaskFinishedApi && m_NavTaskActive) {
-				if (!finished) m_NavTaskSeenRunning = true;
-				else if (m_NavTaskSeenRunning) {
-					m_NavTaskActive = false;
-					m_NavTaskSeenRunning = false;
-					emit StartTask_Done();
-				}
-			}
-		}
-		else if (dataVal.isObject()) {
-			int statusCode = dataVal.toObject()["statusCode"].toInt(0);
-			c_Variable::getInstance().g_Magic.ReadData.taskStatus = (statusCode == 1) ? 1 : 0;
-		}
-		else {
-			c_Variable::getInstance().g_Magic.ReadData.taskStatus = (dataVal.toInt() == 0) ? 0 : 1;
-		}
-		emit update_RobotStatus();
-
-		return;
-	}
-
-	if (path == "/task_queue/current") {
-		if (!dataVal.isObject()) return;
-		QJsonObject data = dataVal.toObject();
-		int status = data["status"].toInt(0);
-		c_Variable::getInstance().g_Magic.ReadData.taskStatus = status;
-		emit update_RobotStatus();
-
-		return;
-	}
-
-	// --- 4.5 自主充电 ---
-	if (path == "/data/recharge/status") {
-		int status = dataVal.toInt(1);
-		c_Variable::getInstance().g_Magic.ReadData.chargeStatus = status;
-		c_Variable::getInstance().g_Magic.ReadData.charging = (status == 4);
-		if (status == 4) {
-			// 2026-10-25 L：回充成功（只记录；2026-10-26 变化才输出——原每秒轮询刷屏）
-			if (m_LastRechargeStatus != 4) { c_Log::Info("CHASSIS", "Charge", "status=success"); m_LastRechargeStatus = 4; }
-			emit StartRecharge_Done();
-		}
-		// 2026-10-24 T44：回充失败提前通知（原仅靠 600s 超时兜底；官方状态机 1请先下发/2去桩/3失败/4成功）
-		if (status == 3) {
-			// 2026-10-25 L：回充失败（只记录）
-			c_Log::Error("CHASSIS", "Charge", "status=failed");
-			emit StartRecharge_Failed();
-		}
-		emit update_RobotStatus();
-
-		return;
-	}
-
-	if (path == "/cmd/dis_recharge/status") {
-		int status = dataVal.toInt(1);
-		QString statusStr;
-		switch (status) {
-		case 1: statusStr = "请先下发脱离指令"; break;
-		case 2: statusStr = "正在脱离"; break;
-		case 3: statusStr = "脱离失败"; break;
-		case 4: statusStr = "脱离成功"; break;
-		default: statusStr = "未知状态";
-		}
-		emit Status("Magic遥控：脱桩状态 -> " + statusStr);
-		// 2026-10-24 T45：完成/失败信号，4=成功 3=失败
-		if (status == 4 && m_DisRecharging) { m_DisRecharging = false; emit Dis_Recharge_Done(); }
-		if (status == 3 && m_DisRecharging) { m_DisRecharging = false; emit Dis_Recharge_Failed(); }
-		// 2026-10-26 现场兜底：status=1（请先下发）持续 10s 重发一次；重发后仍 1 超 30s 判失败（防永久阻塞）
-		if (status == 1 && m_DisRecharging) {
-			qint64 now = QDateTime::currentMSecsSinceEpoch();
-			if (!m_DisRechargeRetried && m_DisRechargeStartMs > 0 && now - m_DisRechargeStartMs > 10000) {
-				m_DisRechargeRetried = true;
-				c_Log::Warn("CHASSIS", "DisRecharge", "status=1 resend=true");
-				emit Signal_Send_POST("/cmd/dis_recharge", QJsonObject(), QJsonObject());
-			}
-			else if (m_DisRechargeRetried && m_DisRechargeStartMs > 0 && now - m_DisRechargeStartMs > 30000) {
-				m_DisRecharging = false;
-				c_Log::Error("CHASSIS", "DisRecharge", "status=1 timeout failed");
-				emit Dis_Recharge_Failed();
-			}
-		}
-		return;
-	}
-
-	// --- 4.9 系统数据 ---
-	if (path == "/data/sys_status") {
-		int sysStatus = dataVal.toInt(1);
-		if (c_Variable::getInstance().g_Magic.ReadData.workingMode == 0) {
-			c_Variable::getInstance().g_Magic.ReadData.workingMode = sysStatus;
-		}
-		emit update_RobotStatus();
-
-		return;
-	}
-
-	if (path == "/data/sys_mac") {
-		if (dataVal.isArray()) {
-			QStringList macList;
-			for (const auto &item : dataVal.toArray()) {
-				macList << item.toString();
-			}
-			c_Variable::getInstance().g_Magic.ReadData.sysMac = macList.join(", ");
-		}
-		else if (dataVal.isString()) {
-			c_Variable::getInstance().g_Magic.ReadData.sysMac = dataVal.toString();
-		}
-		emit update_RobotStatus();
-
-		return;
-	}
-
-	if (path == "/data/local_sys_info") {
-		if (dataVal.isObject()) {
-			c_Variable::getInstance().g_Magic.ReadData.sysTitle = dataVal.toObject()["title"].toString();
-		}
-		else if (dataVal.isString()) {
-			c_Variable::getInstance().g_Magic.ReadData.sysTitle = dataVal.toString();
-		}
-		return;
-	}
-
-	if (path == "/data/robot_about_us") {
-		emit Status(QString("Magic遥控：关于我们 -> %1").arg(dataVal.toString()));
-		return;
-	}
-
-	if (path == "/data/robot_show") {
-		emit Status(QString("Magic遥控：机器外观数据已获取"));
-		return;
-	}
-
+/*************************************************************************************************************************************************
+**Function:4.3 路径与点管理（列表数据）响应解析（2026-10-28 BBB 系列自 On_Response_Done 提取）
+** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
+** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
+*************************************************************************************************************************************************/
+void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dataVal, const QString &api)
+{
 	// --- 4.3 路径与点管理 (列表数据) ---
 	if (path == "/data/poslist") {
 		QJsonArray posArray = dataVal.toArray();
@@ -2088,6 +1867,354 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 		emit Status("Magic遥控：地图已删除");
 		emit update_MapList();
 
+		return;
+	}
+
+}
+
+/*************************************************************************************************************************************************
+**Function:4.5 自主充电响应解析（2026-10-28 BBB 系列自 On_Response_Done 提取）
+** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
+** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
+*************************************************************************************************************************************************/
+void c_Magic_Remote::On_Resp_Charge(const QString &path, const QJsonValue &dataVal)
+{
+	// --- 4.5 自主充电 ---
+	if (path == "/data/recharge/status") {
+		int status = dataVal.toInt(1);
+		c_Variable::getInstance().g_Magic.ReadData.chargeStatus = status;
+		c_Variable::getInstance().g_Magic.ReadData.charging = (status == 4);
+		if (status == 4) {
+			// 2026-10-25 L：回充成功（只记录；2026-10-26 变化才输出——原每秒轮询刷屏）
+			if (m_LastRechargeStatus != 4) { c_Log::Info("CHASSIS", "Charge", "status=success"); m_LastRechargeStatus = 4; }
+			emit StartRecharge_Done();
+		}
+		// 2026-10-24 T44：回充失败提前通知（原仅靠 600s 超时兜底；官方状态机 1请先下发/2去桩/3失败/4成功）
+		if (status == 3) {
+			// 2026-10-25 L：回充失败（只记录）
+			c_Log::Error("CHASSIS", "Charge", "status=failed");
+			emit StartRecharge_Failed();
+		}
+		emit update_RobotStatus();
+
+		return;
+	}
+
+	if (path == "/cmd/dis_recharge/status") {
+		int status = dataVal.toInt(1);
+		QString statusStr;
+		switch (status) {
+		case 1: statusStr = "请先下发脱离指令"; break;
+		case 2: statusStr = "正在脱离"; break;
+		case 3: statusStr = "脱离失败"; break;
+		case 4: statusStr = "脱离成功"; break;
+		default: statusStr = "未知状态";
+		}
+		emit Status("Magic遥控：脱桩状态 -> " + statusStr);
+		// 2026-10-24 T45：完成/失败信号，4=成功 3=失败
+		if (status == 4 && m_DisRecharging) { m_DisRecharging = false; emit Dis_Recharge_Done(); }
+		if (status == 3 && m_DisRecharging) { m_DisRecharging = false; emit Dis_Recharge_Failed(); }
+		// 2026-10-26 现场兜底：status=1（请先下发）持续 10s 重发一次；重发后仍 1 超 30s 判失败（防永久阻塞）
+		if (status == 1 && m_DisRecharging) {
+			qint64 now = QDateTime::currentMSecsSinceEpoch();
+			if (!m_DisRechargeRetried && m_DisRechargeStartMs > 0 && now - m_DisRechargeStartMs > 10000) {
+				m_DisRechargeRetried = true;
+				c_Log::Warn("CHASSIS", "DisRecharge", "status=1 resend=true");
+				emit Signal_Send_POST("/cmd/dis_recharge", QJsonObject(), QJsonObject());
+			}
+			else if (m_DisRechargeRetried && m_DisRechargeStartMs > 0 && now - m_DisRechargeStartMs > 30000) {
+				m_DisRecharging = false;
+				c_Log::Error("CHASSIS", "DisRecharge", "status=1 timeout failed");
+				emit Dis_Recharge_Failed();
+			}
+		}
+		return;
+	}
+
+}
+
+/*************************************************************************************************************************************************
+**Function:4.9 系统数据响应解析（2026-10-28 BBB 系列自 On_Response_Done 提取）
+** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
+** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
+*************************************************************************************************************************************************/
+void c_Magic_Remote::On_Resp_System(const QString &path, const QJsonValue &dataVal)
+{
+	// --- 4.9 系统数据 ---
+	if (path == "/data/sys_status") {
+		int sysStatus = dataVal.toInt(1);
+		if (c_Variable::getInstance().g_Magic.ReadData.workingMode == 0) {
+			c_Variable::getInstance().g_Magic.ReadData.workingMode = sysStatus;
+		}
+		emit update_RobotStatus();
+
+		return;
+	}
+
+	if (path == "/data/sys_mac") {
+		if (dataVal.isArray()) {
+			QStringList macList;
+			for (const auto &item : dataVal.toArray()) {
+				macList << item.toString();
+			}
+			c_Variable::getInstance().g_Magic.ReadData.sysMac = macList.join(", ");
+		}
+		else if (dataVal.isString()) {
+			c_Variable::getInstance().g_Magic.ReadData.sysMac = dataVal.toString();
+		}
+		emit update_RobotStatus();
+
+		return;
+	}
+
+	if (path == "/data/local_sys_info") {
+		if (dataVal.isObject()) {
+			c_Variable::getInstance().g_Magic.ReadData.sysTitle = dataVal.toObject()["title"].toString();
+		}
+		else if (dataVal.isString()) {
+			c_Variable::getInstance().g_Magic.ReadData.sysTitle = dataVal.toString();
+		}
+		return;
+	}
+
+	if (path == "/data/robot_about_us") {
+		emit Status(QString("Magic遥控：关于我们 -> %1").arg(dataVal.toString()));
+		return;
+	}
+
+	if (path == "/data/robot_show") {
+		emit Status(QString("Magic遥控：机器外观数据已获取"));
+		return;
+	}
+
+}
+
+/*************************************************************************************************************************************************
+**Function:4.2 地图操作（扫图/obstacle/编辑/位姿初始化/恢复地图）响应解析（2026-10-28 BBB 系列自 On_Response_Done 提取）
+** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
+** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
+*************************************************************************************************************************************************/
+void c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataVal)
+{
+	// --- 4.2.1 扫图响应 ---
+	if (path == "/cmd/begin_map") {
+		c_Variable::getInstance().g_Magic.ReadData.mapping = true;
+		emit Status("Magic遥控：建图已开始");
+		return;
+	}
+
+	// --- 4.2.12/4.2.13 特殊区域 (POST/GET 共用 /obstacle) ---
+	// 响应可能是设置结果 或 区域数据列表，统一日志
+	// 具体数据可通过 dataVal 进一步解析
+
+	// --- 4.2.14 原图编辑 ---
+	if (path == "/cmd/edit_map") {
+		emit Status("Magic遥控：地图编辑成功");
+		return;
+	}
+
+	// --- 4.2.15 动态初始化 ---
+	if (path == "/real_time_data/dynamic_init_pose") {
+		emit Status("Magic遥控：动态位姿初始化指令已下发（小车原地旋转中...），将在3秒后检查结果");
+		QTimer::singleShot(3000, this, [this]() { Get_Init_Pose_Result(); });
+		QTimer::singleShot(5000, this, [this]() { Get_Robot_Local_Status(); });
+		return;
+	}
+
+	// --- 4.2.16 栅格初始化 ---
+	if (path == "/real_time_data/temp_point_init_pose") {
+		emit Status("Magic遥控：栅格坐标初始化指令已下发（小车原地旋转中...），将在3秒后检查结果");
+		QTimer::singleShot(3000, this, [this]() { Get_Init_Pose_Result(); });
+		QTimer::singleShot(5000, this, [this]() { Get_Robot_Local_Status(); });
+		return;
+	}
+
+	// --- 4.2.18 初始化结果 ---
+	if (path == "/real_time_data/init_pose_result") {
+	bool initOk = (dataVal.isBool() && dataVal.toBool()) || (dataVal.toString() == "true");
+	emit Status(QString("Magic遥控：初始化结果 -> %1").arg(initOk ? "成功" : "失败"));
+	if (initOk) {
+		// 2026-10-24 新增：通知 Work_Remote 动态初始化完成（修复 wait_DynamicInit 无退出源挂死）
+		// 2026-10-25 L：动态初始化结果（只记录，不改变通知链路）
+		c_Log::Info("CHASSIS", "DynamicInit", "result=success");
+		emit DynamicInit_Done();
+		// 初始化成功后再次检查定位状态
+		QTimer::singleShot(2000, this, [this]() { Get_Robot_Local_Status(); });
+	}
+	else {
+		// 2026-10-25 NN2：初始化结果失败 → 通知工作流退出等待（原失败无信号致永久阻塞）
+		c_Log::Error("CHASSIS", "DynamicInit", "result=failed");
+		emit DynamicInit_Failed();
+		}
+		return;
+	}
+
+	// --- 4.2.x 静态位姿初始化 ---
+	if (path == "/real_time_data/static_init_pose") {
+		emit Status("Magic遥控：静态位姿初始化指令已下发");
+		return;
+	}
+
+	// --- 4.2.x 恢复地图 ---
+	if (path == "/cmd/recover_map") {
+		emit Status("Magic遥控：地图恢复指令已下发");
+		emit update_MapStatus();
+
+		return;
+	}
+
+}
+
+/*************************************************************************************************************************************************
+**Function:4.4 任务模块（is_finished/current/完成判定）响应解析（2026-10-28 BBB 系列自 On_Response_Done 提取）
+** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
+** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
+*************************************************************************************************************************************************/
+void c_Magic_Remote::On_Resp_Task(const QString &path, const QJsonValue &dataVal)
+{
+	// --- 4.4 任务模块 ---
+	if (path == "/task_queue/task/is_finished" || path == "/task_queue/is_finished") {
+		// 2026-10-24 走查 T43：两接口语义不同——task/is_finished 返回 bool（true=已结束：
+		// 完成/无法到达/取消），queue/is_finished 返回三态 int（0未运行/1运行中/2已暂停）
+		bool isTaskFinishedApi = (path == "/task_queue/task/is_finished");
+		if (dataVal.isBool()) {
+			bool finished = dataVal.toBool();
+			c_Variable::getInstance().g_Magic.ReadData.taskStatus = finished ? 0 : 1;
+			// 2026-10-24 DD6：任务完成判定唯一来源——4.4.11 is_finished（官方文档指定，
+			// 替代原 task_process_status 双源；要求先观察到运行中再结束，防下发瞬间误判）
+			if (isTaskFinishedApi && m_NavTaskActive) {
+				if (!finished) m_NavTaskSeenRunning = true;
+				else if (m_NavTaskSeenRunning) {
+					m_NavTaskActive = false;
+					m_NavTaskSeenRunning = false;
+					emit StartTask_Done();
+				}
+			}
+		}
+		else if (dataVal.isObject()) {
+			int statusCode = dataVal.toObject()["statusCode"].toInt(0);
+			c_Variable::getInstance().g_Magic.ReadData.taskStatus = (statusCode == 1) ? 1 : 0;
+		}
+		else {
+			c_Variable::getInstance().g_Magic.ReadData.taskStatus = (dataVal.toInt() == 0) ? 0 : 1;
+		}
+		emit update_RobotStatus();
+
+		return;
+	}
+
+	if (path == "/task_queue/current") {
+		if (!dataVal.isObject()) return;
+		QJsonObject data = dataVal.toObject();
+		int status = data["status"].toInt(0);
+		c_Variable::getInstance().g_Magic.ReadData.taskStatus = status;
+		emit update_RobotStatus();
+
+		return;
+	}
+
+}
+
+// ======================== 统一响应解析 ========================// ======================== 统一响应解析 ========================
+void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
+{
+	// 2026-10-24 崩溃修复 C1：函数级 QWriteLocker 覆盖整函数（T13），
+	// 内层 T84 的 token 写锁属嵌套锁定——QReadWriteLock 非递归，登录/401 响应必死锁
+	// （症状：Qt5Core.dll 0xc0000005 卡死闪退）。内层锁已删除，token 写入由外层锁统一保护。
+	QWriteLocker locker(&c_Variable::g_lock);
+	// ========== 剥离 Query 参数，精确匹配路径 ==========
+	QString path = api.split('?').first();
+
+	// ================= 1. 通用解析 =================
+	bool successed = body["successed"].toBool();
+	QString msg = body["msg"].toString();
+	int errCode = body["errCode"].toInt();
+	QJsonValue dataVal = body["data"];
+
+	// 2026-10-24 CC：全局变量直接访问（原 magicDB/read/write 别名已全部替换为 getInstance() 直访）
+
+	// ================= 2. 失败/鉴权处理 =================
+	if (!successed) {
+		if (errCode == 401) {
+			// 2026-10-25 LL2：401 自动重登（只记录，不改变重登链路）
+			c_Log::Warn("CHASSIS", "Login", "token_expired=401 auto_relogin=1000ms");
+			emit Status("Magic遥控：Token已过期或无效(401)，自动重新登录");
+			c_Variable::getInstance().g_Magic.token = "";	// 2026-10-24 C1：外层写锁已覆盖，勿再嵌套加锁
+			emit Signal_Set_Token("");
+			// 2026-10-24 审查修复 D1：401 后停轮询 → 用缓存凭证自动重登一次（原链路断裂永不恢复）
+			if (m_PollTimer) m_PollTimer->stop();
+			if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：401 停相机轮询（重登成功后由 Set_Token_Done 重启）
+			if (!m_LastUser.isEmpty()) QTimer::singleShot(1000, this, [this]() { Login(m_LastUser, m_LastPass); });
+		}
+		else {
+			emit Status(QString("Magic遥控：接口失败 [%1] errCode=%2 msg=%3")
+				.arg(api).arg(errCode).arg(msg));
+		}
+		// 2026-10-25 MM1：切换地图失败 → 通知工作流（原无失败信号致 wait_SwitchMap 永久阻塞）
+		if (api.contains("/cmd/use_map") && api.contains("map_name")) {
+			emit SwitchMap_Failed();
+		}
+		// 2026-10-25 NN2：等待链失败信号（MM1 同款断裂修复）
+		if (api.contains("/data/list_maps")) emit RefreshMapList_Failed();
+		if (api.contains("/data/poslist")) emit RefreshNavPoints_Failed();
+		if (api.contains("/real_time_data/dynamic_init_pose")) emit DynamicInit_Failed();
+		if (api.contains("/task_queue/start")) emit StartTask_Failed();
+		return;
+	}
+
+	// 2026-10-25 D-008：连续错误计数清零策略明确化——成功响应即清零（"连续"语义），
+	// 原仅在连接/登录时清零，长期运行中偶发网络抖动会永久累积计数 → 凑满 3 次触发假自动重连
+	m_ConsecutiveErrors = 0;
+
+	// ================= 3. 按API路径分类解析 =================
+	// 2026-10-28 BBB1+：响应解析按 API 域分发至 On_Resp_* 私有方法（详细注释见各方法头）；
+	// 所有 On_Resp_* 调用方已持 g_lock 写锁（C1 函数级锁），子方法内禁止再取锁
+
+	// --- 4.1 登录认证（POST /auth/token、/auth/token/refresh）---
+	if (path == "/auth/token" || path == "/auth/token/refresh") {
+		On_Resp_Auth(path, dataVal);
+		return;
+	}
+
+	// --- 4.2 地图模块（已提取至 On_Resp_Map，2026-10-28 BBB2）---
+	{
+		On_Resp_Map(path, dataVal, api, &locker);
+		return;
+	}
+
+	// --- 已提取至 On_Resp_Realtime（2026-10-28 BBB）---
+	{
+		On_Resp_Realtime(path, dataVal, &locker);
+		return;
+	}
+
+	// --- 已提取至 On_Resp_MapOps（2026-10-28 BBB）---
+	{
+		On_Resp_MapOps(path, dataVal);
+		return;
+	}
+
+	// --- 已提取至 On_Resp_Task（2026-10-28 BBB）---
+	{
+		On_Resp_Task(path, dataVal);
+		return;
+	}
+
+	// --- 已提取至 On_Resp_Charge（2026-10-28 BBB）---
+	{
+		On_Resp_Charge(path, dataVal);
+		return;
+	}
+
+	// --- 已提取至 On_Resp_System（2026-10-28 BBB）---
+	{
+		On_Resp_System(path, dataVal);
+		return;
+	}
+
+	// --- 已提取至 On_Resp_ListData（2026-10-28 BBB）---
+	{
+		On_Resp_ListData(path, dataVal, api);
 		return;
 	}
 

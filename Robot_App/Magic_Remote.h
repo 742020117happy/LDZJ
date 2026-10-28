@@ -313,6 +313,17 @@ signals:
 	void On_Response_Done(QString api, QJsonObject body);
 	void On_Response_Error(QString api, QString error_msg);
 
+	// 2026-10-28 BBB 系列：On_Response_Done 按 API 域拆分的私有解析方法——
+	// 调用方已持 g_lock 写锁（C1 函数级锁），各方法内禁止再取锁
+	void On_Resp_Auth(const QString &path, const QJsonValue &dataVal);		// 4.1 登录认证
+	void On_Resp_Map(const QString &path, const QJsonValue &dataVal, const QString &api, QWriteLocker *locker);	// 4.2 地图模块（BBB2；locker=调用方写锁，AA2 锁外解码临时解锁用）
+	void On_Resp_Realtime(const QString &path, const QJsonValue &dataVal, QWriteLocker *locker);	// 4.6 实时数据（BBB3）
+	void On_Resp_MapOps(const QString &path, const QJsonValue &dataVal);	// 4.2 地图操作（BBB4）
+	void On_Resp_Task(const QString &path, const QJsonValue &dataVal);	// 4.4 任务模块（BBB4）
+	void On_Resp_Charge(const QString &path, const QJsonValue &dataVal);	// 4.5 自主充电（BBB4）
+	void On_Resp_System(const QString &path, const QJsonValue &dataVal);	// 4.9 系统数据（BBB4）
+	void On_Resp_ListData(const QString &path, const QJsonValue &dataVal, const QString &api);	// 4.3 路径与点管理（BBB4）
+
 private:
 	c_HTTP_Client *m_HTTP_Client = nullptr;	// 2026-10-24 C2：未初始化指针致 T25 重入保护误判（垃圾值偶发非零→首次 Init 被跳过→下游空指针崩溃）
 	QThread *m_HTTP_Thread = nullptr;
