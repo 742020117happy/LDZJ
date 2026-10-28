@@ -174,8 +174,11 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 }
 
 // 2026-10-25 L：WEB 指令接收（只打印指令名与校验码；指令体不打印）
-c_Log::Info("WEB", "Cmd", QString("recv %1 checksum=%2").arg(cmd).arg(cmd == "Read_Ready" ? "-" : checksum));
-emit Status(QString::number(m_Port) + "->服务：收到 " + cmd);
+// 2026-10-28 用户定稿：WEB 以 500ms 频率查询 Read_Ready——抑制查询类指令日志防 UI/中心日志刷屏
+if (cmd != QLatin1String("Read_Ready")) {
+	c_Log::Info("WEB", "Cmd", QString("recv %1 checksum=%2").arg(cmd).arg(checksum));
+	emit Status(QString::number(m_Port) + "->服务：收到 " + cmd);
+}
 
 	if (cmd == QLatin1String("START_INSPECTION")) {	// 2026-10-27 WW2：QLatin1String 免 UTF-16 临时转换
 		// 2026-10-24 审查修复 S1：START_INSPECTION 增加状态门控（采集中/暂停中拒绝），防止重复下发污染运行中任务
