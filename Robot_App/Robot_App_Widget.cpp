@@ -641,90 +641,24 @@ void c_Robot_App_Widget::Magic_Button()
 
 
 	// ========== 任务管理 ==========
-	// 开始任务（单次）
-	QObject::connect(ui->btn_StartTask, &QPushButton::clicked, this, [&]() {
+	// 开始任务（单次）——2026-10-28 ZZ3：taskData 组装下移业务层（Magic_Remote::Start_Task_From_UI），界面层仅按钮触发
+	QObject::connect(ui->btn_StartTask, &QPushButton::clicked, this, [this]() {
 		if (c_Variable::getInstance().g_Magic.WriteData.taskName.isEmpty()) {
 			QMessageBox::warning(this, "提示", "请选择任务");
 			return;
 		}
-		// 2026-10-24 T99：ReadData 跨线程写，读侧持读锁快照
-		QString curMap;
-		{
-			QReadLocker locker(&c_Variable::g_lock);
-			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
-		}
-		QJsonObject taskData;
-		taskData.insert("map_name", curMap);
-		taskData.insert("loop", false);
-		taskData.insert("loop_count", c_Variable::getInstance().g_Magic.WriteData.loopCount);
-		QJsonArray tasks;
-		QJsonObject task;
-		switch (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex) {
-		case 0:
-			task.insert("name", "NavigationPointTask");
-			task.insert("start_param", QJsonObject{ { "position_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
-			tasks.append(task);
-			break;
-		case 1:
-			task.insert("name", "PlayGraphPathTask");
-			task.insert("start_param", QJsonObject{ { "graph_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
-			tasks.append(task);
-			break;
-		case 2:
-			task.insert("name", "PlayPathTask");
-			task.insert("start_param", QJsonObject{ { "path_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
-			tasks.append(task);
-			break;
-		case 3:
-			taskData.insert("name", c_Variable::getInstance().g_Magic.WriteData.taskName);
-			break;
-		}
-		if (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex != 3) taskData.insert("tasks", tasks);
-		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection,
-			Q_ARG(QJsonObject, taskData));
+		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task_From_UI", Qt::QueuedConnection,
+			Q_ARG(bool, false));
 	});
 
 	// 循环开始任务
-	QObject::connect(ui->btn_LoopStart, &QPushButton::clicked, this, [&]() {
+	QObject::connect(ui->btn_LoopStart, &QPushButton::clicked, this, [this]() {
 		if (c_Variable::getInstance().g_Magic.WriteData.taskName.isEmpty()) {
 			QMessageBox::warning(this, "提示", "请选择任务");
 			return;
 		}
-		// 2026-10-24 T99：ReadData 跨线程写，读侧持读锁快照
-		QString curMap;
-		{
-			QReadLocker locker(&c_Variable::g_lock);
-			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
-		}
-		QJsonObject taskData;
-		taskData.insert("map_name", curMap);
-		taskData.insert("loop", true);
-		taskData.insert("loop_count", c_Variable::getInstance().g_Magic.WriteData.loopCount);
-		QJsonArray tasks;
-		QJsonObject task;
-		switch (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex) {
-		case 0:
-			task.insert("name", "NavigationPointTask");
-			task.insert("start_param", QJsonObject{ { "position_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
-			tasks.append(task);
-			break;
-		case 1:
-			task.insert("name", "PlayGraphPathTask");
-			task.insert("start_param", QJsonObject{ { "graph_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
-			tasks.append(task);
-			break;
-		case 2:
-			task.insert("name", "PlayPathTask");
-			task.insert("start_param", QJsonObject{ { "path_name", c_Variable::getInstance().g_Magic.WriteData.taskName } });
-			tasks.append(task);
-			break;
-		case 3:
-			taskData.insert("name", c_Variable::getInstance().g_Magic.WriteData.taskName);
-			break;
-		}
-		if (c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex != 3) taskData.insert("tasks", tasks);
-		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task", Qt::QueuedConnection,
-			Q_ARG(QJsonObject, taskData));
+		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Task_From_UI", Qt::QueuedConnection,
+			Q_ARG(bool, true));
 	});
 
 	// 暂停/恢复/停止

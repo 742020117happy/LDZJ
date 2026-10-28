@@ -110,8 +110,9 @@ QNetworkReply *c_HTTP_Client::Send_Request(const QString &api, const QString &ht
 		return nullptr;
 	}
 
-	// 拼接完整URL（基础URL + API路径）
-	QString fullUrl = m_BaseUrl + api;
+	// 拼接完整URL（2026-10-28 ZZ1：api 为绝对 URL（http/https 开头）时直接使用，
+	// 供 EMIS 等独立服务器组合；否则拼基础 URL + API 路径）
+	QString fullUrl = (api.startsWith("http://") || api.startsWith("https://")) ? api : (m_BaseUrl + api);
 
 	// 附加Query参数
 	if (!params.isEmpty()) {

@@ -274,6 +274,17 @@
 | YY2 | P1 | 通讯层 | 解析/业务残留核查（Scan_Client Status 13 处/HTTP_Client JSON 参数边界/Robot_Server 写帧） |
 | YY3 | P1 | Robot_App_Widget | 界面层业务泄漏：StartTask taskData 构造移至 Work_Remote（业务层） |
 | YY4 | P2 | 终审 | 编译 0 错误 0 警告 + exe 部署 + 知识库/状态归档 |
+### 5.39 第四十阶段任务积压（三层架构深化 ZZ 系列，2026-10-28 用户定稿）
+
+> 用户定稿补充：c_Work_Remote 为自动质检子线程（接入业务信号+界面按钮=自动操作 UI 代替人工）。
+> 审计发现：Emis_Client 业务层直连 QNetworkAccessManager 违规；Widget 手动按钮 taskData 组装为界面层业务残留。
+
+| ID | 优先级 | 目标 | 内容 |
+|----|--------|------|------|
+| ZZ1 | P1 | HTTP_Client | 支持绝对 URL（api 以 http/https 开头不拼 m_BaseUrl，供独立服务器组合） |
+| ZZ2 | P1 | Emis_Client | 组合 c_HTTP_Client 通讯层（去 QNetworkAccessManager 直连） |
+| ZZ3 | P1 | Widget/Magic | btn_StartTask 单次/循环 taskData 组装下移 Magic_Remote（业务层） |
+| ZZ4 | P2 | 终审 | 编译 0 错误 0 警告 + exe 部署 + 知识库/状态归档 |
 ## 6. 暂停与恢复
 
 - 暂停条件：用户叫停 / 全部任务 done / blocked ≥3

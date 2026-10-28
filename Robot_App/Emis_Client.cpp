@@ -12,9 +12,26 @@ c_Emis_Remote::~c_Emis_Remote()
 }
 void c_Emis_Remote::Init()
 {
+	// 2026-10-28 ZZ2：组合 HTTP 通讯层（三层架构定稿——业务层不得直连 QNetworkAccessManager）
+	if (m_HTTP_Client || m_HTTP_Thread) { emit Status("EMIS：Init 已执行，跳过重复初始化"); return; }
 	m_Mutex = new QMutex;
-	m_Manager = new QNetworkAccessManager;
-	emit Status("Http 初始化！");
+	m_HTTP_Client = new c_HTTP_Client;
+	m_HTTP_Thread = new QThread;
+
+	qRegisterMetaType<QJsonObject>("QJsonObject");
+
+	m_HTTP_Client->moveToThread(m_HTTP_Thread);
+	QObject::connect(m_HTTP_Thread, &QThread::started, m_HTTP_Client, &c_HTTP_Client::Init);
+	QObject::connect(m_HTTP_Thread, &QThread::finished, m_HTTP_Client, &c_HTTP_Client::deleteLater);
+
+	// 跨线程调用绑定（EMIS 上报：绝对 URL POST）
+	QObject::connect(this, &c_Emis_Remote::Signal_Send_POST, m_HTTP_Client, &c_HTTP_Client::Send_POST_Request);
+	QObject::connect(m_HTTP_Client, &c_HTTP_Client::Response_Done, this, &c_Emis_Remote::On_Response_Done);
+	QObject::connect(m_HTTP_Client, &c_HTTP_Client::Response_Error, this, &c_Emis_Remote::On_Response_Error);
+	QObject::connect(m_HTTP_Client, &c_HTTP_Client::Status, this, &c_Emis_Remote::Status);
+
+	m_HTTP_Thread->start();
+	emit Status("EMIS 初始化完成（组合 HTTP 通讯层）");
 }
 //巡检开始时间
 void c_Emis_Remote::actual_start_time() {
@@ -55,11 +72,6 @@ void c_Emis_Remote::Update_Info(QString timeType)
 	// 加锁保护构建请求的过程
 	QMutexLocker locker(m_Mutex);
 
-	// 防御性检查（如果构造函数中已初始化，此处不会执行）
-	if (!m_Manager) {
-		m_Manager = new QNetworkAccessManager(this);
-	}
-
 	// 1. 构建 JSON 对象（2026-10-24 T92：taskId 跨线程写，读侧持读锁快照）
 	QJsonObject body;
 	{
@@ -69,47 +81,33 @@ void c_Emis_Remote::Update_Info(QString timeType)
 	body.insert("timeType", timeType);
 	body.insert("time", QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
 
-	QByteArray jsonData = QJsonDocument(body).toJson(QJsonDocument::Compact);
-
 	// 2. 拼接业务路径（2026-10-24 BB1：g_Communicate_DB 读侧持锁）
 	QString urlStr;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		urlStr = c_Variable::getInstance().g_Communicate_DB.value("EMIS_Url").toString();
 	}
-	QNetworkRequest request(urlStr);
 
-	// 💡 优化：务必加上 Content-Type，否则很多严格的服务器会拒绝解析 JSON
-	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-	// 2026-10-25 L：EMIS 上报请求（只打印时间点类型与任务ID，符合规范 §六允许列表；完整 body 仅走 UI Status 原有行为）
+	// 2026-10-25 L：EMIS 上报请求（只打印时间点类型与任务ID）
 	c_Log::Info("EMIS", "Report", QString("send type=%1 task_id=%2").arg(timeType).arg(c_Variable::getInstance().g_Work_DB.taskId));
-	emit Status(urlStr + "->" + jsonData);
 
-	// 3. 使用成员变量 m_manager 发送（保证生命周期）
-	QNetworkReply *reply = m_Manager->post(request, jsonData);
-
-	// 4. 处理返回结果
-	// 💡 修复 1: 使用 [=] 值捕获，绝对不能用 [&] 引用捕获！
-	// 💡 修复 2: 加上 this 作为 context 对象，当 this 销毁时自动断开信号槽，防止野指针
-	QObject::connect(reply, &QNetworkReply::finished, this, [=]() {
-		int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-		QByteArray resp = reply->readAll(); // 获取服务端返回的具体内容，方便排查
-
-		if (reply->error() == QNetworkReply::NoError) {
-			// 2026-10-25 L：上报成功（只记录类型与状态码）
-			c_Log::Info("EMIS", "Report", QString("success type=%1 status=%2").arg(timeType).arg(status));
-			emit Status("更新成功:" + resp);
-			emit Update_Done();
-		}
-		else {
-			// 💡 优化：打印具体的错误原因 (errorString) 和 服务端响应 (resp)
-			// 2026-10-25 L：上报失败（只记录错误原因，不打印敏感字段）
-			c_Log::Error("EMIS", "Report", QString("failed type=%1 err=%2").arg(timeType).arg(reply->errorString()));
-			emit Status("更新失败: " + reply->errorString() + " | 响应: " + resp);
-			emit Update_Error();
-		}
-
-		reply->deleteLater(); // 释放 reply 对象
-	});
+	// 3. 经 HTTP 通讯层发送（2026-10-28 ZZ2：绝对 URL POST，Content-Type 由通讯层 Prepare_Request 设置）
+	emit Signal_Send_POST(urlStr, body, QJsonObject());
+}
+// 2026-10-28 ZZ2：HTTP 通讯层响应回调
+void c_Emis_Remote::On_Response_Done(QString api, QJsonObject body)
+{
+	Q_UNUSED(api);
+	// 2026-10-25 L：上报成功（只记录状态）
+	c_Log::Info("EMIS", "Report", "success");
+	emit Status("EMIS 上报成功");
+	emit Update_Done();
+}
+void c_Emis_Remote::On_Response_Error(QString api, QString error_msg)
+{
+	Q_UNUSED(api);
+	// 2026-10-25 L：上报失败（只记录错误原因）
+	c_Log::Error("EMIS", "Report", QString("failed err=%1").arg(error_msg));
+	emit Status("EMIS 上报失败: " + error_msg);
+	emit Update_Error();
 }

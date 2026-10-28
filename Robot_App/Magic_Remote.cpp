@@ -484,6 +484,44 @@ void c_Magic_Remote::Start_Task(QJsonObject task_data) {
 	}
 	emit Signal_Send_POST("/task_queue/start", task_data, QJsonObject());
 }
+/** @brief 2026-10-28 ZZ3：手动按钮任务参数组装（原界面层业务残留，下移业务层） */
+void c_Magic_Remote::Start_Task_From_UI(bool loop_mode) {
+	QJsonObject taskData;
+	QJsonArray tasks;
+	QJsonObject task;
+	{
+		// 2026-10-24 T99：ReadData 跨线程写，读侧持读锁快照
+		QReadLocker locker(&c_Variable::g_lock);
+		const QString curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
+		const QString taskName = c_Variable::getInstance().g_Magic.WriteData.taskName;
+		const int typeIndex = c_Variable::getInstance().g_Magic.WriteData.taskTypeIndex;
+		taskData.insert("map_name", curMap);
+		taskData.insert("loop", loop_mode);
+		taskData.insert("loop_count", c_Variable::getInstance().g_Magic.WriteData.loopCount);
+		switch (typeIndex) {
+		case 0:
+			task.insert("name", "NavigationPointTask");
+			task.insert("start_param", QJsonObject{ { "position_name", taskName } });
+			tasks.append(task);
+			break;
+		case 1:
+			task.insert("name", "PlayGraphPathTask");
+			task.insert("start_param", QJsonObject{ { "graph_name", taskName } });
+			tasks.append(task);
+			break;
+		case 2:
+			task.insert("name", "PlayPathTask");
+			task.insert("start_param", QJsonObject{ { "path_name", taskName } });
+			tasks.append(task);
+			break;
+		case 3:
+			taskData.insert("name", taskName);
+			break;
+		}
+		if (typeIndex != 3) taskData.insert("tasks", tasks);
+	}
+	Start_Task(taskData);
+}
 /** @brief 4.4.2 暂停任务 | POST /task_queue/pause */
 void c_Magic_Remote::Pause_Task() {
 	// 4.4.2 暂停任务

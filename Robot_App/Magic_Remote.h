@@ -117,6 +117,8 @@ public:
 	// ==================== 4.4 任务模块 ====================
 	/** @brief 4.4.1 开始执行任务 | POST /task_queue/start | Body: 任务数据 */
 	void Start_Task(QJsonObject task_data);
+	/** @brief 2026-10-28 ZZ3：手动按钮任务参数组装（原界面层业务残留，下移业务层；loop_mode=单次/循环） */
+	void Start_Task_From_UI(bool loop_mode);
 	/** @brief 4.4.2 暂停任务 | POST /task_queue/pause */
 	void Pause_Task();
 	/** @brief 4.4.3 恢复任务 | POST /task_queue/resume */
