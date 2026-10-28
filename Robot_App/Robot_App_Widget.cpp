@@ -125,7 +125,9 @@ void c_Robot_App_Widget::System_Scan()
 		ui->light_Ready->Set_State(c_Variable::getInstance().g_Magic.Ready);
 	}
 
-	if (c_Variable::getInstance().g_Magic.is_connected)c_Robot_App_Widget::Magic_Scan();
+	// 2026-10-28 用户反馈：底盘状态未实时获取——Magic_Scan 去除 is_connected 门控，
+	// 未连接时同样刷新（显示空/默认值），连接状态灯由 System_Scan 直刷（C3 契约）
+	c_Robot_App_Widget::Magic_Scan();
 	if (c_Variable::getInstance().g_CGXi.Connected)c_Robot_App_Widget::CGXi_Scan();
 	if(c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen) c_Robot_App_Widget::Pre_Scan_120_Scan();
 	c_Robot_App_Widget::Server_Scan();
@@ -537,15 +539,6 @@ void c_Robot_App_Widget::Magic_Scan()
 	setIf(ui->lineEdit_Battery, QString::number(r.battery) + "%");
 	setIf(ui->lineEdit_GridX, QString::number(r.gridX));
 	setIf(ui->lineEdit_GridY, QString::number(r.gridY));
-
-	// ========== 充电状态 ==========
-	QString chargeStr;
-	switch (r.chargeStatus) {
-	case 2: chargeStr = "前往充电桩"; break;
-	case 3: chargeStr = "失败"; break;
-	case 4: chargeStr = "充电成功"; break;
-	default: chargeStr = "待命"; break;
-	}
 
 	// ========== 相机画面刷新（Qt scaledContents 自动缩放适配） ==========
 	// 2026-10-25 JJ1：cacheKey 变化检测——10ms 扫描下同一帧被重复 QPixmap 转换+setPixmap ≈10 次（10Hz 新帧时冗余 90%），
