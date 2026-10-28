@@ -488,7 +488,8 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 **Function:采集信息工位切换（2026-10-28 用户定稿）
 **  双工位巡检走行时，每工位采集前将 g_Work_DB 采集字段切换为该工位任务信息
 **  （taskId/carType/wheelsetKind/axleType/wheelsetNo/axleNo/sendUnit/startTime/repairLevel/
-**  mapPointName/posId 11 字段+工位号），保证 START/PHOTO/FINISH 合成帧与工位一致。
+**  mapPointName/positions/posId/currentTaskIndex 12 项），保证 START/PHOTO/FINISH 合成帧、
+**  数据库记录、EMIS 上报与工位一致。
 **  共用点（P1.1/P4.1）先 1 后 2 两次采集，每次执行前均切换。
 *************************************************************************************************************************************************/
 void c_Work_Remote::Switch_Work_Station(const QJsonObject &src, int stationPosId)
@@ -504,6 +505,10 @@ void c_Work_Remote::Switch_Work_Station(const QJsonObject &src, int stationPosId
 	c_Variable::getInstance().g_Work_DB.startTime     = src.value("startTime").toString();
 	c_Variable::getInstance().g_Work_DB.repairLevel   = src.value("repairLevel").toString();
 	c_Variable::getInstance().g_Work_DB.mapPointName  = src.value("wheelsetPosition").toObject().value("mapPointName").toString();
+	// 2026-10-28 用户定稿：点位序列同步切换（任务 2 的 positions 与任务 1 不同）
+	c_Variable::getInstance().g_Work_DB.positions.clear();
+	QJsonArray posArr = src.value("wheelsetPosition").toObject().value("positions").toArray();
+	for (const QJsonValue &v : posArr) c_Variable::getInstance().g_Work_DB.positions << v.toString();
 	c_Variable::getInstance().g_Work_DB.posId         = QString::number(stationPosId);
 	c_Variable::getInstance().g_Work_DB.currentTaskIndex = stationPosId - 1;	// 2026-10-28 用户定稿：UI"轮对 x/总数"与 WEB 上报随工位切换（0=任务1/1=任务2）
 	c_Log::Info("WORK", "Station", QString("switch station posId=%1 task=%2").arg(stationPosId).arg(src.value("taskId").toString()));
