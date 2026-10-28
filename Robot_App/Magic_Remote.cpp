@@ -918,7 +918,7 @@ void c_Magic_Remote::Reset_Robot_Base_Default() {
 **                                    → 写 g_Magic.token/refreshToken + Signal_Set_Token（同步 HTTP 客户端 Bearer）
 **   4.1.2 POST /auth/token/refresh  刷新响应：data.token → 同上 + 状态播报"Token已刷新"
 *************************************************************************************************************************************************/
-void c_Magic_Remote::On_Resp_Auth(const QString &path, const QJsonValue &dataVal)
+bool c_Magic_Remote::On_Resp_Auth(const QString &path, const QJsonValue &dataVal)
 {
 	if (path == "/auth/token") {
 		// 登录：token 非空才生效，缺字段仅状态告警（不中断链路）
@@ -933,7 +933,7 @@ void c_Magic_Remote::On_Resp_Auth(const QString &path, const QJsonValue &dataVal
 		else {
 			emit Status("Magic遥控：登录响应缺少token字段");
 		}
-		return;
+		return true;
 	}
 
 	if (path == "/auth/token/refresh") {
@@ -945,8 +945,9 @@ void c_Magic_Remote::On_Resp_Auth(const QString &path, const QJsonValue &dataVal
 			emit Signal_Set_Token(newToken);
 			emit Status("Magic遥控：Token已刷新");
 		}
-		return;
+		return true;
 	}
+	return false;
 }
 
 /*************************************************************************************************************************************************
@@ -956,7 +957,7 @@ void c_Magic_Remote::On_Resp_Auth(const QString &path, const QJsonValue &dataVal
 **          /cmd/use_map（切图）/begin_map、stop_scan_map、cancel_scan_map（建图控制）
 **          /cmd/rename_map、delete_map（重命名/删除）/data/map_png、obstacle、edit_map（编辑）
 *************************************************************************************************************************************************/
-void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal, const QString &api, QWriteLocker *locker)
+bool c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal, const QString &api, QWriteLocker *locker)
 {
 	// --- 4.2 地图模块 ---
 
@@ -983,7 +984,7 @@ void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal,
 		}
 		emit update_MapList();
 
-		return;
+		return true;
 	}
 
 	// 4.2.8 显示地图信息 (GET)
@@ -1009,7 +1010,7 @@ void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal,
 			.arg(c_Variable::getInstance().g_Magic.ReadData.gridHeight));
 		emit update_MapStatus();
 
-		return;
+		return true;
 	}
 
 	// 4.2.11 切换地图 (POST)  + 查询默认地图 (GET)
@@ -1028,7 +1029,7 @@ void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal,
 		}
 			else {
 				emit Status("Magic遥控：切换地图响应中未获取到地图名");
-				return;
+				return true;
 			}
 			emit Status("Magic遥控：切换地图成功，正在获取地图信息...");
 			// 2026-10-24 重构 T03：专用切换确认信号（原以 update_MapStatus 8+ 发射源充当 SwitchMap_Done，致 wait_SwitchMap 假完成）
@@ -1059,7 +1060,7 @@ void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal,
 				}
 			}
 		}
-		return;
+		return true;
 	}
 
 	// 4.2.3 结束扫描保存地图
@@ -1076,7 +1077,7 @@ void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal,
 			emit update_MapStatus();
 
 		}
-		return;
+		return true;
 	}
 
 	// 4.2.5 获取地图图片
@@ -1100,7 +1101,7 @@ void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal,
 			QByteArray imgData = QByteArray::fromBase64(base64Str.toUtf8());
 			if (imgData.size() > 50000000) {
 				emit Status("Magic遥控：地图图片数据过大(>50MB)，跳过加载");
-				return;
+				return true;
 			}
 			// 2026-10-24 AA2：GUI 线程禁止长时间锁阻塞——base64 解码为重 CPU 操作，
 			// 移至锁外解码（本地 QImage），锁内仅做隐式共享赋值（O(1)）
@@ -1130,9 +1131,9 @@ void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal,
 				emit Status("Magic遥控：地图底图 Base64 解码失败");
 			}
 		}
-		return;
+		return true;
 	}
-
+	return false;
 }
 
 /*************************************************************************************************************************************************
@@ -1140,12 +1141,12 @@ void c_Magic_Remote::On_Resp_Map(const QString &path, const QJsonValue &dataVal,
 ** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
 ** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
 *************************************************************************************************************************************************/
-void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dataVal, QWriteLocker *locker)
+bool c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dataVal, QWriteLocker *locker)
 {
 	// --- 4.6 实时数据 ---
 	// --- 4.6.1 机器人实时位置 ---
 	if (path == "/real_time_data/robot_pos") {
-		if (!dataVal.isObject()) return;
+		if (!dataVal.isObject()) return true;
 		QJsonObject data = dataVal.toObject();
 		c_Variable::getInstance().g_Magic.ReadData.angle = data["angle"].toDouble(0.0);
 		QJsonObject gridPos = data["gridPosition"].toObject();
@@ -1166,7 +1167,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 		c_Variable::getInstance().g_Magic.Ready = !c_Variable::getInstance().g_Magic.Ready;
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	// --- 4.6.6 机器人定位状态 ---
@@ -1174,12 +1175,12 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 		c_Variable::getInstance().g_Magic.ReadData.localized = dataVal.toBool(false);
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	// --- 4.6.2 机器人硬件状态 ---
 	if (path == "/real_time_data/robot_hardware_status") {
-		if (!dataVal.isObject()) return;
+		if (!dataVal.isObject()) return true;
 		QJsonObject data = dataVal.toObject();
 
 		c_Variable::getInstance().g_Magic.ReadData.battery = data["battery_percentage"].toInt(0);
@@ -1205,12 +1206,12 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	// --- 4.6.14 任务进度 ---
 	if (path == "/real_time_data/task_process_status") {
-		if (!dataVal.isObject()) return;
+		if (!dataVal.isObject()) return true;
 		QJsonObject data = dataVal.toObject();
 		int statusCode = data["statusCode"].toInt(0);
 
@@ -1228,7 +1229,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 		}
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	// --- 4.6.3 实时线速度/角速度 ---
@@ -1240,7 +1241,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 			c_Variable::getInstance().g_Magic.ReadData.currentLinearSpeed = d["linear"].toObject()["x"].toDouble(0.0);
 			c_Variable::getInstance().g_Magic.ReadData.currentAngularSpeed = d["angular"].toObject()["z"].toDouble(0.0);
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.4 里程计 ---
@@ -1258,7 +1259,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 			c_Variable::getInstance().g_Magic.ReadData.odomAngularY = angular["y"].toDouble(0.0);
 			c_Variable::getInstance().g_Magic.ReadData.odomAngularZ = angular["z"].toDouble(0.0);
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.5 IMU ---
@@ -1274,7 +1275,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 			c_Variable::getInstance().g_Magic.ReadData.imuLinAccY = linAcc["y"].toDouble(0.0);
 			c_Variable::getInstance().g_Magic.ReadData.imuLinAccZ = linAcc["z"].toDouble(0.0);
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.7 2D激光 ---
@@ -1298,12 +1299,12 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 			}
 			c_Variable::getInstance().g_Magic.ReadData.lidarOnline = !c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.isEmpty();
 		}
-		return;
+		return true;
 	}
 	// --- 4.6.7 scan1/scan2/scan3 ---
 	if (path == "/real_time_data/laser2d/scan1" || path == "/real_time_data/laser2d/scan2" ||
 		path == "/real_time_data/laser2d/scan3") {
-		return;
+		return true;
 	}
 
 	// --- 4.6.9 3D激光 ---
@@ -1322,7 +1323,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 			}
 			c_Variable::getInstance().g_Magic.ReadData.lidarOnline = !c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.isEmpty();
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.8 2D激光栅格化 ---
@@ -1337,7 +1338,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 				c_Variable::getInstance().g_Magic.ReadData.laserGridPoints.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
 			}
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.10 GPS ---
@@ -1348,18 +1349,18 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 			c_Variable::getInstance().g_Magic.ReadData.gpsLongitude = d["longitude"].toDouble(0.0);
 			c_Variable::getInstance().g_Magic.ReadData.gpsAltitude = d["altitude"].toDouble(0.0);
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.13 底盘导航版本 ---
 	if (path == "/real_time_data/chassis_navigation") {
-		if (!dataVal.isObject()) return;
+		if (!dataVal.isObject()) return true;
 		QJsonObject data = dataVal.toObject();
 		c_Variable::getInstance().g_Magic.ReadData.chassisVersion = data["chassis_version"].toString();
 		c_Variable::getInstance().g_Magic.ReadData.navigationVersion = data["navigation_version"].toString();
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	// --- 4.6.15 局部路径 ---
@@ -1374,7 +1375,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 				c_Variable::getInstance().g_Magic.ReadData.localPlanPath.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
 			}
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.16 全局路径栅格坐标 ---
@@ -1389,7 +1390,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 				c_Variable::getInstance().g_Magic.ReadData.localGridPlanPath.append(QPointF(pt["x"].toDouble(), pt["y"].toDouble()));
 			}
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.11/12 相机图像 ---
@@ -1409,7 +1410,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 				emit update_DriveStatus();
 			}
 		}
-		return;
+		return true;
 	}
 	if (path == "/real_time_data/ahl2_rgb_img") {
 		QString b64 = dataVal.isString() ? dataVal.toString() : dataVal.toObject()["image"].toString();
@@ -1427,7 +1428,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 				emit update_DriveStatus();
 			}
 		}
-		return;
+		return true;
 	}
 	if (path == "/real_time_data/ahl1d_rgb_img") {
 		QString b64 = dataVal.isString() ? dataVal.toString() : dataVal.toObject()["image"].toString();
@@ -1444,7 +1445,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 				emit update_DriveStatus();
 			}
 		}
-		return;
+		return true;
 	}
 	if (path == "/real_time_data/ahl2d_rgb_img") {
 		QString b64 = dataVal.isString() ? dataVal.toString() : dataVal.toObject()["image"].toString();
@@ -1461,12 +1462,12 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 				emit update_DriveStatus();
 			}
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.6.17/18 相机点云 ---
 	if (path == "/real_time_data/front_camera" || path == "/real_time_data/rear_camera") {
-		return;
+		return true;
 	}
 
 	// --- 4.6.9 超声波 ---
@@ -1482,9 +1483,9 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 			c_Variable::getInstance().g_Magic.ReadData.ultrasonicRF = d["right_front"].toDouble(0);
 			c_Variable::getInstance().g_Magic.ReadData.ultrasonicRR2 = d["right_rear"].toDouble(0);
 		}
-		return;
+		return true;
 	}
-
+	return false;
 }
 
 /*************************************************************************************************************************************************
@@ -1492,7 +1493,7 @@ void c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 ** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
 ** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
 *************************************************************************************************************************************************/
-void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dataVal, const QString &api)
+bool c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dataVal, const QString &api)
 {
 	// --- 4.3 路径与点管理 (列表数据) ---
 	if (path == "/data/poslist") {
@@ -1506,7 +1507,7 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		}
 		emit update_NavPointList();
 
-		return;
+		return true;
 	}
 
 	if (path == "/data/graph_list") {
@@ -1520,7 +1521,7 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		}
 		emit update_GraphList();
 
-		return;
+		return true;
 	}
 
 	if (path == "/data/record_list") {
@@ -1534,7 +1535,7 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		}
 		emit update_RecordList();
 
-		return;
+		return true;
 	}
 
 	if (path == "/task_queue/list") {
@@ -1548,7 +1549,7 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		}
 		emit update_TaskQueueList();
 
-		return;
+		return true;
 	}
 
 	// ==================== 4.3 路径与点管理（操作响应） ====================
@@ -1565,7 +1566,7 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		}
 		emit update_NavPointList();
 
-		return;
+		return true;
 	}
 
 	// 4.3.5/6 创建/更新手绘路径 (POST/PUT /cmd/graph)
@@ -1579,7 +1580,7 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		}
 		emit update_GraphList();
 
-		return;
+		return true;
 	}
 
 	// 4.3.10 重命名手绘路径
@@ -1587,19 +1588,19 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		emit Status("Magic遥控：手绘路径已重命名");
 		emit update_GraphList();
 
-		return;
+		return true;
 	}
 
 	// 4.3.11 检测两点生成线段
 	if (path == "/cmd/graph_check_point") {
 		emit Status("Magic遥控：线段检测完成");
-		return;
+		return true;
 	}
 
 	// 4.3.13 开始录制路径
 	if (path == "/cmd/start_record_path") {
 		emit Status("Magic遥控：路径录制已开始");
-		return;
+		return true;
 	}
 
 	// 4.3.14 停止并保存路径
@@ -1607,19 +1608,19 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		emit Status("Magic遥控：路径录制已停止保存");
 		emit update_RecordList();
 
-		return;
+		return true;
 	}
 
 	// 4.3.15 取消录制路径
 	if (path == "/cmd/cancel_record_path") {
 		emit Status("Magic遥控：路径录制已取消");
-		return;
+		return true;
 	}
 
 	// 4.3.17 编辑录制路径动作点
 	if (path == "/cmd/record_path_points") {
 		emit Status("Magic遥控：录制路径动作点已更新");
-		return;
+		return true;
 	}
 
 	// 4.3.18 删除录制路径
@@ -1627,7 +1628,7 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		emit Status("Magic遥控：录制路径已删除");
 		emit update_RecordList();
 
-		return;
+		return true;
 	}
 
 	// 4.3.20 重命名录制路径
@@ -1635,13 +1636,13 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		emit Status("Magic遥控：录制路径已重命名");
 		emit update_RecordList();
 
-		return;
+		return true;
 	}
 
 	// 4.3.21 验证手绘路径名称
 	if (path == "/cmd/graph_check_path_name") {
 		emit Status(QString("Magic遥控：路径名称验证结果 -> %1").arg(dataVal.toString()));
-		return;
+		return true;
 	}
 
 	// ==================== 4.4 任务模块（操作响应） ====================
@@ -1649,38 +1650,38 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 	// 4.4.1 开始执行任务
 	if (path == "/task_queue/start") {
 		emit Status("Magic遥控：任务已开始执行");
-		return;
+		return true;
 	}
 
 	// 4.4.2 暂停任务
 	if (path == "/task_queue/pause") {
 		emit Status("Magic遥控：任务已暂停");
-		return;
+		return true;
 	}
 
 	// 4.4.3 恢复任务
 	if (path == "/task_queue/resume") {
 		emit Status("Magic遥控：任务已恢复");
-		return;
+		return true;
 	}
 
 	// 4.4.4 停止所有任务
 	if (path == "/task_queue/stop") {
 		emit Status("Magic遥控：所有任务已停止");
-		return;
+		return true;
 	}
 
 	// 4.4.5 停止/跳过当前任务
 	if (path == "/task_queue/stop/task") {
 		emit Status("Magic遥控：当前任务已跳过");
-		return;
+		return true;
 	}
 
 	// 4.4.6 查询路径组合是否存在
 	if (path == "/task_queue/exist") {
 		bool exists = dataVal.toBool(false);
 		emit Status(QString("Magic遥控：路径组合是否存在 -> %1").arg(exists ? "是" : "否"));
-		return;
+		return true;
 	}
 
 	// 4.4.7/8/10 添加/更新/删除路径组合 (POST/PUT/DELETE /task_queue)
@@ -1693,13 +1694,13 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		}
 		emit update_TaskQueueList();
 
-		return;
+		return true;
 	}
 
 	// 4.4.13 任务队列详情
 	if (path == "/task_queue/detail") {
 		emit Status(QString("Magic遥控：任务队列详情已获取"));
-		return;
+		return true;
 	}
 
 	// 4.4.14 任务日志
@@ -1707,17 +1708,17 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		QString logStr = dataVal.isString() ? dataVal.toString()
 			: QString::fromUtf8(QJsonDocument(dataVal.toObject()).toJson(QJsonDocument::Indented));
 		emit Status(QString("Magic遥控：任务日志 -> %1").arg(logStr.left(200)));
-		return;
+		return true;
 	}
 
 	// 4.4.17/18 任务图片上传/下载
 	if (path == "/task_queue/upload_task_image") {
 		emit Status("Magic遥控：任务图片上传成功");
-		return;
+		return true;
 	}
 	if (path == "/task_queue/down_task_image") {
 		emit Status("Magic遥控：任务报告图片已获取");
-		return;
+		return true;
 	}
 
 	// 4.4.19 重命名路径组合
@@ -1725,13 +1726,13 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		emit Status("Magic遥控：路径组合已重命名");
 		emit update_TaskQueueList();
 
-		return;
+		return true;
 	}
 
 	// ==================== 4.5 充电操作响应 ====================
 	if (path == "/cmd/recharge") {
 		emit Status("Magic遥控：自主回充指令已下发");
-		return;
+		return true;
 	}
 	if (path == "/cmd/dis_recharge") {
 		// 2026-10-24 T45：data=1 开始脱离（需轮询 status）；data=2 未充电不需脱离（直接完成）
@@ -1749,111 +1750,111 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 			m_DisRecharging = true;
 			emit Status("Magic遥控：开始脱离充电桩");
 		}
-		return;
+		return true;
 	}
 	if (path == "/cmd/recharge/pause") {
 		emit Status("Magic遥控：自主回充已暂停");
-		return;
+		return true;
 	}
 	if (path == "/cmd/recharge/resume") {
 		emit Status("Magic遥控：自主回充已恢复");
-		return;
+		return true;
 	}
 	if (path == "/cmd/recharge/cancel") {
 		emit Status("Magic遥控：自主回充已取消");
-		return;
+		return true;
 	}
 
 	// ==================== 4.7 移动控制操作响应 ====================
 	if (path == "/cmd/robot_move") {
 		emit Status(QString("Magic遥控：移动控制已设置"));
-		return;
+		return true;
 	}
 	if (path == "/cmd/robot_move_stop") {
 		emit Status(QString("Magic遥控：移动已停止"));
-		return;
+		return true;
 	}
 	if (path == "/cmd/move_with_params") {
 		emit Status("Magic遥控：定距离/定角度移动已执行");
-		return;
+		return true;
 	}
 	if (path == "/cmd/cancel_move_with_params") {
 		emit Status("Magic遥控：定距离/定角度移动已取消");
-		return;
+		return true;
 	}
 
 	// ==================== 4.8/4.9 系统操作响应 ====================
 	if (path == "/file/robot_cfg_down") {
 		emit Status("Magic遥控：配置文件下载成功");
-		return;
+		return true;
 	}
 	if (path == "/file/robot_cfg_upload") {
 		emit Status("Magic遥控：配置文件上传成功");
-		return;
+		return true;
 	}
 	if (path == "/data/upload_map") {
 		emit Status("Magic遥控：地图文件上传成功");
 		emit update_MapStatus();
 
-		return;
+		return true;
 	}
 	if (path == "/data/down_map_png") {
 		emit Status("Magic遥控：地图PNG下载成功");
 		emit update_MapStatus();
 
-		return;
+		return true;
 	}
 	if (path == "/cmd/robot_update_setting") {
 		emit Status("Magic遥控：配置已更新");
-		return;
+		return true;
 	}
 	if (path == "/cmd/robot_reset_default") {
 		emit Status("Magic遥控：已恢复默认配置");
-		return;
+		return true;
 	}
 	if (path == "/cmd/robot_reset_base_default") {
 		emit Status("Magic遥控：已恢复默认策略配置");
-		return;
+		return true;
 	}
 	if (path == "/data/robot_get_setting") {
 		emit Status("Magic遥控：导航配置已获取");
-		return;
+		return true;
 	}
 	if (path == "/data/download_map") {
 		emit Status("Magic遥控：地图文件下载成功");
-		return;
+		return true;
 	}
 	if (path == "/file/logo") {
 		emit Status("Magic遥控：Logo操作成功");
-		return;
+		return true;
 	}
 	if (path == "/file/logo/base64") {
 		emit Status("Magic遥控：Logo Base64已获取");
-		return;
+		return true;
 	}
 	if (path == "/file/background") {
 		emit Status("Magic遥控：背景图片操作成功");
-		return;
+		return true;
 	}
 	if (path == "/file/background/base64") {
 		emit Status("Magic遥控：背景Base64已获取");
-		return;
+		return true;
 	}
 	if (path == "/log/down_logs") {
 		emit Status("Magic遥控：日志下载成功");
-		return;
+		return true;
 	}
 	if (path == "/log/drop_logs") {
 		emit Status("Magic遥控：日志已删除");
-		return;
+		return true;
 	}
 	if (path == "/cmd/update_local_sys_info") {
 		emit Status("Magic遥控：APP标题已更新");
-		return;
+		return true;
 	}
 	if (path == "/log/get_all_logs") {
 		emit Status("Magic遥控：日志列表已获取");
-		return;
+		return true;
 	}
 
 	// ==================== 4.2 地图操作响应（补充） ====================
@@ -1861,15 +1862,15 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 		emit Status("Magic遥控：地图已重命名");
 		emit update_MapList();
 
-		return;
+		return true;
 	}
 	if (path == "/cmd/delete_map") {
 		emit Status("Magic遥控：地图已删除");
 		emit update_MapList();
 
-		return;
+		return true;
 	}
-
+	return false;
 }
 
 /*************************************************************************************************************************************************
@@ -1877,7 +1878,7 @@ void c_Magic_Remote::On_Resp_ListData(const QString &path, const QJsonValue &dat
 ** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
 ** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
 *************************************************************************************************************************************************/
-void c_Magic_Remote::On_Resp_Charge(const QString &path, const QJsonValue &dataVal)
+bool c_Magic_Remote::On_Resp_Charge(const QString &path, const QJsonValue &dataVal)
 {
 	// --- 4.5 自主充电 ---
 	if (path == "/data/recharge/status") {
@@ -1897,7 +1898,7 @@ void c_Magic_Remote::On_Resp_Charge(const QString &path, const QJsonValue &dataV
 		}
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	if (path == "/cmd/dis_recharge/status") {
@@ -1928,9 +1929,9 @@ void c_Magic_Remote::On_Resp_Charge(const QString &path, const QJsonValue &dataV
 				emit Dis_Recharge_Failed();
 			}
 		}
-		return;
+		return true;
 	}
-
+	return false;
 }
 
 /*************************************************************************************************************************************************
@@ -1938,7 +1939,7 @@ void c_Magic_Remote::On_Resp_Charge(const QString &path, const QJsonValue &dataV
 ** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
 ** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
 *************************************************************************************************************************************************/
-void c_Magic_Remote::On_Resp_System(const QString &path, const QJsonValue &dataVal)
+bool c_Magic_Remote::On_Resp_System(const QString &path, const QJsonValue &dataVal)
 {
 	// --- 4.9 系统数据 ---
 	if (path == "/data/sys_status") {
@@ -1948,7 +1949,7 @@ void c_Magic_Remote::On_Resp_System(const QString &path, const QJsonValue &dataV
 		}
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	if (path == "/data/sys_mac") {
@@ -1964,7 +1965,7 @@ void c_Magic_Remote::On_Resp_System(const QString &path, const QJsonValue &dataV
 		}
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	if (path == "/data/local_sys_info") {
@@ -1974,19 +1975,19 @@ void c_Magic_Remote::On_Resp_System(const QString &path, const QJsonValue &dataV
 		else if (dataVal.isString()) {
 			c_Variable::getInstance().g_Magic.ReadData.sysTitle = dataVal.toString();
 		}
-		return;
+		return true;
 	}
 
 	if (path == "/data/robot_about_us") {
 		emit Status(QString("Magic遥控：关于我们 -> %1").arg(dataVal.toString()));
-		return;
+		return true;
 	}
 
 	if (path == "/data/robot_show") {
 		emit Status(QString("Magic遥控：机器外观数据已获取"));
-		return;
+		return true;
 	}
-
+	return false;
 }
 
 /*************************************************************************************************************************************************
@@ -1994,13 +1995,13 @@ void c_Magic_Remote::On_Resp_System(const QString &path, const QJsonValue &dataV
 ** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
 ** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
 *************************************************************************************************************************************************/
-void c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataVal)
+bool c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataVal)
 {
 	// --- 4.2.1 扫图响应 ---
 	if (path == "/cmd/begin_map") {
 		c_Variable::getInstance().g_Magic.ReadData.mapping = true;
 		emit Status("Magic遥控：建图已开始");
-		return;
+		return true;
 	}
 
 	// --- 4.2.12/4.2.13 特殊区域 (POST/GET 共用 /obstacle) ---
@@ -2010,7 +2011,7 @@ void c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataV
 	// --- 4.2.14 原图编辑 ---
 	if (path == "/cmd/edit_map") {
 		emit Status("Magic遥控：地图编辑成功");
-		return;
+		return true;
 	}
 
 	// --- 4.2.15 动态初始化 ---
@@ -2018,7 +2019,7 @@ void c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataV
 		emit Status("Magic遥控：动态位姿初始化指令已下发（小车原地旋转中...），将在3秒后检查结果");
 		QTimer::singleShot(3000, this, [this]() { Get_Init_Pose_Result(); });
 		QTimer::singleShot(5000, this, [this]() { Get_Robot_Local_Status(); });
-		return;
+		return true;
 	}
 
 	// --- 4.2.16 栅格初始化 ---
@@ -2026,7 +2027,7 @@ void c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataV
 		emit Status("Magic遥控：栅格坐标初始化指令已下发（小车原地旋转中...），将在3秒后检查结果");
 		QTimer::singleShot(3000, this, [this]() { Get_Init_Pose_Result(); });
 		QTimer::singleShot(5000, this, [this]() { Get_Robot_Local_Status(); });
-		return;
+		return true;
 	}
 
 	// --- 4.2.18 初始化结果 ---
@@ -2046,13 +2047,13 @@ void c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataV
 		c_Log::Error("CHASSIS", "DynamicInit", "result=failed");
 		emit DynamicInit_Failed();
 		}
-		return;
+		return true;
 	}
 
 	// --- 4.2.x 静态位姿初始化 ---
 	if (path == "/real_time_data/static_init_pose") {
 		emit Status("Magic遥控：静态位姿初始化指令已下发");
-		return;
+		return true;
 	}
 
 	// --- 4.2.x 恢复地图 ---
@@ -2060,9 +2061,9 @@ void c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataV
 		emit Status("Magic遥控：地图恢复指令已下发");
 		emit update_MapStatus();
 
-		return;
+		return true;
 	}
-
+	return false;
 }
 
 /*************************************************************************************************************************************************
@@ -2070,7 +2071,7 @@ void c_Magic_Remote::On_Resp_MapOps(const QString &path, const QJsonValue &dataV
 ** 调用前提：On_Response_Done 分发，调用方已持 g_lock 写锁（C1 函数级锁）——本方法内禁止再取锁；
 ** locker 指针用于 AA2 锁外重解码（base64 图像解码移出锁外，锁内仅隐式共享赋值 O(1)）。
 *************************************************************************************************************************************************/
-void c_Magic_Remote::On_Resp_Task(const QString &path, const QJsonValue &dataVal)
+bool c_Magic_Remote::On_Resp_Task(const QString &path, const QJsonValue &dataVal)
 {
 	// --- 4.4 任务模块 ---
 	if (path == "/task_queue/task/is_finished" || path == "/task_queue/is_finished") {
@@ -2100,19 +2101,19 @@ void c_Magic_Remote::On_Resp_Task(const QString &path, const QJsonValue &dataVal
 		}
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
 
 	if (path == "/task_queue/current") {
-		if (!dataVal.isObject()) return;
+		if (!dataVal.isObject()) return true;
 		QJsonObject data = dataVal.toObject();
 		int status = data["status"].toInt(0);
 		c_Variable::getInstance().g_Magic.ReadData.taskStatus = status;
 		emit update_RobotStatus();
 
-		return;
+		return true;
 	}
-
+	return false;
 }
 
 // ======================== 统一响应解析 ========================// ======================== 统一响应解析 ========================
@@ -2171,52 +2172,28 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 	// 所有 On_Resp_* 调用方已持 g_lock 写锁（C1 函数级锁），子方法内禁止再取锁
 
 	// --- 4.1 登录认证（POST /auth/token、/auth/token/refresh）---
-	if (path == "/auth/token" || path == "/auth/token/refresh") {
-		On_Resp_Auth(path, dataVal);
-		return;
-	}
+	if (path == "/auth/token" || path == "/auth/token/refresh") if (On_Resp_Auth(path, dataVal)) { return; }
 
 	// --- 4.2 地图模块（已提取至 On_Resp_Map，2026-10-28 BBB2）---
-	{
-		On_Resp_Map(path, dataVal, api, &locker);
-		return;
-	}
+	if (On_Resp_Map(path, dataVal, api, &locker)) { return; }
 
 	// --- 已提取至 On_Resp_Realtime（2026-10-28 BBB）---
-	{
-		On_Resp_Realtime(path, dataVal, &locker);
-		return;
-	}
+	if (On_Resp_Realtime(path, dataVal, &locker)) { return; }
 
 	// --- 已提取至 On_Resp_MapOps（2026-10-28 BBB）---
-	{
-		On_Resp_MapOps(path, dataVal);
-		return;
-	}
+	if (On_Resp_MapOps(path, dataVal)) { return; }
 
 	// --- 已提取至 On_Resp_Task（2026-10-28 BBB）---
-	{
-		On_Resp_Task(path, dataVal);
-		return;
-	}
+	if (On_Resp_Task(path, dataVal)) { return; }
 
 	// --- 已提取至 On_Resp_Charge（2026-10-28 BBB）---
-	{
-		On_Resp_Charge(path, dataVal);
-		return;
-	}
+	if (On_Resp_Charge(path, dataVal)) { return; }
 
 	// --- 已提取至 On_Resp_System（2026-10-28 BBB）---
-	{
-		On_Resp_System(path, dataVal);
-		return;
-	}
+	if (On_Resp_System(path, dataVal)) { return; }
 
 	// --- 已提取至 On_Resp_ListData（2026-10-28 BBB）---
-	{
-		On_Resp_ListData(path, dataVal, api);
-		return;
-	}
+	if (On_Resp_ListData(path, dataVal, api)) { return; }
 
 	// --- 其他通用成功提示（过滤高频日志） ---
 	if (!msg.isEmpty() && msg != "success" && msg != "Success.") {
