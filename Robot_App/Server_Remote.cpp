@@ -166,6 +166,13 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 		return;
 	}
 	m_HandledChecksum.insert(checksum);
+	// 2026-10-28 DDD2：幂等集合上限治理——长期运行控制指令累积无限增长，
+	// 超上限清空重建（保留最近一批即可；Read_Ready 不插入 S3 不受影响）
+	if (m_HandledChecksum.size() > 10000) {
+		m_HandledChecksum.clear();
+		m_HandledChecksum.insert(checksum);
+		c_Log::Warn("WEB", "Cmd", "handled_checksum_set reset size>10000");
+	}
 	m_LastChecksum = checksum;
 	{	// 2026-10-27 用户反馈：校验码写共享状态（Work_Checksum UI 显示），写侧持写锁
 		QWriteLocker locker(&c_Variable::g_lock);
