@@ -222,81 +222,114 @@ emit Status(QString::number(m_Port) + "->服务：收到 " + cmd);
 
 /*************************************************************************************************************************************************
 **Function:合成系统全局状态 - 采集Magic/CGXi/Scan/Task数据
+**  2026-10-28 用户定稿：Read_Ready 反馈状态 JSON 的 Key 全部中文，并补充全量状态信息
+**  （任务/底盘/机械臂/相机/IO/语音/WEB 服务/最近报警 全模块；读侧持锁快照）
 *************************************************************************************************************************************************/
 QJsonObject c_Server_Remote::Build_System_Status()
 {
 	QJsonObject root;
 
-	root.insert("status", "OK");
-	root.insert("timestamp", QDateTime::currentDateTime().toString("yyyyMMddHHmmss"));
+	root.insert("状态", "OK");
+	root.insert("时间", QDateTime::currentDateTime().toString("yyyyMMddHHmmss"));
 
-	// 2. 任务进度（2026-10-24 T87：g_Work_DB 跨线程写，读侧持读锁快照；CC：直接访问）
+	// 1. 任务进度（g_Work_DB 跨线程写，读侧持读锁快照；全量任务字段）
 	QJsonObject task;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		task.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
-		task.insert("workState", c_Variable::getInstance().g_Work_DB.workState);
-		task.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
-		task.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
-		task.insert("currentPos", c_Variable::getInstance().g_Work_DB.currentPos);
-		task.insert("totalImages", c_Variable::getInstance().g_Work_DB.totalImages);
+		task.insert("任务编号", c_Variable::getInstance().g_Work_DB.taskId);
+		task.insert("任务状态", c_Variable::getInstance().g_Work_DB.workState);
+		task.insert("当前任务序号", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
+		task.insert("任务总数", c_Variable::getInstance().g_Work_DB.taskCount);
+		task.insert("当前工位", c_Variable::getInstance().g_Work_DB.currentPos);
+		task.insert("采集图像数", c_Variable::getInstance().g_Work_DB.totalImages);
+		task.insert("车型", c_Variable::getInstance().g_Work_DB.carType);
+		task.insert("轮对类型", c_Variable::getInstance().g_Work_DB.wheelsetKind);
+		task.insert("轮对号", c_Variable::getInstance().g_Work_DB.wheelsetNo);
+		task.insert("车轴号", c_Variable::getInstance().g_Work_DB.axleNo);
+		task.insert("送修单位", c_Variable::getInstance().g_Work_DB.sendUnit);
+		task.insert("开始时间", c_Variable::getInstance().g_Work_DB.startTime);
+		task.insert("修程", c_Variable::getInstance().g_Work_DB.repairLevel);
+		task.insert("工位号", c_Variable::getInstance().g_Work_DB.posId);
+		task.insert("地图点", c_Variable::getInstance().g_Work_DB.mapPointName);
+		task.insert("当前增益", c_Variable::getInstance().g_Work_DB.currentGain);
+		task.insert("当前轨迹", c_Variable::getInstance().g_Work_DB.currentProg);
+		task.insert("一级部件", c_Variable::getInstance().g_Work_DB.currentPart1);
+		task.insert("二级部件", c_Variable::getInstance().g_Work_DB.currentPart2);
+		task.insert("巡检点", c_Variable::getInstance().g_Work_DB.currentPointStr);
+		task.insert("最近指令校验码", c_Variable::getInstance().g_Work_DB.lastChecksum);
 	}
-	root.insert("task", task);
+	root.insert("任务", task);
 
-	// 3. AMR 底盘 + 4. 机械臂 + 5. 相机（2026-10-25 QQ2：合并单次读锁快照，原三节无锁直读为技术债）
+	// 2. AMR 底盘 + 3. 机械臂 + 4. 相机 + 5. IO + 6. 语音（合并单次读锁快照）
 	QJsonObject chassis;
 	QJsonObject arm;
 	QJsonObject camera;
+	QJsonObject io;
+	QJsonObject voice;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 
-		chassis.insert("connected", c_Variable::getInstance().g_Magic.is_connected);
-		chassis.insert("localized", c_Variable::getInstance().g_Magic.ReadData.localized);
-		chassis.insert("battery", c_Variable::getInstance().g_Magic.ReadData.battery);
-		chassis.insert("chargeStatus", c_Variable::getInstance().g_Magic.ReadData.chargeStatus);
-		chassis.insert("emergencyStop", c_Variable::getInstance().g_Magic.ReadData.emergencyStop);
-		chassis.insert("workingMode", c_Variable::getInstance().g_Magic.ReadData.workingMode);
-		chassis.insert("errorCode", c_Variable::getInstance().g_Magic.ReadData.errorCode);
+		chassis.insert("连接", c_Variable::getInstance().g_Magic.is_connected);
+		chassis.insert("定位", c_Variable::getInstance().g_Magic.ReadData.localized);
+		chassis.insert("电量", c_Variable::getInstance().g_Magic.ReadData.battery);
+		chassis.insert("充电状态", c_Variable::getInstance().g_Magic.ReadData.chargeStatus);
+		chassis.insert("充电中", c_Variable::getInstance().g_Magic.ReadData.charging);
+		chassis.insert("急停", c_Variable::getInstance().g_Magic.ReadData.emergencyStop);
+		chassis.insert("防撞", c_Variable::getInstance().g_Magic.ReadData.antiCollision);
+		chassis.insert("工作模式", c_Variable::getInstance().g_Magic.ReadData.workingMode);
+		chassis.insert("错误码", c_Variable::getInstance().g_Magic.ReadData.errorCode);
 		QJsonObject pos;
-		pos.insert("x", c_Variable::getInstance().g_Magic.ReadData.worldX);
-		pos.insert("y", c_Variable::getInstance().g_Magic.ReadData.worldY);
-		pos.insert("angle", c_Variable::getInstance().g_Magic.ReadData.angle);
-		chassis.insert("position", pos);
+		pos.insert("X", c_Variable::getInstance().g_Magic.ReadData.worldX);
+		pos.insert("Y", c_Variable::getInstance().g_Magic.ReadData.worldY);
+		pos.insert("角度", c_Variable::getInstance().g_Magic.ReadData.angle);
+		chassis.insert("位置", pos);
 
-		arm.insert("connected", c_Variable::getInstance().g_CGXi.Connected);
-		arm.insert("mode", c_Variable::getInstance().g_CGXi.data.robot_mode);
-		arm.insert("programStatus", c_Variable::getInstance().g_CGXi.data.program_status);
-		arm.insert("moving", (c_Variable::getInstance().g_CGXi.data.robot_moving != 0));
-		arm.insert("errorCode", c_Variable::getInstance().g_CGXi.data.last_error_code);
-		arm.insert("currentProgramIndex", c_Variable::getInstance().g_CGXi.data.current_program_index);
-		arm.insert("speedRatio", c_Variable::getInstance().g_CGXi.data.speed_ratio);
-		arm.insert("powered", (c_Variable::getInstance().g_CGXi.data.robot_power_on_indicator != 0));
+		arm.insert("连接", c_Variable::getInstance().g_CGXi.Connected);
+		arm.insert("模式", c_Variable::getInstance().g_CGXi.data.robot_mode);
+		arm.insert("程序状态", c_Variable::getInstance().g_CGXi.data.program_status);
+		arm.insert("运行中", (c_Variable::getInstance().g_CGXi.data.robot_moving != 0));
+		arm.insert("错误码", c_Variable::getInstance().g_CGXi.data.last_error_code);
+		arm.insert("当前程序索引", c_Variable::getInstance().g_CGXi.data.current_program_index);
+		arm.insert("速度比例", c_Variable::getInstance().g_CGXi.data.speed_ratio);
+		arm.insert("上电", (c_Variable::getInstance().g_CGXi.data.robot_power_on_indicator != 0));
 		QJsonObject tcp;
-		tcp.insert("x", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[0]);
-		tcp.insert("y", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[1]);
-		tcp.insert("z", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[2]);
-		tcp.insert("rx", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[3]);
-		tcp.insert("ry", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[4]);
-		tcp.insert("rz", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[5]);
-		arm.insert("tcpPose", tcp);
+		tcp.insert("X", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[0]);
+		tcp.insert("Y", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[1]);
+		tcp.insert("Z", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[2]);
+		tcp.insert("RX", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[3]);
+		tcp.insert("RY", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[4]);
+		tcp.insert("RZ", c_Variable::getInstance().g_CGXi.data.tcp_actual_position[5]);
+		arm.insert("TCP位姿", tcp);
 
-		camera.insert("remoteConnected", c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected);
-		camera.insert("monitorConnected", c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected);
-		camera.insert("tranConnected", c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
-		camera.insert("tranListen", c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen);
+		camera.insert("远程连接", c_Variable::getInstance().g_Prec_Scan_120.Remote_Connected);
+		camera.insert("反馈连接", c_Variable::getInstance().g_Prec_Scan_120.Monitor_Connected);
+		camera.insert("转发连接", c_Variable::getInstance().g_Prec_Scan_120.Tran_Connected);
+		camera.insert("监听", c_Variable::getInstance().g_Prec_Scan_120.Tran_Listen);
+		camera.insert("相机心跳", c_Variable::getInstance().g_Prec_Scan_120.Camera_Ok);
+
+		io.insert("连接", c_Variable::getInstance().g_IO.Connected);
+		io.insert("就绪", c_Variable::getInstance().g_IO.Ready);
+
+		voice.insert("连接", c_Variable::getInstance().g_Voice.is_connected);
+		voice.insert("在线", c_Variable::getInstance().g_Voice.Ready);
+		voice.insert("播放中", c_Variable::getInstance().g_Voice.PlayIndex);
+		voice.insert("播报次数", c_Variable::getInstance().g_Voice.PlayCount);
+		voice.insert("设备状态", c_Variable::getInstance().g_Voice.DeviceStatus);
 	}
-	root.insert("chassis", chassis);
-	root.insert("arm", arm);
-	root.insert("camera", camera);
+	root.insert("底盘", chassis);
+	root.insert("机械臂", arm);
+	root.insert("相机", camera);
+	root.insert("IO模块", io);
+	root.insert("语音", voice);
 
-	// 6. WEB 服务自身（2026-10-24 CC：直接访问）
+	// 7. WEB 服务自身（g_Server 直访）
 	QJsonObject svr;
-	svr.insert("clientConnected", c_Variable::getInstance().g_Server.Tran_Connected);
-	svr.insert("listening", c_Variable::getInstance().g_Server.Tran_Listen);
-	svr.insert("clientCount", c_Variable::getInstance().g_Server.num);
-	root.insert("server", svr);
+	svr.insert("客户端连接", c_Variable::getInstance().g_Server.Tran_Connected);
+	svr.insert("监听", c_Variable::getInstance().g_Server.Tran_Listen);
+	svr.insert("客户端数", c_Variable::getInstance().g_Server.num);
+	root.insert("服务", svr);
 
-	// 7. 最近报警（2026-10-24 T83：g_Worry_List 跨线程写入，读侧持读锁快照；CC：直接访问）
+	// 8. 最近报警（g_Worry_List 读侧持读锁快照）
 	QJsonArray warns;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
@@ -304,7 +337,7 @@ QJsonObject c_Server_Remote::Build_System_Status()
 		for (int i = 0; i < n; ++i)
 			warns.append(c_Variable::getInstance().g_Worry_List[i].toString());
 	}
-	root.insert("recentAlarms", warns);
+	root.insert("最近报警", warns);
 
 	return root;
 }
