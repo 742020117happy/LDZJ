@@ -75,6 +75,8 @@ private:
 	// 2026-10-24 重构 T12：轨迹等待状态（等待期外的 PHOTO&FINISH 缓存，供下一 wait 立即消费）
 	bool m_ProgWaitActive = false;
 	bool m_PendingFinish = false;
+	// 2026-10-28 用户定稿：导航定位失败判定阈值（米）——任务结束后机器人坐标与目标点距离超此值判失败
+	double m_NavArriveTolerance = 1.5;
 
 	// 2026-10-24 T95：Lookup_Traj（配方查表旧版，已被 Start_Cmd 内 m_Work_Program[点名] 直查取代）
 	// 与 Wait_Poll 超时轮询一并按用户要求删除
