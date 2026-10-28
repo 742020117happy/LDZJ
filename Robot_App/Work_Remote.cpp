@@ -435,6 +435,9 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 			if (!wait_StartTask(Point_Name)) { fail_step("机器人定位失败", "PA022"); return; }
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			if (isPos1) {
+				// 2026-10-28 用户定稿：采集信息随工位切换——1 号工位采集前切任务 1 字段
+				// （保证 START/PHOTO/FINISH 帧信息与工位一致）
+				Switch_Work_Station(t1, posId);
 				// 2026-10-26 现场矫正：工位1 取数组第一条（at(0)）
 				QJsonArray arr1 = prog_kind1.value(Point_Name).toArray();
 				if (!arr1.isEmpty()) {
@@ -444,6 +447,8 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 			// 2026-10-26 现场矫正：工位2 取数组最后一条——单条点（P2/P3/P4）仅工位2 轨迹即该条；
 			// 双条点（P1.1/P4.1）第二条=工位2 轨迹。原 at(posId_2-1) 在单条数组越界被静默跳过 → P2/P3/P4 未执行轨迹
 			if (isPos2) {
+				// 2026-10-28 用户定稿：采集信息随工位切换——2 号工位采集前切任务 2 字段
+				Switch_Work_Station(t2, posId_2);
 				QJsonArray arr2 = prog_kind2.value(Point_Name).toArray();
 				if (!arr2.isEmpty()) {
 					if (!wait_CGXi_Prog_Start(arr2.at(arr2.size() - 1).toInt())) { fail_step("机械臂运行失败（第二工位轨迹）", "PA003"); return; }
@@ -477,6 +482,30 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 	emit actual_return_time();
 	c_Log::Info("WORK", "Flow", QString("finish task_id=%1").arg(c_Variable::getInstance().g_Work_DB.taskId));
 	emit Status("巡检完成");
+}
+
+/*************************************************************************************************************************************************
+**Function:采集信息工位切换（2026-10-28 用户定稿）
+**  双工位巡检走行时，每工位采集前将 g_Work_DB 采集字段切换为该工位任务信息
+**  （taskId/carType/wheelsetKind/axleType/wheelsetNo/axleNo/sendUnit/startTime/repairLevel/
+**  mapPointName/posId 11 字段+工位号），保证 START/PHOTO/FINISH 合成帧与工位一致。
+**  共用点（P1.1/P4.1）先 1 后 2 两次采集，每次执行前均切换。
+*************************************************************************************************************************************************/
+void c_Work_Remote::Switch_Work_Station(const QJsonObject &src, int stationPosId)
+{
+	QWriteLocker locker(&c_Variable::g_lock);
+	c_Variable::getInstance().g_Work_DB.taskId        = src.value("taskId").toString();
+	c_Variable::getInstance().g_Work_DB.carType       = src.value("carType").toString();
+	c_Variable::getInstance().g_Work_DB.wheelsetKind  = src.value("wheelsetKind").toString();
+	c_Variable::getInstance().g_Work_DB.axleType      = src.value("axleType").toString();
+	c_Variable::getInstance().g_Work_DB.wheelsetNo    = src.value("wheelsetNo").toString();
+	c_Variable::getInstance().g_Work_DB.axleNo        = src.value("axleNo").toString();
+	c_Variable::getInstance().g_Work_DB.sendUnit      = src.value("sendUnit").toString();
+	c_Variable::getInstance().g_Work_DB.startTime     = src.value("startTime").toString();
+	c_Variable::getInstance().g_Work_DB.repairLevel   = src.value("repairLevel").toString();
+	c_Variable::getInstance().g_Work_DB.mapPointName  = src.value("wheelsetPosition").toObject().value("mapPointName").toString();
+	c_Variable::getInstance().g_Work_DB.posId         = QString::number(stationPosId);
+	c_Log::Info("WORK", "Station", QString("switch station posId=%1 task=%2").arg(stationPosId).arg(src.value("taskId").toString()));
 }
 
 //等待刷新地图列表

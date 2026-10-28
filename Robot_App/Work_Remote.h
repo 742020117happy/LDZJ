@@ -20,6 +20,8 @@ public slots:
 	void Execute_Inspection_Flow(QJsonObject &return_cmd, const QJsonObject &t1, const QJsonObject &t2,
 		const QJsonObject &wp1, const QJsonObject &wp2, int wheelsetCount, int posId, int posId_2,
 		const QString &mapPointName, const QJsonArray &positions);
+	// 2026-10-28 用户定稿：采集信息工位切换（双工位每点采集前切 g_Work_DB 字段，保证 START/PHOTO/FINISH 与工位一致）
+	void Switch_Work_Station(const QJsonObject &src, int stationPosId);
 	void Work_Test();							// 一键巡检测试（沿用九步信号等待链，现场已验证）
 	void Cancel_Task_Cmd();						// 2026-10-24 T101：取消任务（Widget invokeMethod 目标，转发 Task_Cancelled）
 	void Prec_Scan_Write_Done(QString ip, int port, QString value);
