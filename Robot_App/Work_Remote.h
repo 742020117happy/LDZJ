@@ -13,6 +13,13 @@ public:
 public slots:
 	void Init();								// 初始化：加载轨迹配方 InspectionPlan.json（车型→轮对类型→点位+轨迹索引）
 	void Start_Cmd(QJsonObject object);			// WEB 巡检任务：解析 tasks[] → 校验 → 逐任务执行工序（2026-10-24 实现）
+	// 2026-10-28 DDD1：Start_Cmd 拆分（381 行 → 校验/门控/解析 + 工序执行两方法）
+	bool Validate_Start_Inspection(const QJsonObject &object, QJsonObject &return_cmd,
+		int &wheelsetCount, QJsonObject &t1, QJsonObject &t2, QJsonObject &wp1, QJsonObject &wp2,
+		int &posId, int &posId_2, QString &mapPointName, QJsonArray &positions);
+	void Execute_Inspection_Flow(QJsonObject &return_cmd, const QJsonObject &t1, const QJsonObject &t2,
+		const QJsonObject &wp1, const QJsonObject &wp2, int wheelsetCount, int posId, int posId_2,
+		const QString &mapPointName, const QJsonArray &positions);
 	void Work_Test();							// 一键巡检测试（沿用九步信号等待链，现场已验证）
 	void Cancel_Task_Cmd();						// 2026-10-24 T101：取消任务（Widget invokeMethod 目标，转发 Task_Cancelled）
 	void Prec_Scan_Write_Done(QString ip, int port, QString value);

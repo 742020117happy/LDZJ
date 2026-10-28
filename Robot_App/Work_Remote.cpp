@@ -117,10 +117,36 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	QJsonObject return_cmd;
 	return_cmd.insert("Cmd_Name", "START_INSPECTION");
 
+
+	// ================= 1-3. 指令校验/门控/解析（2026-10-28 DDD1 提取至 Validate_Start_Inspection） =================
+	int wheelsetCount = 0, posId = 0, posId_2 = 0;
+	QJsonObject t1, t2, wp1, wp2;
+	QString mapPointName;
+	QJsonArray positions;
+	if (!Validate_Start_Inspection(object, return_cmd, wheelsetCount, t1, t2, wp1, wp2, posId, posId_2, mapPointName, positions)) {
+		return;
+	}
+
+	// ================= 4-8. 工序链+配方+走行+收尾（2026-10-28 DDD1 提取至 Execute_Inspection_Flow） =================
+	Execute_Inspection_Flow(return_cmd, t1, t2, wp1, wp2, wheelsetCount, posId, posId_2, mapPointName, positions);
+}
+
+/*************************************************************************************************************************************************
+**Function:START_INSPECTION 校验/门控/解析（2026-10-28 DDD1 自 Start_Cmd 提取）
+**  1. 指令完整性校验：Checksum/Cmd_Name/Value/wheelsetCount/tasks 缺失应答 Error
+**  2. 任务状态门控：任务进行中拒绝下发；Value=false 且任务进行中 → 取消任务
+**  3. tasks 解析与字段校验：任务1/任务2 十字段齐全 + 禁用字符（空格/&/-）+ startTime 12 位数字；
+**     写入 g_Work_DB（任务1 字段+posId，写侧持锁）
+**  返回：true=校验通过（t1/t2/wp1/wp2/wheelsetCount/posId/posId_2/mapPointName/positions 已填充）；false=已应答错误
+*************************************************************************************************************************************************/
+bool c_Work_Remote::Validate_Start_Inspection(const QJsonObject &object, QJsonObject &return_cmd,
+	int &wheelsetCount, QJsonObject &t1, QJsonObject &t2, QJsonObject &wp1, QJsonObject &wp2,
+	int &posId, int &posId_2, QString &mapPointName, QJsonArray &positions)
+{
 	// ================= 1. 指令完整性校验 =================
 	if (object.value("Checksum") == QJsonValue::Undefined) {
 		emit Status("缺少校验信息推出任务");
-		return;
+		return false;
 	}
 	return_cmd.insert("Checksum", object.value("Checksum").toString());
 
@@ -131,10 +157,10 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		return_cmd.insert("Value", false);
 		emit Write_Json(return_cmd);
 	};
-	if (object.value("Cmd_Name") == QJsonValue::Undefined) { reply_missing("Cmd_Name"); return; }
-	if (object.value("Value") == QJsonValue::Undefined) { reply_missing("Value"); return; }
-	if (object.value("wheelsetCount") == QJsonValue::Undefined) { reply_missing("wheelsetCount"); return; }
-	if (object.value("tasks") == QJsonValue::Undefined) { reply_missing("tasks"); return; }
+	if (object.value("Cmd_Name") == QJsonValue::Undefined) { reply_missing("Cmd_Name"); return false; }
+	if (object.value("Value") == QJsonValue::Undefined) { reply_missing("Value"); return false; }
+	if (object.value("wheelsetCount") == QJsonValue::Undefined) { reply_missing("wheelsetCount"); return false; }
+	if (object.value("tasks") == QJsonValue::Undefined) { reply_missing("tasks"); return false; }
 
 	// ================= 2. 任务状态门控 =================
 	bool valve = object.value("Value").toBool();
@@ -143,14 +169,14 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		return_cmd.insert("Status", "Error");
 		return_cmd.insert("Value", false);
 		emit Write_Json(return_cmd);
-		return;
+		return false;
 	}
 	if (!c_Variable::getInstance().g_Work.Connected && !valve) {
 		return_cmd.insert("Message", "任务不存在无需取消");
 		return_cmd.insert("Status", "Error");
 		return_cmd.insert("Value", false);
 		emit Write_Json(return_cmd);
-		return;
+		return false;
 	}
 	if (c_Variable::getInstance().g_Work.Connected && !valve) {
 		emit Task_Cancelled();
@@ -158,11 +184,11 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		return_cmd.insert("Status", "Success");
 		return_cmd.insert("Value", true);
 		emit Write_Json(return_cmd);
-		return;
+		return false;
 	}
 
 	// ================= 3. tasks 解析与字段校验 =================
-	int wheelsetCount = object.value("wheelsetCount").toInt();
+	wheelsetCount = object.value("wheelsetCount").toInt();
 	QJsonArray tasks = object.value("tasks").toArray();
 	c_Log::Info("WORK", "Cmd", QString("recv START_INSPECTION wheelsetCount=%1 tasks=%2").arg(wheelsetCount).arg(tasks.size()));
 
@@ -172,30 +198,30 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		return_cmd.insert("Status", "Error");
 		return_cmd.insert("Value", false);
 		emit Write_Json(return_cmd);
-		return;
+		return false;
 	}
 	if (wheelsetCount == 2 && tasks.size() < 2) {
 		return_cmd.insert("Message", "tasks 数组元素不足 2 个");
 		return_cmd.insert("Status", "Error");
 		return_cmd.insert("Value", false);
 		emit Write_Json(return_cmd);
-		return;
+		return false;
 	}
 
 	// 任务1 字段齐全校验（2026-10-26 用户定稿：任务指令字段禁止出现空格）
-	QJsonObject t1 = tasks.at(0).toObject();
+	t1 = tasks.at(0).toObject();
 	QStringList required;
 	required << "taskId" << "carType" << "wheelsetKind" << "axleType" << "wheelsetNo"
 		<< "axleNo" << "sendUnit" << "startTime" << "repairLevel" << "wheelsetPosition";
 	for (const QString &field : required) {
-		if (t1.value(field) == QJsonValue::Undefined) { reply_missing(field); return; }
+		if (t1.value(field) == QJsonValue::Undefined) { reply_missing(field); return false; }
 		// 2026-10-26 用户定稿：字段值含空格/&/- → 拒绝（防下游文件名/数据库/EMIS 携带分隔符）
 		if (t1.value(field).toString().contains(' ') || t1.value(field).toString().contains('&') || t1.value(field).toString().contains('-')) {
 			return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(field));
 			return_cmd.insert("Status", "Error");
 			return_cmd.insert("Value", false);
 			emit Write_Json(return_cmd);
-			return;
+			return false;
 		}
 	}
 	// 2026-10-27 协议核对：startTime 必须 yyyyMMddHHmm 12 位纯数字（START 帧第2/3段=前8位年月日+后4位时分）
@@ -206,30 +232,28 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 			return_cmd.insert("Status", "Error");
 			return_cmd.insert("Value", false);
 			emit Write_Json(return_cmd);
-			return;
+			return false;
 		}
 	}
-	QJsonObject wp1 = t1.value("wheelsetPosition").toObject();
+	wp1 = t1.value("wheelsetPosition").toObject();
 	QStringList required_wp;
 	required_wp << "posId" << "mapPointName" << "positions";
 	for (const QString &field : required_wp) {
-		if (wp1.value(field) == QJsonValue::Undefined) { reply_missing(field); return; }
+		if (wp1.value(field) == QJsonValue::Undefined) { reply_missing(field); return false; }
 	}
 
 	// 任务2 字段齐全校验（双工位）
-	QJsonObject t2;
-	QJsonObject wp2;
 	if (wheelsetCount == 2) {
 		t2 = tasks.at(1).toObject();
 		for (const QString &field : required) {
-			if (t2.value(field) == QJsonValue::Undefined) { reply_missing(field); return; }
+			if (t2.value(field) == QJsonValue::Undefined) { reply_missing(field); return false; }
 			// 2026-10-26 用户定稿：任务2 字段同样禁止空格/&/-
 			if (t2.value(field).toString().contains(' ') || t2.value(field).toString().contains('&') || t2.value(field).toString().contains('-')) {
 				return_cmd.insert("Message", QString("指令字段含空格或分隔符：%1").arg(field));
 				return_cmd.insert("Status", "Error");
 				return_cmd.insert("Value", false);
 				emit Write_Json(return_cmd);
-				return;
+				return false;
 			}
 		}
 		// 2026-10-27 协议核对：任务2 startTime 同样必须 yyyyMMddHHmm 12 位纯数字
@@ -240,12 +264,12 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 				return_cmd.insert("Status", "Error");
 				return_cmd.insert("Value", false);
 				emit Write_Json(return_cmd);
-				return;
+				return false;
 			}
 		}
 		wp2 = t2.value("wheelsetPosition").toObject();
 		for (const QString &field : required_wp) {
-			if (wp2.value(field) == QJsonValue::Undefined) { reply_missing(field); return; }
+			if (wp2.value(field) == QJsonValue::Undefined) { reply_missing(field); return false; }
 		}
 	}
 
@@ -262,18 +286,32 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 		c_Variable::getInstance().g_Work_DB.axleType = t1.value("axleType").toString();
 	}
 
-	int posId = wp1.value("posId").toInt();
+	posId = wp1.value("posId").toInt();
 	// 2026-10-26 协议：posId 写入 g_Work_DB（图像文件名 {posId} 段）
 	{
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.posId = QString::number(posId);
 	}
-	QString mapPointName = wp1.value("mapPointName").toString();
-	QJsonArray positions = wp1.value("positions").toArray();
-	int posId_2 = 0;
+	mapPointName = wp1.value("mapPointName").toString();
+	positions = wp1.value("positions").toArray();
 	if (wheelsetCount == 2) { posId_2 = wp2.value("posId").toInt(); }
 
 	// 工序失败统一处理（2026-10-25 整合：workState=5 + 语音 + Error 应答收敛为 lambda）
+	return true;
+}
+
+/*************************************************************************************************************************************************
+**Function:巡检工序执行（2026-10-28 DDD1 自 Start_Cmd 提取）
+**  4. 工序链：开机→刷图→切图→刷点→初始化 P001（PA014）→脱桩→使能（2026-10-28 定稿顺序）
+**  5. 配方加载与三层查找（InspectionPlan.json：车型→轮对类型→点:[轨迹]；QQ1 第二工位补层）
+**  6-7. 巡检启动与走行（单/双工位；wait_StartTask 含定位判定 §54.3）
+**  8. 收尾：双工位切第二任务字段 + 回充 P0 + 完成
+**  失败统一走 fail_step：g_Work.Connected=false + workState=5 + 语音 + Error 应答
+*************************************************************************************************************************************************/
+void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJsonObject &t1, const QJsonObject &t2,
+	const QJsonObject &wp1, const QJsonObject &wp2, int wheelsetCount, int posId, int posId_2,
+	const QString &mapPointName, const QJsonArray &positions)
+{
 	auto fail_step = [this, &return_cmd](const QString &msg, const QString &pa) {
 		c_Variable::getInstance().g_Work.Connected = false;	// 2026-10-26 现场矫正：失败复位任务门控（综合重写回归遗漏）
 		{
@@ -440,6 +478,7 @@ void c_Work_Remote::Start_Cmd(QJsonObject object)
 	c_Log::Info("WORK", "Flow", QString("finish task_id=%1").arg(c_Variable::getInstance().g_Work_DB.taskId));
 	emit Status("巡检完成");
 }
+
 //等待刷新地图列表
 bool c_Work_Remote::wait_RefreshMapList()
 {
