@@ -1893,6 +1893,12 @@ void c_Robot_App_Widget::Status_Light_Voice_Scan()
 	}
 
 	if (level == m_Last_Light_Level) return;	// 防抖：档位未变不动作
+	// 2026-10-28 用户定稿：设备恢复正常自动切回策略——红档 → 绿档时记录恢复日志
+	// （设备重连/相机恢复/机械臂错误清除/急停复位/新任务下发后 workState 归零等自动触发）
+	if (m_Last_Light_Level == 2 && level == 0) {
+		c_Log::Info("WORK", "Alarm", "recovered: red->green auto restore");
+		emit Write_Work_List("状态联动: 设备恢复正常（红灯→绿灯，语音停播）");
+	}
 	m_Last_Light_Level = level;
 
 	// 驱动三色灯（2026-10-24 T46：IO 侧 Set_Alarm_* 已互斥（置位前自动关另两路），此处仅置位目标）
