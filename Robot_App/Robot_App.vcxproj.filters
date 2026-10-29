@@ -16,9 +16,6 @@
     <Filter Include="通讯层\ModeBusTCP">
       <UniqueIdentifier>{a57333a8-a1ce-4532-84b2-da577a81abb5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="通讯层\SocketClient">
-      <UniqueIdentifier>{b3547871-e5cf-4510-80bc-0a58668d4d60}</UniqueIdentifier>
-    </Filter>
     <Filter Include="通讯层\SocketUDP">
       <UniqueIdentifier>{f8193713-7006-4fba-93f6-f1c5d9df7328}</UniqueIdentifier>
     </Filter>
