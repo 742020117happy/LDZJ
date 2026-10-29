@@ -1,0 +1,182 @@
+﻿<html><head><meta charset="utf-8"></head><body style="font-family:宋体,SimSun;font-size:12pt;">
+<h1>轮对质检机器人控制平台 V1.0 设计说明书</h1>
+<p>&nbsp;</p>
+<p style="color:#444;"><i>版本：V1.0　日期：2026-10-28</i></p>
+<p style="color:#444;"><i>软件全称：轮对质检机器人控制平台　简称：Robot_App</i></p>
+<p style="color:#444;"><i>开发语言：C++　技术栈：Qt 5.12.1 + VS2015（msvc2015_64）</i></p>
+<p style="color:#444;"><i>运行环境：Windows 10 工控机（研华 MIC-770）</i></p>
+<p>&nbsp;</p>
+<h2>1. 软件概述</h2>
+<p>&nbsp;</p>
+<p>轮对质检机器人控制平台是面向动车组轮对自动化质检场景的上位机控制软件，部署于检修车间工控机，</p>
+<p>通过 Modbus TCP/RTU、HTTP REST、UDP/TCP 等协议协同控制 AMR 底盘、六轴机械臂（CGXi）、</p>
+<p>结构光精扫相机、远程 IO 站与语音播报器等设备，接收 WEB 工作站下发的巡检任务指令，</p>
+<p>自动完成"地图切换 → 位姿初始化 → 脱桩 → 逐工位走行 → 机械臂轨迹拍照 → 精扫图像采集 → 回充"的</p>
+<p>全自动轮对质检流程，并将采集数据、时间点与报警信息实时上报 WEB 工作站与 EMIS 系统。</p>
+<p>&nbsp;</p>
+<h2>2. 软件架构（三层架构）</h2>
+<p>&nbsp;</p>
+<h3>2.1 分层设计</h3>
+<p>&nbsp;</p>
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;font-size:10.5pt;">
+<tr>
+<td>层</td>
+<td>组成</td>
+<td>职责</td>
+</tr>
+<tr>
+<td>界面层</td>
+<td>c_Robot_App_Widget（QMainWindow）+ Fr_Light/Map_View/Lidar_View（QWidget）</td>
+<td>实例化 UI 与所有业务线程；界面刷新与信号槽桥接</td>
+</tr>
+<tr>
+<td>业务层</td>
+<td>Magic/IO/CGXi/Voice/Lczh/Work/Server_Remote/MySql/Emis（8 类，父类 c_Object）</td>
+<td>组合通讯层对象，完成协议解析与业务逻辑</td>
+</tr>
+<tr>
+<td>通讯层</td>
+<td>HTTP_Client/ModeBusTCP_Client/ModeBusRTU_Master/Scan_Client/Robot_Server（5 类，父类 c_Object）</td>
+<td>仅协议数据收发，零解析零业务耦合</td>
+</tr>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• 公共父类 c_Object：提供非阻塞延时 msleep、类型转换模板接口与统一状态信号</p>
+<p>&nbsp;&nbsp;• 数据存储：c_Variable 单例（Meyers 模式）承载全部协议解析数据，各线程经 getInstance().g_Xxx 直接访问</p>
+<p>&nbsp;&nbsp;• 线程层级：通讯层线程在业务层 Init 内创建；业务层线程在界面层构造函数错峰创建（100~750ms 分时）</p>
+<p>&nbsp;</p>
+<h3>2.2 模块设计</h3>
+<p>&nbsp;</p>
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;font-size:10.5pt;">
+<tr>
+<td>模块</td>
+<td>通讯对象</td>
+<td>协议</td>
+<td>功能</td>
+</tr>
+<tr>
+<td>c_Magic_Remote</td>
+<td>c_HTTP_Client</td>
+<td>HTTP REST</td>
+<td>底盘连接/登录/地图/导航/充电/实时数据轮询（110+ API）</td>
+</tr>
+<tr>
+<td>c_CGXi_Remote</td>
+<td>c_ModeBusTCP_Client</td>
+<td>Modbus TCP</td>
+<td>机械臂寄存器/线圈读写、轨迹索引加载与启动</td>
+</tr>
+<tr>
+<td>c_IO_Remote</td>
+<td>c_ModeBusTCP_Client</td>
+<td>Modbus TCP</td>
+<td>远程 IO 站轮询、三色灯/风扇/机械臂供电控制</td>
+</tr>
+<tr>
+<td>c_Voice_Remote</td>
+<td>c_ModeBusRTU_Master</td>
+<td>Modbus RTU</td>
+<td>语音播报器播放/音量/心跳检测</td>
+</tr>
+<tr>
+<td>c_Lczh_Remote</td>
+<td>c_Scan_Client×2 + c_Robot_Server</td>
+<td>UDP 8000/8001 + TCP 9000</td>
+<td>图像采集协议解析（START/PHOTO/FINISH）、文件名合成、相机心跳判定、PHOTO 超时重发</td>
+</tr>
+<tr>
+<td>c_Server_Remote</td>
+<td>c_Robot_Server</td>
+<td>TCP 520</td>
+<td>WEB 指令解析（START_INSPECTION 等）、状态上报（中文 Key 全量 JSON）、校验码幂等</td>
+</tr>
+<tr>
+<td>c_Emis_Remote</td>
+<td>c_HTTP_Client</td>
+<td>HTTP POST</td>
+<td>EMIS 时间点上报（巡检开始/精扫开始/精扫结束/完成）</td>
+</tr>
+<tr>
+<td>c_Sql_Remote</td>
+<td>直连 MySQL C API</td>
+<td>MySQL</td>
+<td>采集时间/图片记录写入（重试退避、1062 幂等）</td>
+</tr>
+<tr>
+<td>c_Work_Remote</td>
+<td>—（信号编排）</td>
+<td>—</td>
+<td>巡检业务流程编排（校验/工序链/配方/走行/收尾）、导航定位失败判定、双工位采集上下文切换</td>
+</tr>
+</table>
+<p>&nbsp;</p>
+<h2>3. 核心流程设计</h2>
+<p>&nbsp;</p>
+<h3>3.1 自动巡检流程</h3>
+<p>&nbsp;</p>
+<p>WEB 下发 START_INSPECTION（校验 10 字段+禁字符+startTime 12 位）</p>
+<p>→ 任务状态门控 → 解析写入 g_Work_DB</p>
+<p>→ 工序链：机械臂开机 → 刷新地图列表 → 加载地图 → 刷新导航点</p>
+<p>→ 动态初始化 P001（充电位置=初始化点）→ 脱桩 → 机械臂使能</p>
+<p>→ 配方加载（车型→轮对类型→点:[轨迹] 三层查找）</p>
+<p>→ 巡检走行：单工位按 posId 过滤；双工位共用线逐点归属执行</p>
+<p>   （共用点 P1.1/P4.1 先 1 号工位轨迹后 2 号工位轨迹；每点采集前切换采集上下文 12 项）</p>
+<p>→ 收尾：回充 P0 → 完成上报</p>
+<p>&nbsp;</p>
+<h3>3.2 导航定位失败判定（防碰撞）</h3>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• 官方 is_finished=true 语义含"完成/无法到达/取消"，不可直接判成功</p>
+<p>&nbsp;&nbsp;• 定位正常 = 任务完成 且 目标点在导航点列表 且 坐标距离 ≤1.5m 且 角度偏差 ≤10°（环形差）</p>
+<p>&nbsp;&nbsp;• 其他一律定位异常 → 终止任务 + 语音报警（PA022）——防止机械臂在错误工位动作碰撞</p>
+<p>&nbsp;</p>
+<h3>3.3 图像采集协议</h3>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• START&{送修单位}&{年月日}&{时分}&{车型轮对类型}&{任务编号}</p>
+<p>&nbsp;&nbsp;• CHANGE&GAIN&{增益}（与 PHOTO 间隔 50ms 非阻塞延时）</p>
+<p>&nbsp;&nbsp;• PHOTO&{车型轮对类型}&T1-{年月日}-{车型轮对类型}-{车轴型号轮对号}-{轴号}-{工位号}-{轨迹索引}-{一级部件}-{二级部件}-{巡检点}（11 段文件名）</p>
+<p>&nbsp;&nbsp;• 反馈：PHOTO&COMPLETE → 回机械臂 <COMPLETE><T1>!</p>
+<p>&nbsp;&nbsp;• 结束：机械臂 PHOTO&FINISH! → 采集软件 PHOTO&FINISH</p>
+<p>&nbsp;&nbsp;• 所有指令无空格（remove 空白防御）；PHOTO 超时 6s 自动重发（3 次上限）</p>
+<p>&nbsp;</p>
+<h2>4. 关键机制设计</h2>
+<p>&nbsp;</p>
+<h3>4.1 三色灯与语音联动</h3>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• 红=错误（急停/断连/相机故障/机械臂错误/任务失败）+ 对应语音报警</p>
+<p>&nbsp;&nbsp;• 黄=运动（巡检中/机械臂运行）+ 提示语音</p>
+<p>&nbsp;&nbsp;• 绿=静止无错 + 停止语音播报</p>
+<p>&nbsp;&nbsp;• 设备恢复自动切回正常状态（状态驱动+档位防抖+恢复日志）</p>
+<p>&nbsp;&nbsp;• 未连接不报警（"曾经就绪"原则）</p>
+<p>&nbsp;</p>
+<h3>4.2 并发与锁协议</h3>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• QReadWriteLock g_lock：读侧 QReadLocker 快照、写侧 QWriteLocker</p>
+<p>&nbsp;&nbsp;• 锁非递归：函数级锁内禁止再取锁（C1 教训）；AA2 锁外重解码+锁内赋值</p>
+<p>&nbsp;&nbsp;• 跨线程交互一律信号槽（queued）+ invokeMethod；GUI 线程禁止阻塞</p>
+<p>&nbsp;</p>
+<h3>4.3 日志与配置</h3>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• 中心日志 Debug_DB/软件操作日志_yyyyMMdd.log（等级过滤/脱敏/限流/保留策略防磁盘占满）</p>
+<p>&nbsp;&nbsp;• 通讯层零收发日志（失败 ERROR 与连接事件除外）</p>
+<p>&nbsp;&nbsp;• 配置 System_DB/Communicate_DB.json（132 键）</p>
+<p>&nbsp;</p>
+<h2>5. 界面设计</h2>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• 主窗口 stackedWidget 8 页：机械臂/关节/ TCP 状态/机器人状态/精扫相机/IO/巡检任务/底盘</p>
+<p>&nbsp;&nbsp;• 巡检任务页：任务信息（21 项实时显示）、子系统状态灯（机械臂/底盘/相机/WEB）、</p>
+<p>  工作流状态、WEB 服务器、报警列表、一键巡检（Axis_Position.json 编辑弹窗）</p>
+<p>&nbsp;&nbsp;• 状态栏：系统时间/刷新帧率/机械臂帧率/相机帧率</p>
+<p>&nbsp;</p>
+<h2>6. 数据库设计</h2>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• tbl_robot_detection_time（inspection_task_num/image/collection_time）——采集时间与图片记录</p>
+<p>&nbsp;&nbsp;• 写入队列+指数退避重试（100ms→5s 封顶）；1062 Duplicate entry 幂等视为成功</p>
+<p>&nbsp;</p>
+<h2>7. 安全与可靠性</h2>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• 指令字段禁空格/&/- 校验；机械臂消息段白名单（字母/数字/点）校验</p>
+<p>&nbsp;&nbsp;• 单实例守卫；关闭确认+线程回收（quit→wait→terminate 兜底）</p>
+<p>&nbsp;&nbsp;• HTTP Token 定时刷新+401 自动重登；断线指数退避重连</p>
+<p>&nbsp;&nbsp;• 导航定位双阈值防碰撞；机械臂轨迹执行前设备连接快查</p>
+<p>&nbsp;</p>
+</body></html>
