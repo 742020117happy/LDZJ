@@ -69,7 +69,7 @@ void c_Scan_Client::Read_String()
 	if(m_Socket->hasPendingDatagrams()){
 		QByteArray dataGram;
 		dataGram.resize(static_cast<int>(m_Socket->pendingDatagramSize()));
-		//接受信息（2026-10-26 现场：带来源地址参数，供日志显示发送端 IP/端口）
+		//接受信息
 		QHostAddress senderAddr;
 		quint16 senderPort = 0;
 		qint64 len = m_Socket->readDatagram(dataGram.data(),dataGram.size(), &senderAddr, &senderPort);
@@ -80,29 +80,8 @@ void c_Scan_Client::Read_String()
 
 			if (str.isEmpty()) { return; }
 
-			QStringList value = str.split("&", QString::SkipEmptyParts);	// 2026-10-24 重构 T29：Qt 5.15 起弃用，升级时改 Qt::SkipEmptyParts
-
-			if (value.isEmpty()) { return; }
-
-			// 2026-10-27 现场：相机心跳（100ms 高频）——仅状态变化才发 Camera_Status，且不打接收日志（防大量无用消息）
-			if (value.at(0) == "CAMERA") {
-				bool ok = (value.size() > 1 && value.at(1) == "OK");
-				int okInt = ok ? 1 : 0;	// 2026-10-27 修正 C4805：bool 与 int 混合比较警告
-				if (okInt != m_LastCameraOk) {
-					m_LastCameraOk = okInt;
-					emit Camera_Status(ok);
-				}
-				return;
-			}
-
-			// 2026-10-26 现场：接收日志（业务消息才记录；接收端=本地套接字地址；发送端=数据来源地址端口）
-			if (str.size() <= 128) {
-				c_Log::Info("SCAN", "Feedback", QString("udp recv local=%1:%2 from=%3:%4 msg=%5")
-					.arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort())
-					.arg(senderAddr.toString()).arg(senderPort).arg(str));
-				emit Status_Text(QString("接收 本机=%1:%2 来源=%3:%4").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()).arg(senderAddr.toString()).arg(senderPort));
-			}
-
+			// 2026-10-28 用户定稿：通讯层不做协议解析、不产生数据收发日志——
+			// CAMERA 心跳/PHOTO 反馈等消息一律透传业务层 c_Lczh_Remote::On_Camera_Feedback 处理
 			emit Read_String_Done(str);
 		}
 	}
@@ -125,14 +104,8 @@ void c_Scan_Client::Write_String(QString ip, int port, QString value)
 	if (value.isEmpty()) {
 		return;
 	}
-	//发送消息
+	//发送消息（2026-10-28 用户定稿：通讯层不打收发日志，业务层有指令语义日志）
 	if(m_Socket->writeDatagram(value.toUtf8(), QHostAddress(ip), port) != -1){
-		// 2026-10-26 现场：发送日志（发送端=本地套接字地址；接收端=对端地址端口；不打印消息内容，消息语义由上层 SCAN Cmd 日志覆盖）
-		c_Log::Info("SCAN", "Cmd", QString("udp send local=%1:%2 remote=%3:%4 bytes=%5")
-			.arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort())
-			.arg(ip).arg(port).arg(value.size()));
-		// 2026-10-26 现场：发送日志双通道（中心日志 + 模块分文件）
-		emit Status_Text(QString("发送 本机=%1:%2 对端=%3:%4").arg(m_Socket->localAddress().toString()).arg(m_Socket->localPort()).arg(ip).arg(port));
 		emit Write_String_Done();
 	}
 	else {

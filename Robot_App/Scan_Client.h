@@ -24,9 +24,9 @@ signals:
 	void Write_String_Error(); //写错误
 	void Status(int state);//通讯状态
 	void Status_Text(QString msg);//2026-10-26 现场：文本状态（IP/端口日志桥接至模块分文件）
-	void Camera_Status(bool ok);//2026-10-27 现场：相机心跳（CAMERA&OK=true / CAMERA&ERROR=false）
+	// 2026-10-28 FFF：Camera_Status 信号与 m_LastCameraOk 成员移除——相机心跳（CAMERA&OK/ERROR）判定与去重
+	// 下移至业务层 c_Lczh_Remote::On_Camera_Feedback（通讯层只透传 Read_String_Done）
 private:
-	int m_LastCameraOk = -1;	// 2026-10-27 现场：上次心跳状态（-1=未初始化；仅状态变化才发 Camera_Status，防 100ms 高频刷信号）
 	void Collect(int num);
 
 private:

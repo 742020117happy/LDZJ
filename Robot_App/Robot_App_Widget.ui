@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Robot_App_Widget</class>
  <widget class="QMainWindow" name="Robot_App_Widget">
@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1280</width>
-    <height>700</height>
+    <height>880</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -6336,7 +6336,7 @@
                 <item row="6" column="0" colspan="4">
                  <widget class="QTableWidget" name="table_NavPoints">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -6405,21 +6405,21 @@
                   <item>
                    <widget class="QPushButton" name="btn_PauseTask">
                     <property name="text">
-                     <string>暂停</string>
+                     <string>暂停任务</string>
                     </property>
                    </widget>
                   </item>
                   <item>
                    <widget class="QPushButton" name="btn_ResumeTask">
                     <property name="text">
-                     <string>恢复</string>
+                     <string>恢复任务</string>
                     </property>
                    </widget>
                   </item>
                   <item>
                    <widget class="QPushButton" name="btn_StopTask">
                     <property name="text">
-                     <string>停止</string>
+                     <string>停止任务</string>
                     </property>
                    </widget>
                   </item>
@@ -6462,7 +6462,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>暂停</string>
+                     <string>暂停回充</string>
                     </property>
                    </widget>
                   </item>
@@ -6475,7 +6475,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>恢复</string>
+                     <string>恢复回充</string>
                     </property>
                    </widget>
                   </item>
@@ -6488,7 +6488,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>取消</string>
+                     <string>取消回充</string>
                     </property>
                    </widget>
                   </item>
@@ -6608,7 +6608,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>循环次数:</string>
+                     <string>循环:</string>
                     </property>
                    </widget>
                   </item>

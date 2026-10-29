@@ -68,20 +68,7 @@ void c_Lczh_Remote::Init()
 
 	QObject::connect(&m_Scan_Tran, &c_Robot_Server::Read_Done, this, &c_Lczh_Remote::On_CGXi_Data);
 	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Read_String_Done, this, &c_Lczh_Remote::On_Camera_Feedback);
-
-	// 2026-10-27 现场：相机心跳桥接——CAMERA&OK/ERROR 更新相机状态（状态变化才输出，防持续心跳刷屏）
-	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Camera_Status, this, [this](bool ok) {
-		bool changed = false;
-		{
-			QWriteLocker locker(&c_Variable::g_lock);
-			changed = (c_Variable::getInstance().g_Prec_Scan_120.Camera_Ok != ok);
-			c_Variable::getInstance().g_Prec_Scan_120.Camera_Ok = ok;
-		}
-		if (changed) {
-			c_Log::Info("SCAN", "Camera", ok ? "status=ok" : "status=error");
-			emit Status(ok ? m_Camera_num + "相机状态：正常（CAMERA&OK）" : m_Camera_num + "相机状态：异常（CAMERA&ERROR）");
-		}
-	});
+	// 2026-10-28 FFF：Camera_Status 桥接移除——CAMERA 心跳判定与去重下移至 On_Camera_Feedback（通讯层只透传）
 	// 2026-10-26 现场：Scan_Client 文本状态桥接至模块日志（IP/端口显示于左精扫消息.log）
 	QObject::connect(&m_Scan_Remote, &c_Scan_Client::Status_Text, this, [this](QString msg) { emit Status(msg); });
 	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Status_Text, this, [this](QString msg) { emit Status(msg); });
@@ -574,6 +561,24 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 {
 	// 校验：非空
 	if (msg.isEmpty()) { emit Status(m_Camera_num + "相机反馈：空消息"); return; }
+
+	// 2026-10-28 FFF 用户定稿：相机心跳（CAMERA&OK/CAMERA&ERROR）判定与去重由业务层处理——
+	// 采集软件 100ms 高频心跳，仅状态变化才写全局+日志（防持续刷屏）
+	if (msg.startsWith(QLatin1String("CAMERA"))) {
+		QStringList segs = msg.split('&', QString::SkipEmptyParts);	// 2026-10-24 重构 T29：Qt 5.15 起弃用，升级时改 Qt::SkipEmptyParts
+		bool ok = (segs.size() > 1 && segs.at(1) == QLatin1String("OK"));
+		int okInt = ok ? 1 : 0;	// 2026-10-27 修正 C4805：bool 与 int 混合比较警告
+		if (okInt != m_LastCameraOk) {
+			m_LastCameraOk = okInt;
+			{
+				QWriteLocker locker(&c_Variable::g_lock);
+				c_Variable::getInstance().g_Prec_Scan_120.Camera_Ok = ok;
+			}
+			c_Log::Info("SCAN", "Camera", ok ? "status=ok" : "status=error");
+			emit Status(ok ? m_Camera_num + "相机状态：正常（CAMERA&OK）" : m_Camera_num + "相机状态：异常（CAMERA&ERROR）");
+		}
+		return;
+	}
 
 	if (msg == QLatin1String("PHOTO&COMPLETE")) {
 		// 2026-10-25 L：采集完成（只记录，不改变转发/计数逻辑）
