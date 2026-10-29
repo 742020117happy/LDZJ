@@ -55,7 +55,8 @@ public slots:
 	void Work_Init();			// 初始化巡检工作流（创建线程/绑定信号槽）
 	void Work_DB();				// 工作流UI变量绑定
 	void Work_Scan();			// 工作流状态轮询
-	void Work_Button();			// 工作流按钮事件绑定
+	void Work_Button();
+	void Show_Axis_Position_Dialog();	// 2026-10-28 用户定稿：一键巡检任务数据编辑弹窗（确认保存+触发 Work_Test，取消不保存）			// 工作流按钮事件绑定
 
 	void Voice_Init();			// 初始化语音播报器（创建线程/绑定信号槽）
 	void Voice_DB();			// 语音UI变量绑定（读取Communicate_DB.json）

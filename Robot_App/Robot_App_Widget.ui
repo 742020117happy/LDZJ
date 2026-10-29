@@ -26,7 +26,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>智能底部巡检机器人控制平台</string>
+   <string>轮对质检机器人控制平台V1.0</string>
   </property>
   <property name="windowIcon">
    <iconset resource="Images/Logo.qrc">

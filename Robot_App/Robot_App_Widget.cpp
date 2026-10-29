@@ -1,6 +1,10 @@
 ﻿#pragma execution_character_set("utf-8")
 #include "Robot_App_Widget.h"
 #include <QInputDialog>
+#include <QDialog>			// 2026-10-28 用户定稿：Axis_Position.json 编辑弹窗
+#include <QDialogButtonBox>	// 2026-10-28 用户定稿：弹窗确认/取消按钮
+#include <QPlainTextEdit>	// 2026-10-28 用户定稿：弹窗 JSON 编辑框
+#include <QVBoxLayout>		// 2026-10-28 用户定稿：弹窗布局
 #include <QCoreApplication>	// 2026-10-25 D-005b：applicationDirPath
 #include <QScreen>	// 2026-10-24 T66：兜底拉伸取可用屏幕尺寸	// 2026-10-24 T64：导航点编辑对话框（getText/getItem/getDouble）补 include
 /*************************************************************************************************************************************************
@@ -2215,7 +2219,7 @@ void c_Robot_App_Widget::Work_Button()
 		Write_Work_List("本地->回原点");
 	});
 
-	QObject::connect(ui->Work_Btn_Start, &QPushButton::clicked, m_Work_Remote, &c_Work_Remote::Work_Test);
+	QObject::connect(ui->Work_Btn_Start, &QPushButton::clicked, this, &c_Robot_App_Widget::Show_Axis_Position_Dialog);
 }
 
 /*************************************************************************************************************************************************
@@ -2232,6 +2236,60 @@ void c_Robot_App_Widget::keyPressEvent(QKeyEvent *event)
 		this->setStyleSheet(strQss);
 
 		File.close();
+	}
+}
+/*************************************************************************************************************************************************
+**Function:一键巡检任务数据编辑弹窗（2026-10-28 用户定稿）
+**  点击【开始】弹出 Axis_Position.json 编辑框——
+**  确认：JSON 合法性校验 → 写回文件 → 触发 c_Work_Remote::Work_Test；
+**  取消：不保存不触发。
+*************************************************************************************************************************************************/
+void c_Robot_App_Widget::Show_Axis_Position_Dialog()
+{
+	QDialog dlg(this);
+	dlg.setWindowTitle("一键巡检任务数据（Axis_Position.json）");
+	dlg.resize(560, 480);
+	QPlainTextEdit *editor = new QPlainTextEdit(&dlg);
+	QDialogButtonBox *btns = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+	btns->button(QDialogButtonBox::Ok)->setText("确认");
+	btns->button(QDialogButtonBox::Cancel)->setText("取消");
+	QVBoxLayout *lay = new QVBoxLayout(&dlg);
+	lay->addWidget(editor);
+	lay->addWidget(btns);
+
+	QString path = QCoreApplication::applicationDirPath() + "/Work_DB/Axis_Position.json";	// 2026-10-25 D-005：exe 目录定位
+	QFile file(path);
+	if (file.open(QIODevice::ReadOnly)) {
+		editor->setPlainText(QString::fromUtf8(file.readAll()));
+		file.close();
+	}
+	else {
+		editor->setPlainText("{}");
+	}
+
+	// 确认：JSON 合法性校验 → 写回文件 → 接受弹窗（外部触发 Work_Test）
+	QObject::connect(btns, &QDialogButtonBox::accepted, &dlg, [&dlg, editor, path]() {
+		QJsonParseError err;
+		QJsonDocument doc = QJsonDocument::fromJson(editor->toPlainText().toUtf8(), &err);
+		if (err.error != QJsonParseError::NoError || doc.isNull()) {
+			QMessageBox::warning(&dlg, "提示", QString("JSON 格式错误：%1").arg(err.errorString()));
+			return;	// 格式错误不关闭弹窗，允许继续修改
+		}
+		QFile out(path);
+		if (out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+			out.write(doc.toJson(QJsonDocument::Indented));
+			out.close();
+			dlg.accept();
+		}
+		else {
+			QMessageBox::warning(&dlg, "提示", "保存失败：" + path);
+		}
+	});
+	// 取消：关闭弹窗不保存不触发
+	QObject::connect(btns, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+
+	if (dlg.exec() == QDialog::Accepted) {
+		QMetaObject::invokeMethod(m_Work_Remote, "Work_Test", Qt::QueuedConnection);
 	}
 }
 /*************************************************************************************************************************************************
