@@ -144,8 +144,8 @@ QNetworkReply *c_HTTP_Client::Send_Request(const QString &api, const QString &ht
 		reply = m_Manager->deleteResource(request);
 	}
 
-	// 2026-10-25 L：请求开始（只打印方法与 API 路径；请求体可能含 password/图像 Base64，一律不打印——规范 §六）
-	c_Log::Debug("HTTP", "Request", QString("send method=%1 api=%2").arg(httpMethod).arg(api));
+	// 2026-10-28 GGG 用户定稿：通讯层不产生数据收发具体日志——请求/响应收发日志移除，
+	// 语义日志由业务层（Magic_Remote 状态变化/Emis 上报）负责；HTTP 失败仍记录（ERROR 级事件）
 
 	if (reply) {
 		reply->setProperty("api", api);
@@ -238,7 +238,7 @@ void c_HTTP_Client::Read_Ready(QNetworkReply *reply) {
 	QByteArray buffer = reply->readAll();
 	reply->deleteLater();
 	// 2026-10-25 L：响应成功（只打印 API/大小；Base64 图像等内容不打印——规范 §六/§七 DEBUG 分级）
-	c_Log::Debug("HTTP", "Response", QString("success api=%1 size=%2").arg(api).arg(buffer.size()));
+	// 2026-10-28 GGG：响应成功日志移除（通讯层不产生数据收发具体日志）
 	if (buffer.isEmpty()) return;
 
 	// 二进制响应：直接返回原始数据（图片/文件下载场景）
