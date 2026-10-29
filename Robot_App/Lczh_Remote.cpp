@@ -66,6 +66,11 @@ void c_Lczh_Remote::Init()
 	QObject::connect(this, &c_Lczh_Remote::Signal_Tran_Disconnect, &m_Scan_Tran, &c_Robot_Server::Disconnect_Device);
 	QObject::connect(this, &c_Lczh_Remote::Signal_Tran_Write, &m_Scan_Tran, &c_Robot_Server::Write_String);
 
+	// 2026-10-28 用户定稿：PHOTO 超时重发定时器（6s singleShot）
+	m_PhotoRetryTimer = new QTimer(this);
+	m_PhotoRetryTimer->setSingleShot(true);
+	QObject::connect(m_PhotoRetryTimer, &QTimer::timeout, this, &c_Lczh_Remote::On_Photo_Retry_Timeout);
+
 	QObject::connect(&m_Scan_Tran, &c_Robot_Server::Read_Done, this, &c_Lczh_Remote::On_CGXi_Data);
 	QObject::connect(&m_Scan_Monitor, &c_Scan_Client::Read_String_Done, this, &c_Lczh_Remote::On_Camera_Feedback);
 	// 2026-10-28 FFF：Camera_Status 桥接移除——CAMERA 心跳判定与去重下移至 On_Camera_Feedback（通讯层只透传）
@@ -191,6 +196,11 @@ void c_Lczh_Remote::Collector()
 			.arg(m_LastPhotoName);
 	}
 	Send_To_Camera(cmd.remove(QRegExp("\\s")));	// 2026-10-27 用户定稿：所有指令均无空格；WW1 目标地址收敛
+	// 2026-10-28 用户定稿：PHOTO 超时重发（手动拍照同样 6s/3 次重发机制）
+	m_PhotoPendingFrame = cmd.remove(QRegExp("\\s"));
+	m_PhotoRetryCount = 0;
+	m_PhotoPending = true;
+	if (m_PhotoRetryTimer) { m_PhotoRetryTimer->start(6000); }
 	// 2026-10-25 L：PHOTO 指令发送（照片文件名允许打印）
 	c_Log::Info("SCAN", "Cmd", QString("send PHOTO name=%1").arg(m_LastPhotoName));
 	emit Photo_Written(m_LastPhotoName);
@@ -357,7 +367,13 @@ void c_Lczh_Remote::Send_Photo_Now()
 	}
 	m_LastPhotoName = Build_Photo_Filename();
 	// 2026-10-26 协议定稿：PHOTO&{carType}{wheelsetKind}&{原始图像名称}；2026-10-27 用户定稿：所有指令均无空格
-	Send_To_Camera(QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName).remove(QRegExp("\\s")));
+	QString frame = QString("PHOTO&%1%2&%3").arg(carType, wheelsetKind, m_LastPhotoName).remove(QRegExp("\\s"));
+	Send_To_Camera(frame);
+	// 2026-10-28 用户定稿：PHOTO 超时重发——6 秒未收到 PHOTO&COMPLETE 自动重发（3 次上限，超限报采集失败）
+	m_PhotoPendingFrame = frame;
+	m_PhotoRetryCount = 0;
+	m_PhotoPending = true;
+	if (m_PhotoRetryTimer) { m_PhotoRetryTimer->start(6000); }
 	emit Photo_Written(m_LastPhotoName);
 }
 
@@ -370,6 +386,28 @@ void c_Lczh_Remote::Send_To_Camera(const QString &payload)
 		c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_IP").toString("192.168.6.34"),
 		c_Variable::getInstance().g_Communicate_DB.value("Pre_Scan_120_Port").toInt(8000),
 		payload);
+}
+
+/*************************************************************************************************************************************************
+**Function:PHOTO 超时重发判定（2026-10-28 用户定稿）
+**  发送 PHOTO 后 6 秒内未收到 PHOTO&COMPLETE → 自动重发同帧；
+**  重发 3 次仍未收到 → 停止重发并报图像采集失败。
+*************************************************************************************************************************************************/
+void c_Lczh_Remote::On_Photo_Retry_Timeout()
+{
+	if (!m_PhotoPending) { return; }
+	m_PhotoRetryCount++;
+	if (m_PhotoRetryCount <= 3) {
+		c_Log::Warn("SCAN", "Photo", QString("retry send #%1 name=%2").arg(m_PhotoRetryCount).arg(m_LastPhotoName));
+		emit Status(m_Camera_num + QString("采集超时，自动重发第 %1 次").arg(m_PhotoRetryCount));
+		Send_To_Camera(m_PhotoPendingFrame);	// 重发同帧（与机械臂当前轨迹一致的原始 PHOTO 帧）
+		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->start(6000); }
+	}
+	else {
+		m_PhotoPending = false;
+		c_Log::Error("SCAN", "Photo", QString("failed after 3 retries name=%1").arg(m_LastPhotoName));
+		emit Status(m_Camera_num + "图像采集失败：重发 3 次未收到 PHOTO&COMPLETE");
+	}
 }
 
 /*************************************************************************************************************************************************
@@ -543,6 +581,9 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		// 无需额外校验，直接转发；2026-10-27 现场：日志补全——机械臂 FINISH 脚本（轨迹最后一步）→ 采集结束指令
 		c_Log::Info("SCAN", "Cmd", "recv PHOTO&FINISH! from arm → send finish");
 		m_LastPart1.clear();	// 2026-10-27 轨迹边界复位一级部件检测（现场机械臂不发 START&!，以 FINISH 为边界）
+		// 2026-10-28 用户定稿：轨迹结束停重发（异常场景：机械臂已结束但相机未回 COMPLETE，不再重发）
+		m_PhotoPending = false;
+		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->stop(); }
 		Send_To_Camera("PHOTO&FINISH");	// WW1 收敛（固定帧无空格）
 		{	// 2026-10-24 CC/T86：currentPos 写侧持锁（原无锁别名写为数据竞争）
 			QWriteLocker locker(&c_Variable::g_lock);
@@ -581,6 +622,9 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 	}
 
 	if (msg == QLatin1String("PHOTO&COMPLETE")) {
+		// 2026-10-28 用户定稿：收到完成反馈 → 停重发定时器（在途 PHOTO 闭环）
+		m_PhotoPending = false;
+		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->stop(); }
 		// 2026-10-25 L：采集完成（只记录，不改变转发/计数逻辑）
 		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
@@ -597,6 +641,9 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 	}
 	else if (msg.startsWith("PHOTO&COMPLETE")) {
 		// 带有额外后缀的 COMPLETE（如含文件名），仍视为成功
+		// 2026-10-28 用户定稿：收到完成反馈 → 停重发定时器
+		m_PhotoPending = false;
+		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->stop(); }
 		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE* name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
 		{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁

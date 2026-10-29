@@ -52,12 +52,18 @@ private:
 	QString m_Camera_num = "T1";	// 相机编号
 	QByteArray m_CGXi_Buffer;		// TCP 粘包接收缓冲区
 	QString m_LastPhotoName;		// 最近一次发送的PHOTO文件名
+	// 2026-10-28 用户定稿：PHOTO 超时重发——发送后 6s 未收到 PHOTO&COMPLETE 自动重发（3 次上限，超限报采集失败）
+	QTimer *m_PhotoRetryTimer = nullptr;	// 重发定时器（singleShot 6s）
+	int m_PhotoRetryCount = 0;				// 已重发次数（≤3）
+	QString m_PhotoPendingFrame;			// 在途 PHOTO 帧（超时重发同帧，保证与机械臂当前轨迹一致）
+	bool m_PhotoPending = false;			// PHOTO 在途标志
 	// 2026-10-24 重构 T16：m_Collected 死字段已移除（只写不读，且断开回调误置位）
 
 	private slots:
 	void On_CGXi_Data(QByteArray data);				// CGXi TCP数据到达（粘包处理）
 	void On_CGXi_Message(QByteArray buffer);		// CGXi完整消息处理
 	void On_Camera_Feedback(QString msg);			// 相机反馈消息处理
+	void On_Photo_Retry_Timeout();					// 2026-10-28 用户定稿：PHOTO 超时重发判定
 	void Scan_Remote_Connect_Done();				// 远程指令通道连接完成
 	void Scan_Remote_Disconnect_Done();				// 远程指令通道断开完成
 	void Scan_Monitor_Connect_Done();				// 监控通道连接完成
