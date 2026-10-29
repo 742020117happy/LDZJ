@@ -37,6 +37,10 @@
 - **业务层**（Magic/IO/CGXi/Voice/Lczh/Work/Server_Remote/MySql/Emis）：组合通讯层对象，完成协议解析与业务逻辑
 - **数据存储**：业务层解析的数据均在 c_Variable 全局变量中存储；各线程直接经 `c_Variable::getInstance().g_Xxx` 应用，禁止通过中间变量/引用别名
 - **公共父类**：c_Object 为业务层与通讯层共有父类（通用函数如非阻塞延时 msleep、模板接口）；界面视图类按 Qt 继承 QWidget/QMainWindow
+- **线程创建层级定稿（2026-10-28）**：通讯层运行线程在**业务层**创建（各业务类 Init 内 new 通讯对象+QThread+moveToThread）；
+  业务层运行线程在 **c_Robot_App_Widget** 创建（构造函数错峰 *_Init）；层级间仅经信号槽交互，尽量减少耦合
+- **通讯层纯净化定稿（2026-10-28）**：通讯层 5 类零业务/全局耦合（g_ 访问=0）、零协议解析、零数据收发日志
+  （失败 ERROR 与连接生命周期事件日志除外）；CAMERA 心跳判定在业务层 Lczh On_Camera_Feedback
 ## 2. 技术规范（硬约束）
 
 | 项 | 约束 |
