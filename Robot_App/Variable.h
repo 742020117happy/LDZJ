@@ -56,7 +56,6 @@
 #include <iostream>
 #include <SDKDDKVer.h>
 #include <Windows.h>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <cstdio>
