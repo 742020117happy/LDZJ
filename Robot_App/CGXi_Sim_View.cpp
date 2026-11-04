@@ -307,7 +307,18 @@ void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &p
 
 		// 最终变换 = 相对变换 × 补偿矩阵
 		// 补偿矩阵修正"模型原点不在关节中心"的问题
-		Eigen::Matrix4d final_pose = relative * m_Compensate[i];
+		// 2026-11-04 校验修复：STL 顶点为 SolidWorks 装配体全局坐标（倒挂、基座在 Z~1061、
+		// 原点在法兰附近），与 FK 零位世界坐标相差刚体变换 mG（绕 X 180° 翻转 + J1 轴心归零）。
+		// 直接应用 Relative 会把零件绕 FK 世界原点（远在零件外 1000mm）旋转导致甩飞混乱。
+		// 修复：共轭变换——在装配体坐标系内执行 FK 相对旋转：
+		//   final = Inv(mG) · Relative · mG
+		// 零位时 Relative=I → final=I（模型显示装配体原样）；运动时绕装配体中的关节轴心旋转。
+		Eigen::Matrix4d mG = Eigen::Matrix4d::Identity();
+		mG(1, 1) = -1.0; mG(2, 2) = -1.0;
+		mG(0, 3) = -119.7; mG(1, 3) = 153.5; mG(2, 3) = 1061.2;
+
+		// 最终变换 = Inv(mG) × 相对变换 × mG × 补偿矩阵
+		Eigen::Matrix4d final_pose = mG.inverse() * relative * mG * m_Compensate[i];
 
 		// Eigen → VTK（列主序 → 行主序，必须转置）
 		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
