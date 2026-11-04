@@ -377,6 +377,17 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 		tpd->SetInputData(normPoly);
 		tpd->SetTransform(tNorm);
 		tpd->Update();
+		m_Normalize_Filters.push_back(tpd);   // 2026-11-04 保活：防 mapper 输入悬空
+
+		// 2026-11-04 诊断日志：归一化后包围盒
+		{
+			double b[6];
+			tpd->GetOutput()->GetBounds(b);
+			c_Log::Info("ARM", "Sim", QString("norm %1 bbox=[%2,%3][%4,%5][%6,%7]")
+				.arg(files[i]).arg(b[0], 0, 'f', 1).arg(b[1], 0, 'f', 1)
+				.arg(b[2], 0, 'f', 1).arg(b[3], 0, 'f', 1)
+				.arg(b[4], 0, 'f', 1).arg(b[5], 0, 'f', 1));
+		}
 
 		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		mapper->SetInputConnection(tpd->GetOutputPort());

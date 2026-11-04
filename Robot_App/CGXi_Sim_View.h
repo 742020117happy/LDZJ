@@ -70,6 +70,8 @@ private:
 	QVTKWidget *m_VTK_Widget = nullptr;
 	vtkSmartPointer<vtkRenderer> m_Renderer;
 	std::vector<vtkSmartPointer<vtkActor>> m_Link_Actors;   // 7 个 actor: Base + Link1~6
+	// 2026-11-04 归一化管线保活：vtkTransformPolyDataFilter 必须存活至渲染（mapper 输入连接）
+	std::vector<vtkSmartPointer<vtkTransformPolyDataFilter>> m_Normalize_Filters;
 
 	// 2026-11-04 增强：HUD 叠加层 + TCP 轨迹
 	QLabel *m_HUD_Label = nullptr;
