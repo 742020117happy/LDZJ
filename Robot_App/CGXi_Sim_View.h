@@ -26,8 +26,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkActor.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkMath.h>
 
 class c_CGXi_Sim_View : public QWidget
 {
@@ -64,8 +62,6 @@ private:
 	QVTKWidget *m_VTK_Widget = nullptr;
 	vtkSmartPointer<vtkRenderer> m_Renderer;
 	std::vector<vtkSmartPointer<vtkActor>> m_Link_Actors;   // 7 个 actor: Base + Link1~6
-	// 2026-11-04 归一化管线保活：vtkTransformPolyDataFilter 必须存活至渲染（mapper 输入连接）
-	std::vector<vtkSmartPointer<vtkTransformPolyDataFilter>> m_Normalize_Filters;
 
 															// DH 参数（G6 占位初值，需现场标定）
 	double m_a[6], m_d[6], m_alpha[6], m_off[6];
