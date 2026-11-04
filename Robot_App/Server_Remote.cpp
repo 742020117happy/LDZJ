@@ -263,7 +263,7 @@ QJsonObject c_Server_Remote::Build_System_Status()
 	root.insert("Cmd_Name", "Read_Ready");
 	root.insert("Value", m_LastValue);	// 2026-11-04 用户定稿：原样回显
 	root.insert("Status", "Success");
-	root.insert("Message", "OK");
+	root.insert("Message", "当前状态");	// 2026-11-04 用户定稿：按实际报文
 
 	root.insert("状态", "OK");
 	root.insert("时间", QDateTime::currentDateTime().toString("yyyyMMddHHmmss"));
