@@ -89,26 +89,22 @@ void c_CGXi_Sim_View::Init_G6_DH()
 		m_Compensate[i] = Eigen::Matrix4d::Identity();	// 初始补偿为单位矩阵
 	}
 
-	// ===== 2026-11-04 用户定稿：STL 原点补偿集中配置 =====
-	// 各 STL 原点（SolidWorks 建模原点）与关节旋转中心存在偏移，需按实测值平移补偿。
-	// 坐标系约定：SolidWorks 全局 Z 向上；补偿向量 = 关节轴心坐标 - STL 原点坐标。
-	// 测量方法：SolidWorks 打开 R6.SLDASM（零位），"评估→测量"选零件原点与下游关节圆柱面轴线距离。
-	//   R6-00 基座：原点=安装面中心 → J1 轴心（基座顶面中心）偏移 (0, 0, +95.20) 【已定稿】
-	//   R6-01 肩部：原点 → J2 轴心偏移 (?, ?, ?) 【待测量】
-	//   R6-02 大臂：原点 → J3 轴心偏移 (?, ?, ?) 【待测量】
-	//   R6-03 小臂：原点 → J4 轴心偏移 (?, ?, ?) 【待测量】
-	//   R6-04 腕1：原点 → J5 轴心偏移 (?, ?, ?) 【待测量】
-	//   R6-05 腕2：原点 → J6 轴心偏移 (?, ?, ?) 【待测量】
-	//   R6-06 法兰：原点 → 法兰中心偏移 (?, ?, ?) 【待测量】
-	// 以下为已定稿/占位补偿（单位 mm）：
-	m_Compensate[0](0, 3) = 0.0;		m_Compensate[0](1, 3) = 0.0;		m_Compensate[0](2, 3) = 95.20;	// 基座
-	m_Compensate[1](0, 3) = 0.0;		m_Compensate[1](1, 3) = 0.0;		m_Compensate[1](2, 3) = 0.0;	// R6-01 待测
-	m_Compensate[2](0, 3) = 0.0;		m_Compensate[2](1, 3) = 0.0;		m_Compensate[2](2, 3) = 0.0;	// R6-02 待测
-	m_Compensate[3](0, 3) = 0.0;		m_Compensate[3](1, 3) = 0.0;		m_Compensate[3](2, 3) = 0.0;	// R6-03 待测
-	m_Compensate[4](0, 3) = 0.0;		m_Compensate[4](1, 3) = 0.0;		m_Compensate[4](2, 3) = 0.0;	// R6-04 待测
-	m_Compensate[5](0, 3) = 0.0;		m_Compensate[5](1, 3) = 0.0;		m_Compensate[5](2, 3) = 0.0;	// R6-05 待测
-	m_Compensate[6](0, 3) = 0.0;		m_Compensate[6](1, 3) = 0.0;		m_Compensate[6](2, 3) = 0.0;	// R6-06 待测
-	c_Log::Info("ARM", "Sim", "compensate config: base z=+95.20, links pending measure");
+	// ===== 2026-11-04 用户定稿：STL 原点偏移补偿——配置化（厂家模型原点不可编辑） =====
+	// 各 STL 原点（SolidWorks 建模原点）与关节旋转中心存在偏移。
+	// 补偿向量 = 关节轴心坐标 - STL 原点坐标（SolidWorks 全局 Z 向上，单位 mm）。
+	// 配置键（Communicate_DB.json，缺省为 0 不补偿）：
+	//   Sim_Compensate_0_X/Y/Z ~ Sim_Compensate_6_X/Y/Z（共 21 键）
+	// 获取补偿值途径：
+	//   a. SolidWorks 测量：打开 R6.SLDASM（零位），"评估→测量"选零件原点与下游关节圆柱面轴线距离
+	//   b. 现场试凑：改配置重启观察零位姿态（基座例：若安装面在 J1 轴下方 95.20 则 Sim_Compensate_0_Z=95.20——仅示例非绝对值）
+	for (int i = 0; i < 7; ++i) {
+		QString prefix = QString("Sim_Compensate_%1_").arg(i);
+		m_Compensate[i](0, 3) = c_Variable::getInstance().g_Communicate_DB.value(prefix + "X").toDouble(0.0);
+		m_Compensate[i](1, 3) = c_Variable::getInstance().g_Communicate_DB.value(prefix + "Y").toDouble(0.0);
+		m_Compensate[i](2, 3) = c_Variable::getInstance().g_Communicate_DB.value(prefix + "Z").toDouble(0.0);
+	}
+	c_Log::Info("ARM", "Sim", QString("compensate from config: base=(%1,%2,%3)")
+		.arg(m_Compensate[0](0, 3)).arg(m_Compensate[0](1, 3)).arg(m_Compensate[0](2, 3)));
 }
 
 /******************************************************************************
