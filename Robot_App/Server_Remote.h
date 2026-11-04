@@ -60,6 +60,10 @@ private:
 	QByteArray m_RecvBuffer;	// TCP接收缓冲区（粘包处理）
 	QString m_LastChecksum;		// 最近一次命令校验码
 	QSet<QString> m_HandledChecksum;	// 2026-10-24 审查修复 S1：已处理命令幂等去重（防重复下发污染运行中任务）
+	// 2026-11-04 用户定稿：反馈的 Cmd_Name/Value/Checksum 必须与接收指令完全一致（原样回显）
+	QJsonValue m_LastValue;					// 最近一次指令的 Value（原样回显）
+	QString m_Start_Insp_Checksum;			// START_INSPECTION 指令 Checksum 快照（任务生命周期通知 Send_* 回显用）
+	QJsonValue m_Start_Insp_Value;			// START_INSPECTION 指令 Value 快照
 
 	/* 状态码掩码 */
 	enum StateMask {

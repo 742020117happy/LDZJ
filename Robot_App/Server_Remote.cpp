@@ -151,6 +151,8 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 		return;
 	}
 	QString checksum = json.value("Checksum").toString();
+	// 2026-11-04 用户定稿：Value 原样回显（保留请求原值）
+	m_LastValue = json.value("Value");
 	if (cmd != "Read_Ready") {
 		// 2026-10-24 审查修复 S2：除 Read_Ready 外缺 Checksum 丢弃
 		// 2026-11-04 用户定稿：所有反馈需包含接收指令的 Checksum——缺 Checksum 也回错误反馈（Checksum 空）
@@ -159,7 +161,7 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 			// 2026-11-04 用户定稿：反馈至少含 Cmd_Name/Value/Checksum/Status/Message
 			QJsonObject rsp;
 			rsp.insert("Cmd_Name", cmd);
-			rsp.insert("Value", false);
+			rsp.insert("Value", m_LastValue);	// 2026-11-04 用户定稿：原样回显
 			rsp.insert("Checksum", QString());
 			rsp.insert("Status", "Error");
 			rsp.insert("Message", "缺少 Checksum");
@@ -199,6 +201,9 @@ if (cmd != QLatin1String("Read_Ready")) {
 }
 
 	if (cmd == QLatin1String("START_INSPECTION")) {	// 2026-10-27 WW2：QLatin1String 免 UTF-16 临时转换
+		// 2026-11-04 用户定稿：快照发起指令的 Checksum/Value（任务生命周期通知回显与请求一致）
+		m_Start_Insp_Checksum = checksum;
+		m_Start_Insp_Value = json.value("Value");
 		// 2026-10-24 审查修复 S1：START_INSPECTION 增加状态门控（采集中/暂停中拒绝），防止重复下发污染运行中任务
 		if (!Check_State(cmd, SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR)) return;
 		Parse_Start_Inspection(json);
@@ -255,7 +260,7 @@ QJsonObject c_Server_Remote::Build_System_Status()
 
 	// 2026-11-04 用户定稿：反馈至少含 Cmd_Name/Value/Status/Message（Checksum 由 Write_Json_With_Checksum 附加）
 	root.insert("Cmd_Name", "Read_Ready");
-	root.insert("Value", true);
+	root.insert("Value", m_LastValue);	// 2026-11-04 用户定稿：原样回显
 	root.insert("Status", "Success");
 	root.insert("Message", "OK");
 
@@ -455,7 +460,7 @@ void c_Server_Remote::Reply_Error(const QString &cmd, const QString &reason)
 {
 	QJsonObject rsp;
 	rsp.insert("Cmd_Name", cmd);
-	rsp.insert("Value", false);
+	rsp.insert("Value", m_LastValue);	// 2026-11-04 用户定稿：原样回显
 	rsp.insert("Status", "Error");
 	rsp.insert("Message", reason);
 	{   // 2026-10-24 T83：taskId 跨线程写入，读侧持读锁快照
@@ -474,7 +479,7 @@ void c_Server_Remote::Reply_Ok(const QString &cmd)
 	// 2026-11-04 用户定稿：反馈至少含 Cmd_Name/Value/Checksum/Status/Message（旧 Result 格式废除）
 	QJsonObject rsp;
 	rsp.insert("Cmd_Name", cmd);
-	rsp.insert("Value", true);
+	rsp.insert("Value", m_LastValue);	// 2026-11-04 用户定稿：原样回显
 	rsp.insert("Status", "Success");
 	rsp.insert("Message", "已执行");
 	{   // 2026-10-24 T83：taskId 跨线程写入，读侧持读锁快照
@@ -493,14 +498,16 @@ void c_Server_Remote::Send_Accepted()
 	// 2026-11-04 用户定稿：统一 5 字段（Cmd_Name/Value/Checksum/Status/Message），旧小写 status 废除
 	QJsonObject rsp;
 	rsp.insert("Cmd_Name", "START_INSPECTION");
-	rsp.insert("Value", true);
+	rsp.insert("Value", m_Start_Insp_Value);	// 2026-11-04 用户定稿：回显发起指令原值
 	rsp.insert("Status", "Success");
 	rsp.insert("Message", "ACCEPTED");
 	QJsonArray ids;
 	for (int i = 0; i < c_Variable::getInstance().g_Work_DB.tasks.size(); i++)
 		ids.append(c_Variable::getInstance().g_Work_DB.tasks[i].toObject().value("taskId").toString());
 	rsp.insert("taskIds", ids);
-	Write_Json_With_Checksum(rsp);
+	// 2026-11-04 用户定稿：回显发起指令（START_INSPECTION）的 Checksum
+	if (!m_Start_Insp_Checksum.isEmpty()) rsp.insert("Checksum", m_Start_Insp_Checksum);
+	emit Write_Json(rsp);
 }
 
 /*************************************************************************************************************************************************
@@ -511,13 +518,15 @@ void c_Server_Remote::Send_Ready()
 	// 2026-11-04 用户定稿：统一 5 字段，旧小写 status 废除
 	QJsonObject rsp;
 	rsp.insert("Cmd_Name", "START_INSPECTION");
-	rsp.insert("Value", true);
+	rsp.insert("Value", m_Start_Insp_Value);	// 2026-11-04 用户定稿：回显发起指令原值
 	rsp.insert("Status", "Success");
 	rsp.insert("Message", "READY");
 	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
 	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
 	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
-	Write_Json_With_Checksum(rsp);
+	// 2026-11-04 用户定稿：回显发起指令（START_INSPECTION）的 Checksum
+	if (!m_Start_Insp_Checksum.isEmpty()) rsp.insert("Checksum", m_Start_Insp_Checksum);
+	emit Write_Json(rsp);
 }
 
 /*************************************************************************************************************************************************
@@ -528,14 +537,16 @@ void c_Server_Remote::Send_Completed(int totalImages)
 	// 2026-11-04 用户定稿：统一 5 字段，旧小写 status 废除
 	QJsonObject rsp;
 	rsp.insert("Cmd_Name", "START_INSPECTION");
-	rsp.insert("Value", true);
+	rsp.insert("Value", m_Start_Insp_Value);	// 2026-11-04 用户定稿：回显发起指令原值
 	rsp.insert("Status", "Success");
 	rsp.insert("Message", "COMPLETED");
 	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
 	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
 	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
 	rsp.insert("totalImages", totalImages);
-	Write_Json_With_Checksum(rsp);
+	// 2026-11-04 用户定稿：回显发起指令（START_INSPECTION）的 Checksum
+	if (!m_Start_Insp_Checksum.isEmpty()) rsp.insert("Checksum", m_Start_Insp_Checksum);
+	emit Write_Json(rsp);
 }
 
 /*************************************************************************************************************************************************
@@ -546,12 +557,14 @@ void c_Server_Remote::Send_Error(int errorCode, QString desc)
 	// 2026-11-04 用户定稿：统一 5 字段，旧小写 status 废除
 	QJsonObject rsp;
 	rsp.insert("Cmd_Name", "START_INSPECTION");
-	rsp.insert("Value", false);
+	rsp.insert("Value", m_Start_Insp_Value);	// 2026-11-04 用户定稿：回显发起指令原值
 	rsp.insert("Status", "Error");
 	rsp.insert("Message", desc);
 	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
 	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
 	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
 	rsp.insert("errorCode", errorCode);
-	Write_Json_With_Checksum(rsp);
+	// 2026-11-04 用户定稿：回显发起指令（START_INSPECTION）的 Checksum
+	if (!m_Start_Insp_Checksum.isEmpty()) rsp.insert("Checksum", m_Start_Insp_Checksum);
+	emit Write_Json(rsp);
 }
