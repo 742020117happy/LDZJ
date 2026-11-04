@@ -174,6 +174,14 @@ void c_CGXi_Sim_View::Init_VTK_Scene()
 	m_VTK_Widget = new QVTKWidget(this);
 	layout->addWidget(m_VTK_Widget);
 
+	// 2026-11-04 增强：HUD 关节角显示（QWidget 叠加层，避免 VTK 文字渲染复杂度）
+	m_HUD_Label = new QLabel(m_VTK_Widget);
+	m_HUD_Label->setStyleSheet("background-color: rgba(0,0,0,150); color: #d0e0ff;"
+		"font-family: Consolas; font-size: 11px; padding: 6px; border-radius: 4px;");
+	m_HUD_Label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+	m_HUD_Label->move(8, 8);
+	m_HUD_Label->show();
+
 	m_Renderer = vtkSmartPointer<vtkRenderer>::New();
 	m_Renderer->SetBackground(0.15, 0.15, 0.18);   // 深灰背景
 	m_VTK_Widget->GetRenderWindow()->AddRenderer(m_Renderer);
@@ -182,6 +190,20 @@ void c_CGXi_Sim_View::Init_VTK_Scene()
 	vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
 	axes->SetTotalLength(150, 150, 150);
 	m_Renderer->AddActor(axes);
+
+	// 2026-11-04 增强：TCP 轨迹线（记录末端运动历史，蓝色细线）
+	m_Trail_Points = vtkSmartPointer<vtkPoints>::New();
+	m_Trail_Cells = vtkSmartPointer<vtkCellArray>::New();
+	m_Trail_Poly = vtkSmartPointer<vtkPolyData>::New();
+	m_Trail_Poly->SetPoints(m_Trail_Points);
+	m_Trail_Poly->SetLines(m_Trail_Cells);
+	vtkSmartPointer<vtkPolyDataMapper> trailMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	trailMapper->SetInputData(m_Trail_Poly);
+	m_Trail_Actor = vtkSmartPointer<vtkActor>::New();
+	m_Trail_Actor->SetMapper(trailMapper);
+	m_Trail_Actor->GetProperty()->SetColor(0.4, 0.7, 1.0);
+	m_Trail_Actor->GetProperty()->SetLineWidth(2.0);
+	m_Renderer->AddActor(m_Trail_Actor);
 
 	// 2026-11-04 优化：可变姿态空间球（818mm 线框，手册图22 二关节轴心到四关节轴心距离）
 	{
@@ -319,6 +341,25 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 * 变换公式：Final = Current_Pose × Inverse(Zero_Pose) × Compensate
 * 含义：先补偿模型原点偏差，再应用相对于零位的姿态变化
 ******************************************************************************/
+/******************************************************************************
+* HUD 更新：关节角 + TCP 坐标（2026-11-04 增强）
+******************************************************************************/
+void c_CGXi_Sim_View::Update_HUD(const double j_deg[6], const Eigen::Matrix4d &tcp_pose)
+{
+	if (!m_HUD_Label) return;
+	QString txt = QString("G6 关节角 (°)\n")
+		+ QString("J1: %1    J2: %2\n").arg(j_deg[0], 7, 'f', 2).arg(j_deg[1], 7, 'f', 2)
+		+ QString("J3: %1    J4: %2\n").arg(j_deg[2], 7, 'f', 2).arg(j_deg[3], 7, 'f', 2)
+		+ QString("J5: %1    J6: %2\n").arg(j_deg[4], 7, 'f', 2).arg(j_deg[5], 7, 'f', 2)
+		+ QString("TCP: X=%1 Y=%2 Z=%3 mm")
+			.arg(tcp_pose(0, 3), 7, 'f', 1).arg(tcp_pose(1, 3), 7, 'f', 1).arg(tcp_pose(2, 3), 7, 'f', 1);
+	m_HUD_Label->setText(txt);
+	m_HUD_Label->adjustSize();
+}
+
+/******************************************************************************
+* 内部更新：将 7 个位姿矩阵应用到 7 个 Actor
+******************************************************************************/
 void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &poses)
 {
 	if (m_Link_Actors.size() < 7) return;
@@ -360,6 +401,26 @@ void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 	// 1. FK 解算
 	std::vector<Eigen::Matrix4d> poses = FK(joints_deg);
 
-	// 2. 应用位姿（含零位补偿）
+	// 2. 应用位姿（FK 绝对位姿直接驱动）
 	Update_Pose_Internal(poses);
+
+	// 3. 2026-11-04 增强：HUD 关节角 + TCP 坐标显示
+	Update_HUD(joints_deg, poses[6]);
+
+	// 4. 2026-11-04 增强：TCP 轨迹追加（仅当 TCP 移动超过 1mm 才记录，防静止重复点）
+	if (m_Trail_Points) {
+		double lx = poses[6](0, 3), ly = poses[6](1, 3), lz = poses[6](2, 3);
+		if (m_Last_TCP.isZero(0) ||
+			(m_Last_TCP - Eigen::Vector3d(lx, ly, lz)).norm() > 1.0) {
+			m_Last_TCP = Eigen::Vector3d(lx, ly, lz);
+			vtkIdType pid = m_Trail_Points->InsertNextPoint(lx, ly, lz);
+			if (pid >= 1) {
+				m_Trail_Cells->InsertNextCell(2);
+				m_Trail_Cells->InsertCellPoint(pid - 1);
+				m_Trail_Cells->InsertCellPoint(pid);
+			}
+			m_Trail_Points->Modified();
+			m_Trail_Cells->Modified();
+		}
+	}
 }
