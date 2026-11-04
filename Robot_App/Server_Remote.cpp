@@ -153,15 +153,24 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 	QString checksum = json.value("Checksum").toString();
 	if (cmd != "Read_Ready") {
 		// 2026-10-24 审查修复 S2：除 Read_Ready 外缺 Checksum 丢弃
+		// 2026-11-04 用户定稿：所有反馈需包含接收指令的 Checksum——缺 Checksum 也回错误反馈（Checksum 空）
 		if (checksum.isEmpty()) {
 			emit Status(QString::number(m_Port) + "->服务：命令 " + cmd + " 缺少 Checksum，已丢弃");
+			QJsonObject rsp;
+			rsp.insert("Cmd_Name", cmd);
+			rsp.insert("Result", "Error");
+			rsp.insert("Reason", "缺少 Checksum");
+			emit Write_Json(rsp);
 			return;
 		}
+	}
 	// 2026-10-24 审查修复 S1：幂等去重——重复 Checksum 不重复执行
 	if (m_HandledChecksum.contains(checksum)) {
 		// 2026-10-25 L：重复校验码（只记录，不改变去重行为）
 		c_Log::Warn("WEB", "Cmd", QString("duplicate checksum=%1 cmd=%2 ignored").arg(checksum).arg(cmd));
 		emit Status(QString::number(m_Port) + "->服务：重复指令 " + cmd + "（已处理）");
+		// 2026-11-04 用户定稿：重复响应回显本次请求的 Checksum（非上一条指令的）
+		m_LastChecksum = checksum;
 		Reply_Ok(cmd);
 		return;
 	}
@@ -178,7 +187,6 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.lastChecksum = checksum;
 	}
-}
 
 // 2026-10-25 L：WEB 指令接收（只打印指令名与校验码；指令体不打印）
 // 2026-10-28 用户定稿：WEB 以 500ms 频率查询 Read_Ready——抑制查询类指令日志防 UI/中心日志刷屏
@@ -196,6 +204,8 @@ if (cmd != QLatin1String("Read_Ready")) {
 	}
 	if (cmd == QLatin1String("Read_Ready")) {
 		// 2026-08-19 修复：协商版协议无 Value 字段，去除该门控，无条件响应状态
+		// 2026-11-04 用户定稿：Read_Ready 无 Checksum，响应不附加（清空 m_LastChecksum 防携带上条指令校验码）
+		m_LastChecksum.clear();
 		QJsonObject status = Build_System_Status();
 		Write_Json_With_Checksum(status);
 		return;
