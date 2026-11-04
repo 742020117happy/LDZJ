@@ -156,10 +156,13 @@ void c_Server_Remote::Process_Command(const QJsonObject &json)
 		// 2026-11-04 用户定稿：所有反馈需包含接收指令的 Checksum——缺 Checksum 也回错误反馈（Checksum 空）
 		if (checksum.isEmpty()) {
 			emit Status(QString::number(m_Port) + "->服务：命令 " + cmd + " 缺少 Checksum，已丢弃");
+			// 2026-11-04 用户定稿：反馈至少含 Cmd_Name/Value/Checksum/Status/Message
 			QJsonObject rsp;
 			rsp.insert("Cmd_Name", cmd);
-			rsp.insert("Result", "Error");
-			rsp.insert("Reason", "缺少 Checksum");
+			rsp.insert("Value", false);
+			rsp.insert("Checksum", QString());
+			rsp.insert("Status", "Error");
+			rsp.insert("Message", "缺少 Checksum");
 			emit Write_Json(rsp);
 			return;
 		}
@@ -249,6 +252,12 @@ if (cmd != QLatin1String("Read_Ready")) {
 QJsonObject c_Server_Remote::Build_System_Status()
 {
 	QJsonObject root;
+
+	// 2026-11-04 用户定稿：反馈至少含 Cmd_Name/Value/Status/Message（Checksum 由 Write_Json_With_Checksum 附加）
+	root.insert("Cmd_Name", "Read_Ready");
+	root.insert("Value", true);
+	root.insert("Status", "Success");
+	root.insert("Message", "OK");
 
 	root.insert("状态", "OK");
 	root.insert("时间", QDateTime::currentDateTime().toString("yyyyMMddHHmmss"));
@@ -446,8 +455,9 @@ void c_Server_Remote::Reply_Error(const QString &cmd, const QString &reason)
 {
 	QJsonObject rsp;
 	rsp.insert("Cmd_Name", cmd);
-	rsp.insert("Result", "Error");
-	rsp.insert("Reason", reason);
+	rsp.insert("Value", false);
+	rsp.insert("Status", "Error");
+	rsp.insert("Message", reason);
 	{   // 2026-10-24 T83：taskId 跨线程写入，读侧持读锁快照
 		QReadLocker locker(&c_Variable::g_lock);
 		rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
@@ -461,9 +471,12 @@ void c_Server_Remote::Reply_Error(const QString &cmd, const QString &reason)
 *************************************************************************************************************************************************/
 void c_Server_Remote::Reply_Ok(const QString &cmd)
 {
+	// 2026-11-04 用户定稿：反馈至少含 Cmd_Name/Value/Checksum/Status/Message（旧 Result 格式废除）
 	QJsonObject rsp;
 	rsp.insert("Cmd_Name", cmd);
-	rsp.insert("Result", "Executing");
+	rsp.insert("Value", true);
+	rsp.insert("Status", "Success");
+	rsp.insert("Message", "已执行");
 	{   // 2026-10-24 T83：taskId 跨线程写入，读侧持读锁快照
 		QReadLocker locker(&c_Variable::g_lock);
 		rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
@@ -477,9 +490,12 @@ void c_Server_Remote::Reply_Ok(const QString &cmd)
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Accepted()
 {
-	// 2026-10-24 CC：直接访问（别名已消除）
+	// 2026-11-04 用户定稿：统一 5 字段（Cmd_Name/Value/Checksum/Status/Message），旧小写 status 废除
 	QJsonObject rsp;
-	rsp.insert("status", "ACCEPTED");
+	rsp.insert("Cmd_Name", "START_INSPECTION");
+	rsp.insert("Value", true);
+	rsp.insert("Status", "Success");
+	rsp.insert("Message", "ACCEPTED");
 	QJsonArray ids;
 	for (int i = 0; i < c_Variable::getInstance().g_Work_DB.tasks.size(); i++)
 		ids.append(c_Variable::getInstance().g_Work_DB.tasks[i].toObject().value("taskId").toString());
@@ -492,9 +508,12 @@ void c_Server_Remote::Send_Accepted()
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Ready()
 {
-	// 2026-10-24 CC：直接访问（别名已消除）
+	// 2026-11-04 用户定稿：统一 5 字段，旧小写 status 废除
 	QJsonObject rsp;
-	rsp.insert("status", "READY");
+	rsp.insert("Cmd_Name", "START_INSPECTION");
+	rsp.insert("Value", true);
+	rsp.insert("Status", "Success");
+	rsp.insert("Message", "READY");
 	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
 	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
 	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
@@ -506,9 +525,12 @@ void c_Server_Remote::Send_Ready()
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Completed(int totalImages)
 {
-	// 2026-10-24 CC：直接访问（别名已消除）
+	// 2026-11-04 用户定稿：统一 5 字段，旧小写 status 废除
 	QJsonObject rsp;
-	rsp.insert("status", "COMPLETED");
+	rsp.insert("Cmd_Name", "START_INSPECTION");
+	rsp.insert("Value", true);
+	rsp.insert("Status", "Success");
+	rsp.insert("Message", "COMPLETED");
 	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
 	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
 	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
@@ -521,13 +543,15 @@ void c_Server_Remote::Send_Completed(int totalImages)
 *************************************************************************************************************************************************/
 void c_Server_Remote::Send_Error(int errorCode, QString desc)
 {
-	// 2026-10-24 CC：直接访问（别名已消除）
+	// 2026-11-04 用户定稿：统一 5 字段，旧小写 status 废除
 	QJsonObject rsp;
-	rsp.insert("status", "ERROR");
+	rsp.insert("Cmd_Name", "START_INSPECTION");
+	rsp.insert("Value", false);
+	rsp.insert("Status", "Error");
+	rsp.insert("Message", desc);
 	rsp.insert("taskId", c_Variable::getInstance().g_Work_DB.taskId);
 	rsp.insert("currentTaskIndex", c_Variable::getInstance().g_Work_DB.currentTaskIndex);
 	rsp.insert("taskCount", c_Variable::getInstance().g_Work_DB.taskCount);
 	rsp.insert("errorCode", errorCode);
-	rsp.insert("Reason", desc);
 	Write_Json_With_Checksum(rsp);
 }
