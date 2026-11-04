@@ -27,6 +27,7 @@
 #include <vtkRenderer.h>
 #include <vtkActor.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkMath.h>
 
 class c_CGXi_Sim_View : public QWidget
 {
