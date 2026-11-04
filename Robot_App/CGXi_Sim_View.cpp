@@ -89,11 +89,26 @@ void c_CGXi_Sim_View::Init_G6_DH()
 		m_Compensate[i] = Eigen::Matrix4d::Identity();	// 初始补偿为单位矩阵
 	}
 
-	// ===== 2026-11-04 用户定稿：基座 R6-00 补偿 =====
-	// R6-00 STL 原点在"安装面中心"，J1 旋转轴在"基座顶面中心"，距离 95.20mm
-	// 补偿：将 STL 原点从安装面中心平移到 J1 旋转轴（Z 向 +95.20mm）
-	m_Compensate[0](2, 3) = 95.20;
-	c_Log::Info("ARM", "Sim", "base compensate R6-00: Z+95.20mm (install face -> J1 axis)");
+	// ===== 2026-11-04 用户定稿：STL 原点补偿集中配置 =====
+	// 各 STL 原点（SolidWorks 建模原点）与关节旋转中心存在偏移，需按实测值平移补偿。
+	// 坐标系约定：SolidWorks 全局 Z 向上；补偿向量 = 关节轴心坐标 - STL 原点坐标。
+	// 测量方法：SolidWorks 打开 R6.SLDASM（零位），"评估→测量"选零件原点与下游关节圆柱面轴线距离。
+	//   R6-00 基座：原点=安装面中心 → J1 轴心（基座顶面中心）偏移 (0, 0, +95.20) 【已定稿】
+	//   R6-01 肩部：原点 → J2 轴心偏移 (?, ?, ?) 【待测量】
+	//   R6-02 大臂：原点 → J3 轴心偏移 (?, ?, ?) 【待测量】
+	//   R6-03 小臂：原点 → J4 轴心偏移 (?, ?, ?) 【待测量】
+	//   R6-04 腕1：原点 → J5 轴心偏移 (?, ?, ?) 【待测量】
+	//   R6-05 腕2：原点 → J6 轴心偏移 (?, ?, ?) 【待测量】
+	//   R6-06 法兰：原点 → 法兰中心偏移 (?, ?, ?) 【待测量】
+	// 以下为已定稿/占位补偿（单位 mm）：
+	m_Compensate[0](0, 3) = 0.0;		m_Compensate[0](1, 3) = 0.0;		m_Compensate[0](2, 3) = 95.20;	// 基座
+	m_Compensate[1](0, 3) = 0.0;		m_Compensate[1](1, 3) = 0.0;		m_Compensate[1](2, 3) = 0.0;	// R6-01 待测
+	m_Compensate[2](0, 3) = 0.0;		m_Compensate[2](1, 3) = 0.0;		m_Compensate[2](2, 3) = 0.0;	// R6-02 待测
+	m_Compensate[3](0, 3) = 0.0;		m_Compensate[3](1, 3) = 0.0;		m_Compensate[3](2, 3) = 0.0;	// R6-03 待测
+	m_Compensate[4](0, 3) = 0.0;		m_Compensate[4](1, 3) = 0.0;		m_Compensate[4](2, 3) = 0.0;	// R6-04 待测
+	m_Compensate[5](0, 3) = 0.0;		m_Compensate[5](1, 3) = 0.0;		m_Compensate[5](2, 3) = 0.0;	// R6-05 待测
+	m_Compensate[6](0, 3) = 0.0;		m_Compensate[6](1, 3) = 0.0;		m_Compensate[6](2, 3) = 0.0;	// R6-06 待测
+	c_Log::Info("ARM", "Sim", "compensate config: base z=+95.20, links pending measure");
 }
 
 /******************************************************************************
