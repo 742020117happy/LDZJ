@@ -1720,6 +1720,8 @@ void c_Robot_App_Widget::IO_Init()
 	m_IO_Remote->moveToThread(m_IO_Remote_Thread);
 	QObject::connect(m_IO_Remote_Thread, &QThread::started, m_IO_Remote, &c_IO_Remote::Init);
 	QObject::connect(m_IO_Remote_Thread, &QThread::finished, m_IO_Remote, &c_IO_Remote::deleteLater);
+	QObject::connect(m_IO_Remote, &c_IO_Remote::Set_Working, ui->btn_IO_Robot_ON, &QPushButton::click);
+	QObject::connect(m_IO_Remote, &c_IO_Remote::Set_Working, ui->btn_IO_Fan_ON, &QPushButton::click);
 	QObject::connect(m_IO_Remote, &c_IO_Remote::Status, this, &c_Robot_App_Widget::Write_IO_List);
 	c_Robot_App_Widget::IO_DB();
 	c_Robot_App_Widget::IO_Button();

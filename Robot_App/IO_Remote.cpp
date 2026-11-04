@@ -114,12 +114,6 @@ void c_IO_Remote::Connect_Done()
 	c_Log::Info("IO", "Connect", "success");
 	emit Status("IO模块：已连接");
 
-	// 2026-10-24 T63：远程 IO 正常连接后自动启动散热风扇（Y04-KA5，线圈4）
-	// 写入经 m_Set_Coils[4] 队列由下一轮询 Write_Coils_Action 执行并回读确认；
-	// 断开时不复位（站侧输出状态未知，重连后由本处重新置位兜底）
-	Set_Fan();
-	emit Status("IO模块：已连接，自动启动散热风扇（Y04-KA5）");
-
 	// 2026-10-24 BB1：g_Communicate_DB 读侧持锁（GUI 线程可能并发写配置）
 	{
 		QReadLocker locker(&c_Variable::g_lock);
