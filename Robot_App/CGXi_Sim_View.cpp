@@ -252,8 +252,56 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 			continue;
 		}
 
+		// 2026-11-04 逐零件归一化（终版）：装配体全局坐标 STL → FK 局部坐标。
+		//   ① 平移：关节轴心→原点（实测：零件交界+DH 距离链交叉验证）
+		//   ② 旋转：R_align^T 把零件几何轴映射到 FK 约定轴（X=连杆、Z=关节轴）
+		// 零位显示=FK 零位姿态（正立机械臂），运动时 FK 绝对直驱绕各自轴心旋转。
+		double axis[7][3] = {
+			{ 119.7, 153.5, 1061.2 },
+			{ 119.7, 169.2, 995.0 },
+			{ 119.7, 169.2, 570.0 },
+			{ 119.7, 169.2, 177.0 },
+			{ 119.7, 302.2, 177.0 },
+			{ 119.7, 302.2, 77.0 },
+			{ 119.7, 384.2, 77.0 }
+		};
+		double rAlign[7][3][3] = {
+			{ { 1,0,0 },{ 0,-1,0 },{ 0,0,-1 } },
+			{ { -1,0,0 },{ 0,0,1 },{ 0,1,0 } },
+			{ { 0,0,1 },{ 1,0,0 },{ 0,1,0 } },
+			{ { 0,0,1 },{ 1,0,0 },{ 0,1,0 } },
+			{ { 1,0,0 },{ 0,0,-1 },{ 0,1,0 } },
+			{ { -1,0,0 },{ 0,0,1 },{ 0,-1,0 } },
+			{ { 1,0,0 },{ 0,-1,0 },{ 0,0,-1 } }
+		};
+		Eigen::Matrix4d mNorm = Eigen::Matrix4d::Identity();
+		for (int r = 0; r < 3; ++r) {
+			for (int cc = 0; cc < 3; ++cc) {
+				mNorm(r, cc) = rAlign[i][cc][r];
+			}
+		}
+		Eigen::Vector4d axisH(axis[i][0], axis[i][1], axis[i][2], 1.0);
+		Eigen::Vector4d nt = mNorm * axisH;
+		mNorm(0, 3) = -nt(0); mNorm(1, 3) = -nt(1); mNorm(2, 3) = -nt(2);
+
+		vtkSmartPointer<vtkMatrix4x4> normMat = vtkSmartPointer<vtkMatrix4x4>::New();
+		for (int r = 0; r < 4; ++r) {
+			for (int cc = 0; cc < 4; ++cc) {
+				normMat->SetElement(r, cc, mNorm(cc, r));
+			}
+		}
+		vtkSmartPointer<vtkTransform> tNorm = vtkSmartPointer<vtkTransform>::New();
+		tNorm->SetMatrix(normMat);
+
+		vtkSmartPointer<vtkTransformPolyDataFilter> tpd =
+			vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+		tpd->SetInputData(reader->GetOutput());
+		tpd->SetTransform(tNorm);
+		tpd->Update();
+		m_Normalize_Filters.push_back(tpd);
+
 		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(reader->GetOutputPort());
+		mapper->SetInputConnection(tpd->GetOutputPort());
 
 		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 		actor->SetMapper(mapper);
@@ -307,18 +355,9 @@ void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &p
 
 		// 最终变换 = 相对变换 × 补偿矩阵
 		// 补偿矩阵修正"模型原点不在关节中心"的问题
-		// 2026-11-04 校验修复：STL 顶点为 SolidWorks 装配体全局坐标（倒挂、基座在 Z~1061、
-		// 原点在法兰附近），与 FK 零位世界坐标相差刚体变换 mG（绕 X 180° 翻转 + J1 轴心归零）。
-		// 直接应用 Relative 会把零件绕 FK 世界原点（远在零件外 1000mm）旋转导致甩飞混乱。
-		// 修复：共轭变换——在装配体坐标系内执行 FK 相对旋转：
-		//   final = Inv(mG) · Relative · mG
-		// 零位时 Relative=I → final=I（模型显示装配体原样）；运动时绕装配体中的关节轴心旋转。
-		Eigen::Matrix4d mG = Eigen::Matrix4d::Identity();
-		mG(1, 1) = -1.0; mG(2, 2) = -1.0;
-		mG(0, 3) = -119.7; mG(1, 3) = 153.5; mG(2, 3) = 1061.2;
-
-		// 最终变换 = Inv(mG) × 相对变换 × mG × 补偿矩阵
-		Eigen::Matrix4d final_pose = mG.inverse() * relative * mG * m_Compensate[i];
+		// 2026-11-04 归一化后 FK 绝对直驱：模型已对齐到"轴心=原点+FK 约定朝向"，
+		// 直接应用 FK 绝对位姿（零位自动展开到 FK 零位关节位置），Compensate 留现场微调
+		Eigen::Matrix4d final_pose = poses[i] * m_Compensate[i];
 
 		// Eigen → VTK（列主序 → 行主序，必须转置）
 		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
