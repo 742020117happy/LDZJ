@@ -111,6 +111,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CGXi_Sim_View.cpp" />
     <ClCompile Include="Emis_Client.cpp" />
     <ClCompile Include="HTTP_Client.cpp" />
     <ClCompile Include="Lczh_Remote.cpp" />
@@ -203,6 +204,7 @@
     <QtMoc Include="Work_Remote.h" />
     <QtMoc Include="ModeBusRTU_Master.h" />
     <QtMoc Include="Emis_Client.h" />
+    <QtMoc Include="CGXi_Sim_View.h" />
     <ClInclude Include="robotapi.h" />
   </ItemGroup>
   <ItemGroup>

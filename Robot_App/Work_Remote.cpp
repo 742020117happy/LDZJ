@@ -330,16 +330,37 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 	// 综合重写时误置于巡检启动段（工序链之后）→ 首步 wait_IO_Robot_ON 恒判 false → "机械臂开机失败"
 	c_Variable::getInstance().g_Work.Connected = true;
 
-	if (!wait_IO_Robot_ON()) { fail_step("机械臂开机失败", "PA003"); return; }
-	if (!wait_RefreshMapList()) { fail_step("机器人刷新地图失败", "PA007"); return; }
-	if (!wait_SwitchMap(mapPointName)) { fail_step("机器人加载地图失败", "PA007"); return; }
-	if (!wait_RefreshNavPoints()) { fail_step("机器人刷新导航点失败", "PA007"); return; }
-	if (!wait_DynamicInit("P001")) { fail_step("机器人动态初始化失败", "PA022"); return; }
+	if (!wait_IO_Robot_ON()) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机械臂开机失败", "PA003"); return;
+	}
+	if (!wait_RefreshMapList()) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机器人刷新地图失败", "PA007"); return;
+	}
+	if (!wait_SwitchMap(mapPointName)) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机器人加载地图失败", "PA007"); return;
+	}
+	if (!wait_RefreshNavPoints()) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机器人刷新导航点失败", "PA007"); return;
+	}
+	if (!wait_DynamicInit("P001")) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机器人动态初始化失败", "PA022"); return;
+	}
 	emit Voice_Event("PA014");	// 2026-10-25 FF1：初始化运行完成
 	// 2026-10-28 用户定稿：初始化点 P001=充电位置（与回充点 P0 同位置不同功能）——
 	// 先动态初始化 P001，再脱桩（原顺序脱桩→初始化，调整为初始化→脱桩）
-	if (!wait_Dis_Recharge()) { fail_step("机器人脱桩失败", "PA008"); return; }
-	if (!wait_Coils_1001()) { fail_step("机械臂使能失败", "PA003"); return; }
+	if (!wait_Dis_Recharge()) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机器人脱桩失败", "PA008"); return;
+	}
+	if (!wait_Coils_1001()) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机械臂使能失败", "PA003"); return;
+	}
 
 	// ================= 5. 配方加载与三层查找（T89） =================
 	QString path = QCoreApplication::applicationDirPath() + "/Work_DB/InspectionPlan.json";	// 2026-10-25 D-005：exe 目录定位
@@ -401,7 +422,10 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 			QString Point_Name = positions.at(i).toString();
 			if (!allowedPoints.isEmpty() && !allowedPoints.contains(Point_Name)) { continue; }
 			if (prog_kind1.value(Point_Name) == QJsonValue::Undefined) { fail_step("巡检点不存在", "PA007"); return; }
-			if (!wait_StartTask(Point_Name)) { fail_step("机器人定位失败", "PA022"); return; }
+			if (!wait_StartTask(Point_Name)) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机器人定位失败", "PA022"); return;
+	}
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			QJsonArray arr = prog_kind1.value(Point_Name).toArray();
 			if (posId < 1 || posId > arr.size()) { fail_step("巡检点工位轨迹越界", "PA003"); return; }
@@ -432,7 +456,10 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 			const bool isPos1 = (Point_Name == "P1" || Point_Name == "P1.1" || Point_Name == "P4.1" || Point_Name == "P5" || Point_Name == "P6");
 			const bool isPos2 = (Point_Name == "P1.1" || Point_Name == "P2" || Point_Name == "P3" || Point_Name == "P4" || Point_Name == "P4.1");
 			if (!isPos1 && !isPos2) { fail_step("巡检点不存在", "PA007"); return; }
-			if (!wait_StartTask(Point_Name)) { fail_step("机器人定位失败", "PA022"); return; }
+			if (!wait_StartTask(Point_Name)) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("机器人定位失败", "PA022"); return;
+	}
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			if (isPos1) {
 				// 2026-10-28 用户定稿：采集信息随工位切换——1 号工位采集前切任务 1 字段
@@ -472,7 +499,10 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 		c_Variable::getInstance().g_Work_DB.repairLevel = t2.value("repairLevel").toString();
 		c_Variable::getInstance().g_Work_DB.posId = QString::number(posId_2);	// 2026-10-27 协议核对补全
 	}
-	if (!wait_StartRecharge("P0")) { fail_step("回充失败", "PA008"); return; }
+	if (!wait_StartRecharge("P0")) {
+		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
+		fail_step("回充失败", "PA008"); return;
+	}
 	msleep(5000);//等待系统响应
 	{
 		QWriteLocker locker(&c_Variable::g_lock);
@@ -840,7 +870,16 @@ void c_Work_Remote::Prec_Scan_Write_Done(QString ip, int port, QString value)
 // 2026-10-24 T101：Widget 三处 invokeMethod("Cancel_Task_Cmd") 原无此槽（静默失效），
 // 补槽转发既有取消链（Init 中 Task_Cancelled → Connected=false/workState=0/PA005）
 void c_Work_Remote::Cancel_Task_Cmd() {
+	// 2026-11-04 用户定稿：取消任务立即停止退出——复位任务门控（wait_* 全部立即返回 false），
+	// 恢复空闲态；底盘/机械臂停止动作由 Widget 桥接执行（Stop_Task + 89=3）
 	emit Task_Cancelled();
+	c_Variable::getInstance().g_Work.Connected = false;
+	{
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.workState = 0;
+	}
+	c_Log::Info("WORK", "Flow", "task cancelled: gate reset state=idle");
+	emit Status("任务已取消：立即停止退出，机器人停止运行");
 }
 
 void c_Work_Remote::Work_Test()

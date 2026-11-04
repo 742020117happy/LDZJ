@@ -924,6 +924,14 @@ void c_Robot_App_Widget::CGXi_Scan()
 	ui->CGXi_CO6_State->Set_State((coVal & 0x0040) != 0);
 	ui->CGXi_CO7_State->Set_State((coVal & 0x0080) != 0);
 
+
+	double joints[6];
+	for (int i = 0; i < 6; ++i) {
+		// 寄存器 220-231：joint_actual_position（float，单位°）
+		joints[i] = cgxi.data.joint_actual_position[i];
+	}
+	ui->CGXi_Sim->Update_Pose(joints);
+
 	// 2026-10-24 重构 T18：CO 位上升沿直连 Work_Remote 完成信号（原经 UI 灯控件三层转发，脆弱且依赖 Fr_Light 边沿契约）
 	if (m_Work_Remote) {
 		if ((coVal & 0x0002) && !(m_Last_CO & 0x0002))
@@ -1398,16 +1406,21 @@ void c_Robot_App_Widget::Server_Init()
 	// 控制命令 → 机械臂 (Holding Register 89: 1=启动/恢复 2=暂停 3=停止)
 	QObject::connect(m_Server_Remote, &c_Server_Remote::Cancel_Task_Cmd, this, [this]() {
 		Write_Work_List("WEB->取消任务");
+		// 2026-11-04 用户定稿：取消立即停止退出+机器人停止运行——
+		// 停底盘（Stop_Task 终止导航）+ 停机械臂（89=3）+ 打断 Work 等待（Cancel_Task_Cmd 复位门控）
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 3;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
+		QMetaObject::invokeMethod(m_Magic_Remote, "Stop_Task", Qt::QueuedConnection);
 		// 2026-10-24 新增：打断 Work_Remote 工序等待（wait_* 全部响应 Task_Cancelled）
 		if (m_Work_Remote)
 			QMetaObject::invokeMethod(m_Work_Remote, "Cancel_Task_Cmd", Qt::QueuedConnection);
 	});
 	QObject::connect(m_Server_Remote, &c_Server_Remote::Pause_Task_Cmd, this, [this]() {
 		Write_Work_List("WEB->暂停");
+		// 2026-11-04 用户定稿：暂停=停机械臂（89=2）+ 暂停底盘任务
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 2;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
+		QMetaObject::invokeMethod(m_Magic_Remote, "Pause_Task", Qt::QueuedConnection);
 		// 2026-10-24 重构 T05：补 workState 转移（原只写寄存器，Resume 被状态矩阵永久拒绝）
 		{	// 2026-10-25 GG2：WEB 指令运行期写 workState 补写锁（Server 线程读侧持读锁）
 			QWriteLocker locker(&c_Variable::g_lock);
@@ -1416,8 +1429,10 @@ void c_Robot_App_Widget::Server_Init()
 	});
 	QObject::connect(m_Server_Remote, &c_Server_Remote::Resume_Task_Cmd, this, [this]() {
 		Write_Work_List("WEB->暂停复位");
+		// 2026-11-04 用户定稿：恢复=恢复机械臂（89=1）+ 恢复底盘任务
 		c_Variable::getInstance().g_CGXi.Transfer.target_program_operation = 1;
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
+		QMetaObject::invokeMethod(m_Magic_Remote, "Resume_Task", Qt::QueuedConnection);
 		// 2026-10-24 重构 T05：补 workState 转移（恢复采集）
 		{	// 2026-10-25 GG2：WEB 指令运行期写 workState 补写锁（Server 线程读侧持读锁）
 			QWriteLocker locker(&c_Variable::g_lock);

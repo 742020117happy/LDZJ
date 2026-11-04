@@ -79,6 +79,9 @@
     <Filter Include="业务层\数据缓存">
       <UniqueIdentifier>{b12834e2-ee88-4947-ba7f-b671f105282c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="软件开发工具包\机械臂仿真">
+      <UniqueIdentifier>{bdabde4c-f5b0-4215-b67f-b84950a24696}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Fr_Light.cpp">
@@ -141,6 +144,9 @@
     <ClCompile Include="Emis_Client.cpp">
       <Filter>业务层\EMIS接口</Filter>
     </ClCompile>
+    <ClCompile Include="CGXi_Sim_View.cpp">
+      <Filter>软件开发工具包\机械臂仿真</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Fr_Light.h">
@@ -199,6 +205,9 @@
     </QtMoc>
     <QtMoc Include="Emis_Client.h">
       <Filter>业务层\EMIS接口</Filter>
+    </QtMoc>
+    <QtMoc Include="CGXi_Sim_View.h">
+      <Filter>软件开发工具包\机械臂仿真</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

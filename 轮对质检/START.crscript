@@ -23,6 +23,9 @@ while timeoveridecount > 0 do
       local connect_status = get_socket_connect_status(8)
       if connect_status == 0 then
            print("connect ok")
+           flush_recv_buffer()
+           socket_send_string(8, "START&!")
+           print("Send START&! successfully")
            break
       elseif connect_status == 1 then
            print("connect fail")
@@ -31,14 +34,6 @@ while timeoveridecount > 0 do
            print("connect invalid")
            break
       end
-	  timeoveridecount = timeoveridecount -1
-	  wait(500)
+      timeoveridecount = timeoveridecount -1
+      wait(500)
  end
- if connect_status == 0 then
-	  flush_recv_buffer()
-      socket_send_string(8, "START&!")
-	  print("Send START&! successfully")
-	  socket_disconnect(8)
-else
-      print("Failed to connect to server")
-end
