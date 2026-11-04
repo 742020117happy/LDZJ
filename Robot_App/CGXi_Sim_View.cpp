@@ -149,50 +149,27 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 	for (int i = 0; i < 6; ++i) j[i] = j_deg[i];
 	Check_Limit(j);
 
-	static const double D2R = 3.14159265358979323846 / 180.0;
-
-	// 2026-11-05 装配体关节链 FK（轴心=零件交界铰接点，非零件中心）：
-	//   J2(肩/大臂交界)、J3(大臂/小臂)、J4(小臂/腕1)、J5(腕1/腕2)、J6(腕2/法兰)
-	//   验证：J2→J3 竖直 487（≈a2 425+壳）、J3→J4 竖直 380（≈a3 393）→ 零位竖直链
-	//   轴向：J1 竖直 -Z（朝末端）、J2/J3/J4 = +Y（俯仰轴）、J5/J6 = -Z
-	static const double P[7][3] = {
-		{ 119.7, 153.5, 1061.2 },   // J1 基座顶面圆心（圆盘中心可靠）
-		{ 119.7, 302.0, 1047.0 },   // J2 肩部/大臂交界
-		{ 119.7, 302.0,  560.0 },   // J3 大臂/小臂交界
-		{ 119.7, 300.0,  180.0 },   // J4 小臂/腕1 交界
-		{ 119.7, 344.0,  117.0 },   // J5 腕1/腕2 交界
-		{ 119.7, 350.0,   28.5 },   // J6 腕2/法兰交界
-		{ 119.7, 427.6,   27.6 }    // TCP 法兰底面中心
-	};
-	static const double AX[6][3] = {
-		{ 0.0, 0.0, -1.0 },
-		{ 0.0, 1.0, 0.0 },
-		{ 0.0, 1.0, 0.0 },
-		{ 0.0, 1.0, 0.0 },
-		{ 0.0, 0.0, -1.0 },
-		{ 0.0, 0.0, -1.0 }
-	};
-
 	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
 	Eigen::Matrix4d T = m_Base_Install_Matrix;
 	poses[0] = T;
 
+	static const double D2R = 3.14159265358979323846 / 180.0;
+
 	for (int i = 0; i < 6; ++i) {
-		Eigen::Matrix4d tr = Eigen::Matrix4d::Identity();
-		tr(0, 3) = P[i + 1][0] - P[i][0];
-		tr(1, 3) = P[i + 1][1] - P[i][1];
-		tr(2, 3) = P[i + 1][2] - P[i][2];
-		T = T * tr;
-
-		Eigen::Vector3d ax(AX[i][0], AX[i][1], AX[i][2]);
-		Eigen::Matrix4d rot = Eigen::Matrix4d::Identity();
-		rot.block<3, 3>(0, 0) = Eigen::AngleAxisd(j[i] * D2R, ax).toRotationMatrix();
-		T = T * rot;
-
+		double th = (j[i] + m_off[i]) * D2R;
+		double al = m_alpha[i] * D2R;
+		// 标准 DH 矩阵: Rz(th) * Tz(d) * Tx(a) * Rx(al)
+		Eigen::Matrix4d A;
+		A << std::cos(th), -std::sin(th)*std::cos(al), std::sin(th)*std::sin(al), m_a[i] * std::cos(th),
+			std::sin(th), std::cos(th)*std::cos(al), -std::cos(th)*std::sin(al), m_a[i] * std::sin(th),
+			0.0, std::sin(al), std::cos(al), m_d[i],
+			0.0, 0.0, 0.0, 1.0;
+		T = T * A;
 		poses[i + 1] = T;
 	}
 	return poses;
 }
+
 /******************************************************************************
 * 初始化 VTK 场景
 ******************************************************************************/
@@ -330,22 +307,7 @@ void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &p
 
 		// 最终变换 = 相对变换 × 补偿矩阵
 		// 补偿矩阵修正"模型原点不在关节中心"的问题
-		// 2026-11-05 相对驱动（装配体顶点为全局坐标）：Final = ChainFK(q) · Translate(-P_stl) · Compensate
-		// 零位时 ChainFK(0)=Translate(P_stl) → Final=I → 模型显示装配体原样（正常加载）
-		static const double P_ORIGIN[7][3] = {
-			{ 119.7, 153.5, 1061.2 },
-			{ 119.7, 302.0, 1047.0 },
-			{ 119.7, 302.0,  560.0 },
-			{ 119.7, 300.0,  180.0 },
-			{ 119.7, 344.0,  117.0 },
-			{ 119.7, 350.0,   28.5 },
-			{ 119.7, 427.6,   27.6 }
-		};
-		Eigen::Matrix4d toOrigin = Eigen::Matrix4d::Identity();
-		toOrigin(0, 3) = -P_ORIGIN[i][0];
-		toOrigin(1, 3) = -P_ORIGIN[i][1];
-		toOrigin(2, 3) = -P_ORIGIN[i][2];
-		Eigen::Matrix4d final_pose = poses[i] * toOrigin * m_Compensate[i];
+		Eigen::Matrix4d final_pose = relative * m_Compensate[i];
 
 		// Eigen → VTK（列主序 → 行主序，必须转置）
 		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
