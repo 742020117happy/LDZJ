@@ -1,332 +1,316 @@
 ﻿#pragma execution_character_set("utf-8")
+/******************************************************************************
+* @file    CGXi_Sim_View.cpp
+* @brief   长广溪 G6 机械臂 3D 仿真视图实现（VTK 8.0 + STL 真实模型）
+* @details 2026-11-04 L：VTK 3D 终版
+*   - #include <vtkAutoInit.h>（必须带 .h 后缀，VTK 8.0）
+*   - VTK_MODULE_INIT ×3（解决 no override / TextRenderer 错误）
+*   - 零位补偿矩阵（解决关节连接不正确）；基座 95.20mm 补偿定稿
+*   - 30FPS 渲染节流；Eigen→VTK 矩阵转置赋值
+*   - 模型路径：exe 目录 /Robot_App/（R6-00.STL ~ R6-06.STL）
+*   - C++14：不使用 C99 复合字面量（C4576 教训）
+******************************************************************************/
 #include "CGXi_Sim_View.h"
 #include "Variable.h"
-#include <QtMath>
+
+// ==================== VTK AutoInit（必须在所有 VTK 头文件 include 之后） ====================
+// 解决 "no override found for 'vtkRenderer'" —— 强制注册 OpenGL 渲染后端工厂
+// 解决 "Failed getting the TextRenderer instance!" —— 强制注册文字渲染模块
+#include <vtkAutoInit.h>
+VTK_MODULE_INIT(vtkRenderingOpenGL);    // OpenGL 1.x 渲染后端（对应 vtkRenderingOpenGL-8.0.lib）
+VTK_MODULE_INIT(vtkInteractionStyle);   // 交互样式（鼠标旋转/缩放/平移）
+VTK_MODULE_INIT(vtkRenderingFreeType);  // 文字渲染（vtkAxesActor 轴标签依赖）
+// =========================================================================================
+
 #include <cmath>
+#include <QDir>
+#include <QFile>
+
+// VTK 8.0 头文件
+#include <vtkSTLReader.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkTransform.h>
+#include <vtkMatrix4x4.h>
+#include <vtkProperty.h>
+#include <vtkAxesActor.h>
+#include <vtkRenderWindow.h>
+#include <vtkCamera.h>
+
+// 消除 QGLWidget 弃用警告（VTK 8.0 QVTKWidget 基于 QGLWidget，Qt 5.12 已标记 obsolete）
+#pragma warning(disable: 4996)
 
 /******************************************************************************
 * 构造 / 析构
 ******************************************************************************/
 c_CGXi_Sim_View::c_CGXi_Sim_View(QWidget *parent) : QWidget(parent)
 {
-setMinimumSize(400, 300);
-setStyleSheet("background-color: #1a1f2e; border: 1px solid #3c3c3c;");
-Init_G6_DH();
-m_Last_Render_Time.start();
-// 2026-11-04 L：仿真视图初始化
-c_Log::Info("ARM", "Sim", "view initialized dh=g6 placeholder");
+	Init_G6_DH();
+	Init_VTK_Scene();
+	Load_Robot_Models();
+	m_Last_Render_Time.start();
+	c_Log::Info("ARM", "Sim", "3D view initialized with STL models");
 }
 
-c_CGXi_Sim_View::~c_CGXi_Sim_View() {}
-
-QSize c_CGXi_Sim_View::sizeHint() const { return QSize(600, 450); }
-QSize c_CGXi_Sim_View::minimumSizeHint() const { return QSize(400, 300); }
+c_CGXi_Sim_View::~c_CGXi_Sim_View()
+{
+	c_Log::Info("ARM", "Sim", "3D view destroyed");
+}
 
 /******************************************************************************
 * G6 DH 参数初始化（标准 DH，UR 构型）
+* 【待标定】占位初值，需从 02-DH参数\【DH参数】机械臂R6-095S.pdf 或实机标定替换
 * 约束：a[1]+a[2] ≈ 818mm（手册图22 可变姿态空间半径）
 * 偏置：保证全零 {0,0,0,0,0,0} 时机械臂呈竖直状态（软件篇 4.1.1）
-* 【待标定】占位初值，需按"三步标定法"现场提取
 ******************************************************************************/
 void c_CGXi_Sim_View::Init_G6_DH()
 {
-m_a[0] = 0;     m_a[1] = -425;  m_a[2] = -393;  m_a[3] = 0;     m_a[4] = 0;     m_a[5] = 0;
-m_d[0] = 163;   m_d[1] = 0;     m_d[2] = 0;     m_d[3] = 133;   m_d[4] = 100;   m_d[5] = 82;
-m_alpha[0] = 90; m_alpha[1] = 0;  m_alpha[2] = 0;  m_alpha[3] = 90; m_alpha[4] = -90; m_alpha[5] = 0;
-m_off[0] = 0;   m_off[1] = -90; m_off[2] = 0;   m_off[3] = 90;  m_off[4] = 0;   m_off[5] = 0;
+	// aᵢ (mm)：连杆长度
+	m_a[0] = 0;     m_a[1] = -425;  m_a[2] = -393;
+	m_a[3] = 0;     m_a[4] = 0;     m_a[5] = 0;
+
+	// dᵢ (mm)：连杆偏距
+	m_d[0] = 163;   m_d[1] = 0;     m_d[2] = 0;
+	m_d[3] = 133;   m_d[4] = 100;   m_d[5] = 82;
+
+	// αᵢ (°)：连杆扭转角
+	m_alpha[0] = 90;  m_alpha[1] = 0;   m_alpha[2] = 0;
+	m_alpha[3] = 90;  m_alpha[4] = -90; m_alpha[5] = 0;
+
+	// θ 偏置 (°)：保证零位竖直
+	m_off[0] = 0;   m_off[1] = -90; m_off[2] = 0;
+	m_off[3] = 90;  m_off[4] = 0;   m_off[5] = 0;
+
+	// ===== 计算零位时的 7 个 FK 位姿（用于补偿矩阵） =====
+	// 注意：不使用 C99 复合字面量 (double[6]){...}（VS2015 C4576 教训）
+	double zero_joints[6] = {0, 0, 0, 0, 0, 0};
+	std::vector<Eigen::Matrix4d> zero_poses = FK(zero_joints);
+	for (int i = 0; i < 7; ++i) {
+		m_Zero_Poses[i] = zero_poses[i];
+		m_Compensate[i] = Eigen::Matrix4d::Identity();	// 初始补偿为单位矩阵
+	}
+
+	// ===== 2026-11-04 用户定稿：基座 R6-00 补偿 =====
+	// R6-00 STL 原点在"安装面中心"，J1 旋转轴在"基座顶面中心"，距离 95.20mm
+	// 补偿：将 STL 原点从安装面中心平移到 J1 旋转轴（Z 向 +95.20mm）
+	m_Compensate[0](2, 3) = 95.20;
+	c_Log::Info("ARM", "Sim", "base compensate R6-00: Z+95.20mm (install face -> J1 axis)");
 }
 
 /******************************************************************************
 * 关节限位校验（G6 硬件篇 表A-1）
+* J1/J2/J4/J5/J6 ±360°，J3 ±165°
 ******************************************************************************/
 bool c_CGXi_Sim_View::Check_Limit(double j_deg[6])
 {
-bool ok = true;
-for (int i = 0; i < 6; ++i) {
-double lim = (i == 2) ? 165.0 : 360.0;  // J3 ±165°，其余 ±360°
-if (j_deg[i] > lim || j_deg[i] < -lim) {
-ok = false;
-j_deg[i] = qBound(-lim, j_deg[i], lim);  // 强制钳位防穿模
-}
-}
-return ok;
+	bool ok = true;
+	for (int i = 0; i < 6; ++i) {
+		double lim = (i == 2) ? 165.0 : 360.0;  // J3 ±165°，其余 ±360°
+		if (j_deg[i] > lim || j_deg[i] < -lim) {
+			ok = false;
+			j_deg[i] = qBound(-lim, j_deg[i], lim);  // 强制钳位防穿模
+		}
+	}
+	return ok;
 }
 
 /******************************************************************************
 * 正运动学解算（Eigen3 标准 DH）
+* 输入：j_deg[6] 关节角（度）；输出：7 个 4x4 位姿矩阵（Base + Link1~Link6）
 ******************************************************************************/
 std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 {
-double j[6];
-for (int i = 0; i < 6; ++i) j[i] = j_deg[i];
-Check_Limit(j);
+	double j[6];
+	for (int i = 0; i < 6; ++i) j[i] = j_deg[i];
+	Check_Limit(j);
 
-std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
-Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
-poses[0] = T;
+	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
+	Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+	poses[0] = T;
 
-static const double D2R = 3.14159265358979323846 / 180.0;
+	static const double D2R = 3.14159265358979323846 / 180.0;
 
-for (int i = 0; i < 6; ++i) {
-double th = (j[i] + m_off[i]) * D2R;
-double al = m_alpha[i] * D2R;
-// 标准 DH 矩阵: Rz(th) * Tz(d) * Tx(a) * Rx(al)
-Eigen::Matrix4d A;
-A << std::cos(th), -std::sin(th)*std::cos(al),  std::sin(th)*std::sin(al), m_a[i]*std::cos(th),
-std::sin(th),  std::cos(th)*std::cos(al), -std::cos(th)*std::sin(al), m_a[i]*std::sin(th),
-0.0,           std::sin(al),               std::cos(al),              m_d[i],
-0.0,           0.0,                        0.0,                       1.0;
-T = T * A;
-poses[i + 1] = T;
-}
-return poses;
+	for (int i = 0; i < 6; ++i) {
+		double th = (j[i] + m_off[i]) * D2R;
+		double al = m_alpha[i] * D2R;
+		// 标准 DH 矩阵: Rz(th) * Tz(d) * Tx(a) * Rx(al)
+		Eigen::Matrix4d A;
+		A << std::cos(th), -std::sin(th)*std::cos(al),  std::sin(th)*std::sin(al), m_a[i]*std::cos(th),
+			std::sin(th),  std::cos(th)*std::cos(al), -std::cos(th)*std::sin(al), m_a[i]*std::sin(th),
+			0.0,           std::sin(al),               std::cos(al),              m_d[i],
+			0.0,           0.0,                        0.0,                       1.0;
+		T = T * A;
+		poses[i + 1] = T;
+	}
+	return poses;
 }
 
 /******************************************************************************
-* 核心接口：更新关节角并触发重绘（30FPS 节流）
+* 初始化 VTK 场景
+******************************************************************************/
+void c_CGXi_Sim_View::Init_VTK_Scene()
+{
+	QVBoxLayout *layout = new QVBoxLayout(this);
+	layout->setContentsMargins(0, 0, 0, 0);
+
+	// VTK 8.0 提供的 Qt 集成控件（基于 QGLWidget）
+	m_VTK_Widget = new QVTKWidget(this);
+	layout->addWidget(m_VTK_Widget);
+
+	m_Renderer = vtkSmartPointer<vtkRenderer>::New();
+	m_Renderer->SetBackground(0.15, 0.15, 0.18);   // 深灰背景
+	m_VTK_Widget->GetRenderWindow()->AddRenderer(m_Renderer);
+
+	// 添加坐标系参考轴（基座处的 XYZ 轴，红=X 绿=Y 蓝=Z）
+	vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+	axes->SetTotalLength(150, 150, 150);
+	m_Renderer->AddActor(axes);
+}
+
+/******************************************************************************
+* 加载 7 个 STL 模型文件
+* 文件路径：exe 目录 /Robot_App/ 下（与 stuqss.css 同级）
+* 文件命名：R6-00.STL ~ R6-06.STL（SolidWorks 导出）
+******************************************************************************/
+void c_CGXi_Sim_View::Load_Robot_Models()
+{
+	// 2026-11-04 用户定稿：模型文件放入 Robot_App 目录
+	QString modelDir = QCoreApplication::applicationDirPath() + "/Robot_App/";
+
+	// 7 个零件文件名（与 SolidWorks 导出命名对应）
+	QStringList files;
+	files << "R6-00.STL" << "R6-01.STL" << "R6-02.STL"
+		<< "R6-03.STL" << "R6-04.STL" << "R6-05.STL" << "R6-06.STL";
+
+	// 7 个零件颜色（基座深灰 + J1~J6 彩虹色，便于区分）
+	double colors[7][3] = {
+		{0.25, 0.28, 0.32},   // Base 深灰
+		{0.85, 0.25, 0.25},   // J1 红
+		{0.90, 0.55, 0.20},   // J2 橙
+		{0.85, 0.80, 0.25},   // J3 黄
+		{0.30, 0.75, 0.35},   // J4 绿
+		{0.25, 0.65, 0.85},   // J5 青
+		{0.55, 0.35, 0.80}    // J6 紫
+	};
+
+	// ====== 加载前检查目录存在性 ======
+	QDir dir(modelDir);
+	if (!dir.exists()) {
+		c_Log::Error("ARM", "Sim", QString("dir not found path=%1").arg(modelDir));
+		return;
+	}
+
+	int loadedCount = 0;
+	for (int i = 0; i < 7; ++i) {
+		QString filePath = modelDir + files[i];
+
+		// 文件存在性检查（不区分大小写，兼容 .stl / .STL）
+		if (!QFile::exists(filePath)) {
+			// 尝试小写扩展名
+			QString altPath = modelDir + files[i].replace(".STL", ".stl");
+			if (QFile::exists(altPath)) {
+				filePath = altPath;
+			}
+			else {
+				c_Log::Error("ARM", "Sim", QString("file not found path=%1").arg(filePath));
+				continue;
+			}
+		}
+
+		vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
+		reader->SetFileName(filePath.toLocal8Bit().constData());  // 中文路径用 toLocal8Bit
+		reader->Update();
+
+		if (!reader->GetOutput() || reader->GetOutput()->GetNumberOfPoints() == 0) {
+			c_Log::Error("ARM", "Sim", QString("load failed file=%1 points=0").arg(filePath));
+			continue;
+		}
+
+		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		mapper->SetInputConnection(reader->GetOutputPort());
+
+		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+		actor->SetMapper(mapper);
+		actor->GetProperty()->SetColor(colors[i][0], colors[i][1], colors[i][2]);
+		actor->GetProperty()->SetAmbient(0.3);
+		actor->GetProperty()->SetDiffuse(0.7);
+		actor->GetProperty()->SetSpecular(0.2);
+
+		m_Renderer->AddActor(actor);
+		m_Link_Actors.push_back(actor);
+		loadedCount++;
+
+		c_Log::Info("ARM", "Sim", QString("load success file=%1 points=%2")
+			.arg(files[i]).arg(reader->GetOutput()->GetNumberOfPoints()));
+	}
+
+	c_Log::Info("ARM", "Sim", QString("total loaded=%1/7 dir=%2").arg(loadedCount).arg(modelDir));
+
+	if (loadedCount == 0) {
+		c_Log::Error("ARM", "Sim", "no model loaded, check Robot_App dir");
+		return;
+	}
+
+	// ===== 设置初始零位姿态（让模型在零位时显示为竖直状态） =====
+	double zero_joints[6] = {0, 0, 0, 0, 0, 0};
+	std::vector<Eigen::Matrix4d> zero_poses = FK(zero_joints);
+	Update_Pose_Internal(zero_poses);
+
+	// 初始相机视角（斜 45° 俯视）
+	m_Renderer->ResetCamera();
+	m_Renderer->GetActiveCamera()->Azimuth(45);
+	m_Renderer->GetActiveCamera()->Elevation(30);
+	m_Renderer->ResetCameraClippingRange();
+	m_VTK_Widget->GetRenderWindow()->Render();
+}
+
+/******************************************************************************
+* 内部更新：将 7 个位姿矩阵应用到 7 个 Actor
+* 变换公式：Final = Current_Pose × Inverse(Zero_Pose) × Compensate
+* 含义：先补偿模型原点偏差，再应用相对于零位的姿态变化
+******************************************************************************/
+void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &poses)
+{
+	if (m_Link_Actors.size() < 7) return;
+
+	for (size_t i = 0; i < m_Link_Actors.size() && i < poses.size(); ++i) {
+		// 计算相对变换：当前位姿相对于零位的变化
+		// Relative = Current × Inverse(Zero)
+		Eigen::Matrix4d relative = poses[i] * m_Zero_Poses[i].inverse();
+
+		// 最终变换 = 相对变换 × 补偿矩阵（修正"模型原点不在关节中心"问题）
+		Eigen::Matrix4d final_pose = relative * m_Compensate[i];
+
+		// Eigen → VTK（列主序 → 行主序，必须转置）
+		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+		vtkSmartPointer<vtkMatrix4x4> vtkMat = vtkSmartPointer<vtkMatrix4x4>::New();
+		for (int r = 0; r < 4; ++r) {
+			for (int c = 0; c < 4; ++c) {
+				vtkMat->SetElement(r, c, final_pose(c, r));  // 转置！
+			}
+		}
+		transform->SetMatrix(vtkMat);
+		m_Link_Actors[i]->SetUserTransform(transform);
+	}
+
+	m_VTK_Widget->GetRenderWindow()->Render();
+}
+
+/******************************************************************************
+* 核心接口：更新关节角并驱动 3D 渲染（30FPS 节流）
+* 调用方：c_Robot_App_Widget::CGXi_Scan()（主线程，已持读锁快照）
+* 数据源：cgxi.data.joint_actual_position[6]（float，单位°）
 ******************************************************************************/
 void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 {
-// 节流：避免 10ms CGXi_Scan 拖垮 GUI
-if (m_Last_Render_Time.elapsed() < RENDER_INTERVAL_MS) return;
-m_Last_Render_Time.restart();
+	if (!m_VTK_Widget || !m_Renderer || m_Link_Actors.size() < 7) return;
 
-for (int i = 0; i < 6; ++i) m_Current_Joints[i] = joints_deg[i];
-update();  // 触发 paintEvent
-}
+	// 节流：避免 10ms CGXi_Scan 拖垮 GUI（30FPS = 33ms）
+	if (m_Last_Render_Time.elapsed() < RENDER_INTERVAL_MS) return;
+	m_Last_Render_Time.restart();
 
-/******************************************************************************
-* 绘制主函数
-******************************************************************************/
-void c_CGXi_Sim_View::paintEvent(QPaintEvent *)
-{
-QPainter p(this);
-p.setRenderHint(QPainter::Antialiasing, true);
+	// 1. FK 解算
+	std::vector<Eigen::Matrix4d> poses = FK(joints_deg);
 
-// 视图中心 = 控件中心偏下（留出基座下方空间）
-m_View_Center = QPointF(width() / 2.0, height() * 0.75);
-
-// 1. 可变姿态空间（818mm 球体侧视投影，手册 2.1.2）
-Draw_Workspace(p);
-
-// 2. 奇异区警示（Base 上下方圆柱体，手册 2.1.1）
-Draw_Singularity_Zone(p);
-
-// 3. 基座
-Draw_Base(p);
-
-// 4. FK 解算
-std::vector<Eigen::Matrix4d> poses = FK(m_Current_Joints);
-
-// 5. 连杆
-Draw_Links(p, poses);
-
-// 6. TCP
-Draw_TCP(p, poses[6]);
-
-// 7. 关节角度标注
-Draw_Joint_Angles(p, poses);
-
-// 8. HUD
-Draw_HUD(p, m_Current_Joints);
-}
-
-/******************************************************************************
-* 绘制基座
-******************************************************************************/
-void c_CGXi_Sim_View::Draw_Base(QPainter &p)
-{
-QPointF base = World_To_View(0, 0, 0);
-// 基座矩形（100mm × 80mm）
-p.setPen(QPen(QColor(100, 120, 150), 2));
-p.setBrush(QColor(60, 80, 110, 200));
-p.drawRoundedRect(QRectF(base.x() - 50, base.y() - 40, 100, 80), 6, 6);
-
-// 基座中心圆
-p.setPen(QPen(QColor(200, 220, 255), 1.5));
-p.setBrush(QColor(100, 140, 200));
-p.drawEllipse(base, 15, 15);
-
-// "BASE" 标签
-p.setPen(QColor(200, 220, 255));
-p.setFont(QFont("Consolas", 9, QFont::Bold));
-p.drawText(QRectF(base.x() - 30, base.y() + 45, 60, 20), Qt::AlignCenter, "BASE");
-}
-
-/******************************************************************************
-* 绘制连杆（线段 + 关节圆点）
-******************************************************************************/
-void c_CGXi_Sim_View::Draw_Links(QPainter &p, const std::vector<Eigen::Matrix4d> &poses)
-{
-// 连杆颜色（6 关节不同色，便于区分）
-static const QColor colors[6] = {
-QColor(255, 100, 100),  // J1 红
-QColor(255, 180, 80),   // J2 橙
-QColor(255, 255, 100),  // J3 黄
-QColor(100, 255, 100),  // J4 绿
-QColor(100, 200, 255),  // J5 蓝
-QColor(200, 100, 255)   // J6 紫
-};
-
-	// 绘制连杆（从基座到 J6，等轴测 3D 投影）
-	for (int i = 0; i < 6; ++i) {
-		// 起点 = poses[i] 的平移向量（世界坐标 mm）
-		double x1 = poses[i](0, 3);
-		double y1 = poses[i](1, 3);
-		double z1 = poses[i](2, 3);
-		// 终点 = poses[i+1] 的平移向量
-		double x2 = poses[i + 1](0, 3);
-		double y2 = poses[i + 1](1, 3);
-		double z2 = poses[i + 1](2, 3);
-
-		QPointF p1 = World_To_View(x1, y1, z1);
-		QPointF p2 = World_To_View(x2, y2, z2);
-
-// 连杆线段（粗线）
-p.setPen(QPen(colors[i], 8, Qt::SolidLine, Qt::RoundCap));
-p.drawLine(p1, p2);
-
-// 关节圆点
-p.setPen(QPen(Qt::white, 2));
-p.setBrush(colors[i]);
-p.drawEllipse(p1, 10, 10);
-
-// 关节编号
-p.setPen(Qt::white);
-p.setFont(QFont("Consolas", 9, QFont::Bold));
-p.drawText(QRectF(p1.x() - 8, p1.y() - 8, 16, 16), Qt::AlignCenter, QString("J%1").arg(i + 1));
-}
-
-	// TCP 点（J6 末端）
-	QPointF tcp = World_To_View(poses[6](0, 3), poses[6](1, 3), poses[6](2, 3));
-p.setPen(QPen(Qt::white, 2));
-p.setBrush(QColor(255, 255, 0));
-p.drawEllipse(tcp, 8, 8);
-}
-
-/******************************************************************************
-* 绘制 TCP 坐标系（十字标）
-******************************************************************************/
-void c_CGXi_Sim_View::Draw_TCP(QPainter &p, const Eigen::Matrix4d &tcp_pose)
-{
-	QPointF tcp = World_To_View(tcp_pose(0, 3), tcp_pose(1, 3), tcp_pose(2, 3));
-
-	// X 轴（红，3D 轴向量等轴测投影）
-	Eigen::Vector3d x_axis = tcp_pose.block<3, 1>(0, 0);
-	QPointF x_end = World_To_View(tcp_pose(0, 3) + x_axis(0) * 50,
-		tcp_pose(1, 3) + x_axis(1) * 50, tcp_pose(2, 3) + x_axis(2) * 50);
-	p.setPen(QPen(QColor(255, 80, 80), 2));
-	p.drawLine(tcp, x_end);
-
-	// Y 轴（绿）
-	Eigen::Vector3d y_axis = tcp_pose.block<3, 1>(0, 1);
-	QPointF y_end = World_To_View(tcp_pose(0, 3) + y_axis(0) * 50,
-		tcp_pose(1, 3) + y_axis(1) * 50, tcp_pose(2, 3) + y_axis(2) * 50);
-	p.setPen(QPen(QColor(80, 255, 80), 2));
-	p.drawLine(tcp, y_end);
-
-	// Z 轴（蓝，2026-11-04 补：3D 完整姿态轴）
-	Eigen::Vector3d z_axis = tcp_pose.block<3, 1>(0, 2);
-	QPointF z_end = World_To_View(tcp_pose(0, 3) + z_axis(0) * 50,
-		tcp_pose(1, 3) + z_axis(1) * 50, tcp_pose(2, 3) + z_axis(2) * 50);
-	p.setPen(QPen(QColor(80, 80, 255), 2));
-	p.drawLine(tcp, z_end);
-
-// TCP 标签
-p.setPen(QColor(255, 255, 100));
-p.setFont(QFont("Consolas", 8, QFont::Bold));
-p.drawText(tcp + QPointF(12, -12), "TCP");
-}
-
-/******************************************************************************
-* 绘制奇异区警示（Base 上下方圆柱体，手册 2.1.1）
-******************************************************************************/
-void c_CGXi_Sim_View::Draw_Singularity_Zone(QPainter &p)
-{
-QPointF base = World_To_View(0, 0, 0);
-// 奇异区：Base 正上方/正下方 半径 100mm 圆柱（侧视投影为矩形）
-double r = 100.0 * m_Scale;
-
-p.setPen(Qt::NoPen);
-p.setBrush(QColor(255, 50, 50, 40));  // 半透明红
-// 上方
-p.drawRect(QRectF(base.x() - r, base.y() - 300, r * 2, 200));
-// 下方
-p.drawRect(QRectF(base.x() - r, base.y() + 100, r * 2, 200));
-
-// 标签
-p.setPen(QColor(255, 100, 100));
-p.setFont(QFont("Consolas", 8));
-p.drawText(QRectF(base.x() - r, base.y() - 320, r * 2, 20), Qt::AlignCenter, "奇异区");
-}
-
-/******************************************************************************
-* 绘制可变姿态空间（818mm 球体侧视投影，手册 2.1.2）
-******************************************************************************/
-void c_CGXi_Sim_View::Draw_Workspace(QPainter &p)
-{
-QPointF base = World_To_View(0, 0, 0);
-double r = 818.0 * m_Scale;  // 可变姿态空间半径
-
-p.setPen(QPen(QColor(100, 180, 255, 80), 1, Qt::DashLine));
-p.setBrush(Qt::NoBrush);
-p.drawEllipse(base, r, r);
-
-// 标签
-p.setPen(QColor(100, 180, 255, 150));
-p.setFont(QFont("Consolas", 8));
-p.drawText(QRectF(base.x() + r - 80, base.y() - r - 20, 80, 20), Qt::AlignRight, "R=818mm");
-}
-
-/******************************************************************************
-* 绘制关节角度标注
-******************************************************************************/
-void c_CGXi_Sim_View::Draw_Joint_Angles(QPainter &p, const std::vector<Eigen::Matrix4d> &poses)
-{
-p.setPen(QColor(200, 220, 255));
-p.setFont(QFont("Consolas", 8));
-
-for (int i = 0; i < 6; ++i) {
-QPointF jpos = World_To_View(poses[i](0, 3), poses[i](1, 3), poses[i](2, 3));
-QString txt = QString("%1°").arg(m_Current_Joints[i], 0, 'f', 1);
-p.drawText(jpos + QPointF(15, 5), txt);
-}
-}
-
-/******************************************************************************
-* 绘制 HUD（右上角关节角表格）
-******************************************************************************/
-void c_CGXi_Sim_View::Draw_HUD(QPainter &p, const double j_deg[6])
-{
-QRectF bg(width() - 160, 10, 150, 160);
-p.setPen(Qt::NoPen);
-p.setBrush(QColor(0, 0, 0, 160));
-p.drawRoundedRect(bg, 6, 6);
-
-p.setPen(QColor(200, 220, 255));
-p.setFont(QFont("Consolas", 9));
-
-int y = 28;
-p.drawText(bg.x() + 10, y, "G6 关节角 (°)");
-y += 18;
-
-for (int i = 0; i < 6; ++i) {
-QColor c = (i == 2 && qAbs(j_deg[i]) > 165) ? QColor(255, 80, 80) : QColor(200, 220, 255);
-p.setPen(c);
-p.drawText(bg.x() + 10, y, QString("J%1: %2").arg(i + 1).arg(j_deg[i], 6, 'f', 2));
-y += 18;
-}
-}
-
-/******************************************************************************
-* 世界坐标（3D mm）→ 视图坐标（2D 等轴测投影）
-* 2026-11-04 完善：原 X-Y 平面投影忽略 Z 高度（J2/J3 俯仰不可见）；
-* 改为等轴测投影——screenX=(x-y)*cos30°，screenY=(x+y)*sin30°-z，J1 旋转/J2/J3 俯仰/高度全可见
-******************************************************************************/
-QPointF c_CGXi_Sim_View::World_To_View(double x_mm, double y_mm, double z_mm) const
-{
-	static const double COS30 = 0.8660254037844386;
-	static const double SIN30 = 0.5;
-	return QPointF(m_View_Center.x() + (x_mm - y_mm) * COS30 * m_Scale,
-		m_View_Center.y() - ((x_mm + y_mm) * SIN30 - z_mm) * m_Scale);
+	// 2. 应用位姿（含零位补偿）
+	Update_Pose_Internal(poses);
 }
