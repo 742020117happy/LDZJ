@@ -15,7 +15,6 @@
 * 2026-11-04 L：终版（适配 Qt 5.12.1 + VTK 8.0 + VS2015 v140 + C++14）
 ******************************************************************************/
 #include <QWidget>
-#include <QLabel>
 #include <QVBoxLayout>
 #include <QElapsedTimer>
 #include <QCoreApplication>
@@ -27,11 +26,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkActor.h>
-#include <vtkPoints.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkCellArray.h>
-#include <vtkPolyData.h>
-#include <vtkMath.h>
 
 class c_CGXi_Sim_View : public QWidget
 {
@@ -63,30 +57,19 @@ private:
 
 	// 零位补偿（修正 STL 模型原点与关节旋转中心的偏差）
 	void Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &poses);
-	// 2026-11-04 增强：HUD 关节角/TCP 显示
-	void Update_HUD(const double j_deg[6], const Eigen::Matrix4d &tcp_pose);
 
 	// VTK 对象
 	QVTKWidget *m_VTK_Widget = nullptr;
 	vtkSmartPointer<vtkRenderer> m_Renderer;
 	std::vector<vtkSmartPointer<vtkActor>> m_Link_Actors;   // 7 个 actor: Base + Link1~6
-	// 2026-11-04 归一化管线保活：vtkTransformPolyDataFilter 必须存活至渲染（mapper 输入连接）
-	std::vector<vtkSmartPointer<vtkTransformPolyDataFilter>> m_Normalize_Filters;
-
-	// 2026-11-04 增强：HUD 叠加层 + TCP 轨迹
-	QLabel *m_HUD_Label = nullptr;
-	vtkSmartPointer<vtkPoints> m_Trail_Points;
-	vtkSmartPointer<vtkCellArray> m_Trail_Cells;
-	vtkSmartPointer<vtkPolyData> m_Trail_Poly;
-	vtkSmartPointer<vtkActor> m_Trail_Actor;
-	Eigen::Vector3d m_Last_TCP = Eigen::Vector3d::Zero();	// 轨迹去重：上次 TCP 位置
 
 															// DH 参数（G6 占位初值，需现场标定）
 	double m_a[6], m_d[6], m_alpha[6], m_off[6];
 	Eigen::Matrix4d m_Base_Install_Matrix;
 
-	// 2026-11-04 用户定稿：忽略任何偏差——STL 原点已按标准调整（关节旋转轴心），
-	// 变换直接使用 FK 绝对位姿；初始姿态以机械臂完全竖直为准（DH 偏置保证全零竖直）
+	// 零位补偿矩阵
+	Eigen::Matrix4d m_Zero_Poses[7];        // 零位时的 7 个 FK 位姿
+	Eigen::Matrix4d m_Compensate[7];        // 每个连杆的补偿矩阵（需现场校准）
 
 											// 渲染节流
 	QElapsedTimer m_Last_Render_Time;
