@@ -28,8 +28,10 @@
 #include <vtkRenderer.h>
 #include <vtkActor.h>
 #include <vtkPoints.h>
+#include <vtkTransformPolyDataFilter.h>
 #include <vtkCellArray.h>
 #include <vtkPolyData.h>
+#include <vtkMath.h>
 
 class c_CGXi_Sim_View : public QWidget
 {

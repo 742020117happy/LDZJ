@@ -303,8 +303,76 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 			continue;
 		}
 
+		// 2026-11-04 归一化：新 STL 为 SolidWorks 装配体全局坐标（原点在法兰 TCP 附近、
+		// 机械臂沿装配体 Z 竖直展开、基座在顶部=倒挂）——加载时程序化变换到
+		// "关节轴心=原点 + X 沿连杆 + Z=关节轴" 的 FK 约定局部坐标。
+		// PCA 主轴对齐：主1（连杆长）→X、主2（壳体宽=关节轴）→Z、主3→Y
+		vtkSmartPointer<vtkPolyData> normPoly = reader->GetOutput();
+
+		// ① 全局变换 M_global：绕 X 轴 180°（倒挂→正立）+ J1 轴心→原点
+		//    J1 轴心实测 = 基座顶面圆心 (119.7, 153.5, 1061.2)（装配体坐标）
+		//    Rx180·p = (x, -y, -z)；再平移 (-119.7, +153.5, +1061.2) 使 J1 轴心→(0,0,0)
+		Eigen::Matrix4d mGlobal = Eigen::Matrix4d::Identity();
+		mGlobal(0, 0) = 1.0; mGlobal(1, 1) = -1.0; mGlobal(2, 2) = -1.0;
+		mGlobal(0, 3) = -119.7; mGlobal(1, 3) = 153.5; mGlobal(2, 3) = 1061.2;
+
+		// ② PCA 中心+主轴对齐（i>=1 管形零件；基座 i=0 旋转对称仅平移）
+		Eigen::Matrix4d mPca = Eigen::Matrix4d::Identity();
+		{
+			double cx = 0, cy = 0, cz = 0;
+			vtkIdType np = normPoly->GetNumberOfPoints();
+			for (vtkIdType p = 0; p < np; ++p) {
+				double pt[3]; normPoly->GetPoint(p, pt);
+				cx += pt[0]; cy += pt[1]; cz += pt[2];
+			}
+			if (np > 0) { cx /= np; cy /= np; cz /= np; }
+			mPca(0, 3) = -cx; mPca(1, 3) = -cy; mPca(2, 3) = -cz;
+
+			if (i >= 1) {
+				double cov[3][3] = { {0,0,0},{0,0,0},{0,0,0} };
+				for (vtkIdType p = 0; p < np; ++p) {
+					double pt[3]; normPoly->GetPoint(p, pt);
+					double dx = pt[0] - cx, dy = pt[1] - cy, dz = pt[2] - cz;
+					cov[0][0] += dx*dx; cov[0][1] += dx*dy; cov[0][2] += dx*dz;
+					cov[1][0] += dy*dx; cov[1][1] += dy*dy; cov[1][2] += dy*dz;
+					cov[2][0] += dz*dx; cov[2][1] += dz*dy; cov[2][2] += dz*dz;
+				}
+				double *covPtr[3] = { cov[0], cov[1], cov[2] };
+				double eigVec[3][3] = { {0,0,0},{0,0,0},{0,0,0} };
+				double *eigPtr[3] = { eigVec[0], eigVec[1], eigVec[2] };
+				double eigVal[3] = { 0,0,0 };
+				vtkMath::Jacobi(covPtr, eigVal, eigPtr);
+
+				// 特征向量（列主）→ 新基：主1→X、主2→Z、主3→Y
+				// 世界点 = Rot·局部点 → Rot 列 = 特征向量
+				for (int r = 0; r < 3; ++r) {
+					mPca(r, 0) = eigVec[r][0];
+					mPca(r, 2) = eigVec[r][1];
+					mPca(r, 1) = eigVec[r][2];
+				}
+			}
+		}
+
+		// ③ 组合：p_norm = M_global · M_pca · p_raw
+		Eigen::Matrix4d mTotal = mGlobal * mPca;
+
+		vtkSmartPointer<vtkMatrix4x4> normMat = vtkSmartPointer<vtkMatrix4x4>::New();
+		for (int r = 0; r < 4; ++r) {
+			for (int c = 0; c < 4; ++c) {
+				normMat->SetElement(r, c, mTotal(c, r));  // Eigen 列主序→VTK 行主序转置
+			}
+		}
+		vtkSmartPointer<vtkTransform> tNorm = vtkSmartPointer<vtkTransform>::New();
+		tNorm->SetMatrix(normMat);
+
+		vtkSmartPointer<vtkTransformPolyDataFilter> tpd =
+			vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+		tpd->SetInputData(normPoly);
+		tpd->SetTransform(tNorm);
+		tpd->Update();
+
 		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(reader->GetOutputPort());
+		mapper->SetInputConnection(tpd->GetOutputPort());
 
 		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 		actor->SetMapper(mapper);
