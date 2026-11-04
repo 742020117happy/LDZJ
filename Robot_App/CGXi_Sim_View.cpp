@@ -151,27 +151,26 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 
 	static const double D2R = 3.14159265358979323846 / 180.0;
 
-	// 2026-11-05 SDK 权威关节链（cr_get_stdDhParmeter + cr_kineForward 数值提取）：
-	//   零位关节轴心（SDK 基座坐标）与轴方向：
-	//   J1(0,0,0)Z  J2(0,0,167.5)Y  J3(0,0,592.5)Y  J4(0,0,985.5)Y
-	//   J5(0,-120.3,985.5)Z  J6(0,-120.3,1091.5)Z  TCP(0,-222.9,1091.5)
-	//   验证：J2~TCP=924.9（手册最大工作半径 924 ✓）、J3~TCP=499.9 ✓
+	// 2026-11-05 装配体关节链 FK（模型自身几何轴心/轴向，与 STL 装配体坐标一致）：
+	//   p_stl 为装配体零位各下游关节轴心；轴向取"朝末端方向"使 q 正负与实机一致
+	//   （装配体 Z 大=基座侧→末端方向=-Z；J2/J3/J4 铰接轴=装配体 +Y；J5/J6=-Z）
+	//   链式递推：T_i = T_{i-1} · Translate(P_i-P_{i-1}) · Rot(axis_i, q_i)
 	static const double P[7][3] = {
-		{ 0.0,     0.0,     0.0     },
-		{ 0.0,     0.0,     167.5   },
-		{ 0.0,     0.0,     592.5   },
-		{ 0.0,     0.0,     985.5   },
-		{ 0.0,   -120.3,   985.5   },
-		{ 0.0,   -120.3,  1091.5   },
-		{ 0.0,   -222.9,  1091.5   }
+		{ 119.7, 153.5, 1061.2 },   // J1 基座顶面圆心
+		{ 119.7, 237.1, 1062.4 },   // J2 肩部顶端铰接
+		{ 119.7, 373.7,  564.7 },   // J3 大臂底端（大臂顶-58）
+		{ 119.7, 246.8,  181.95 },  // J4 小臂底端（+48.25）
+		{ 119.7, 343.35, 117.0 },   // J5 腕1 底端
+		{ 119.7, 350.5,   28.5 },   // J6 腕2 底端
+		{ 119.7, 427.6,   27.6 }    // TCP 法兰底面中心
 	};
 	static const double AX[6][3] = {
-		{ 0.0, 0.0, 1.0 },
-		{ 0.0, -1.0, 0.0 },
-		{ 0.0, -1.0, 0.0 },
-		{ 0.0, -1.0, 0.0 },
-		{ 0.0, 0.0, 1.0 },
-		{ 0.0, 0.0, 1.0 }
+		{ 0.0, 0.0, -1.0 },
+		{ 0.0, 1.0, 0.0 },
+		{ 0.0, 1.0, 0.0 },
+		{ 0.0, 1.0, 0.0 },
+		{ 0.0, 0.0, -1.0 },
+		{ 0.0, 0.0, -1.0 }
 	};
 
 	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
@@ -179,9 +178,10 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 	poses[0] = T;
 
 	for (int i = 0; i < 6; ++i) {
-		Eigen::Vector3d dP(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1], P[i + 1][2] - P[i][2]);
 		Eigen::Matrix4d tr = Eigen::Matrix4d::Identity();
-		tr.block<3, 1>(0, 3) = dP;
+		tr(0, 3) = P[i + 1][0] - P[i][0];
+		tr(1, 3) = P[i + 1][1] - P[i][1];
+		tr(2, 3) = P[i + 1][2] - P[i][2];
 		T = T * tr;
 
 		Eigen::Vector3d ax(AX[i][0], AX[i][1], AX[i][2]);
@@ -192,8 +192,7 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 		poses[i + 1] = T;
 	}
 	return poses;
-}
-/******************************************************************************
+}/******************************************************************************
 * 初始化 VTK 场景
 ******************************************************************************/
 void c_CGXi_Sim_View::Init_VTK_Scene()
@@ -275,54 +274,8 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 			continue;
 		}
 
-		// 2026-11-05 归一化（SDK 关节链对齐）：装配体全局坐标 STL → SDK 关节链零位坐标。
-		//   p_norm = Translate(P_chain[i]) · Rx(180°) · Translate(-P_stl[i]) · p_raw
-		//   P_stl[i] = 零件下游关节轴心（装配体坐标实测）；P_chain[i] = SDK 关节链零位位置
-		//   Rx(180°) 统一翻转（装配体倒挂→SDK 正立）。FK 用 SDK 权威关节链绝对直驱。
-		static const double P_stl[7][3] = {
-			{ 119.7, 153.5, 1061.2 },
-			{ 119.7, 237.1, 1062.4 },
-			{ 119.7, 373.7,  564.7 },
-			{ 119.7, 246.8,  181.95 },
-			{ 119.7, 343.35, 117.0 },
-			{ 119.7, 350.5,   28.5 },
-			{ 119.7, 427.6,   27.6 }
-		};
-		static const double P_chain[7][3] = {
-			{ 0.0,    0.0,     0.0 },
-			{ 0.0,    0.0,   167.5 },
-			{ 0.0,    0.0,   592.5 },
-			{ 0.0,    0.0,   985.5 },
-			{ 0.0, -120.3,   985.5 },
-			{ 0.0, -120.3,  1091.5 },
-			{ 0.0, -222.9,  1091.5 }
-		};
-		Eigen::Matrix4d mNorm = Eigen::Matrix4d::Identity();
-		mNorm(1, 1) = -1.0; mNorm(2, 2) = -1.0;
-		Eigen::Vector4d pt(P_stl[i][0], P_stl[i][1], P_stl[i][2], 1.0);
-		Eigen::Vector4d nt = mNorm * pt;
-		mNorm(0, 3) = P_chain[i][0] - nt(0);
-		mNorm(1, 3) = P_chain[i][1] - nt(1);
-		mNorm(2, 3) = P_chain[i][2] - nt(2);
-
-		vtkSmartPointer<vtkMatrix4x4> normMat = vtkSmartPointer<vtkMatrix4x4>::New();
-		for (int r = 0; r < 4; ++r) {
-			for (int cc = 0; cc < 4; ++cc) {
-				normMat->SetElement(r, cc, mNorm(cc, r));
-			}
-		}
-		vtkSmartPointer<vtkTransform> tNorm = vtkSmartPointer<vtkTransform>::New();
-		tNorm->SetMatrix(normMat);
-
-		vtkSmartPointer<vtkTransformPolyDataFilter> tpd =
-			vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-		tpd->SetInputData(reader->GetOutput());
-		tpd->SetTransform(tNorm);
-		tpd->Update();
-		m_Normalize_Filters.push_back(tpd);
-
 		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(tpd->GetOutputPort());
+		mapper->SetInputConnection(reader->GetOutputPort());
 
 		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 		actor->SetMapper(mapper);
@@ -378,7 +331,22 @@ void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &p
 		// 补偿矩阵修正"模型原点不在关节中心"的问题
 		// 2026-11-04 归一化后 FK 绝对直驱：模型已对齐到"轴心=原点+FK 约定朝向"，
 		// 直接应用 FK 绝对位姿（零位自动展开到 FK 零位关节位置），Compensate 留现场微调
-		Eigen::Matrix4d final_pose = poses[i] * m_Compensate[i];
+		// 2026-11-05 相对驱动（装配体顶点为全局坐标）：Final = ChainFK(q) · Translate(-P_stl) · Compensate
+		// 零位时 ChainFK(0)=Translate(P_stl) → Final=I → 模型显示装配体原样（正常加载）
+		Eigen::Matrix4d toOrigin = Eigen::Matrix4d::Identity();
+		static const double P_ORIGIN[7][3] = {
+			{ 119.7, 153.5, 1061.2 },
+			{ 119.7, 237.1, 1062.4 },
+			{ 119.7, 373.7,  564.7 },
+			{ 119.7, 246.8,  181.95 },
+			{ 119.7, 343.35, 117.0 },
+			{ 119.7, 350.5,   28.5 },
+			{ 119.7, 427.6,   27.6 }
+		};
+		toOrigin(0, 3) = -P_ORIGIN[i][0];
+		toOrigin(1, 3) = -P_ORIGIN[i][1];
+		toOrigin(2, 3) = -P_ORIGIN[i][2];
+		Eigen::Matrix4d final_pose = poses[i] * toOrigin * m_Compensate[i];
 
 		// Eigen → VTK（列主序 → 行主序，必须转置）
 		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
