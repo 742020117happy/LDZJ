@@ -204,8 +204,9 @@ if (cmd != QLatin1String("Read_Ready")) {
 	}
 	if (cmd == QLatin1String("Read_Ready")) {
 		// 2026-08-19 修复：协商版协议无 Value 字段，去除该门控，无条件响应状态
-		// 2026-11-04 用户定稿：Read_Ready 无 Checksum，响应不附加（清空 m_LastChecksum 防携带上条指令校验码）
-		m_LastChecksum.clear();
+		// 2026-11-04 用户定稿：Read_Ready 可携带 Checksum——携带则响应回显；不携带则响应不含
+		// （缺 Checksum 检查仅对 Read_Ready 豁免，携带与否均接受）
+		m_LastChecksum = checksum;
 		QJsonObject status = Build_System_Status();
 		Write_Json_With_Checksum(status);
 		return;
