@@ -1,0 +1,230 @@
+﻿<html><head><meta charset="utf-8"></head><body style="font-family:宋体,SimSun;font-size:12pt;">
+<h1>轮对质检机器人控制平台 V1.0 — WEB 端调用方法说明</h1>
+<p>&nbsp;</p>
+<p style="color:#444;"><i>版本：V1.0　日期：2026-11-04</i></p>
+<p style="color:#444;"><i>服务端：工控机 Robot_App（TCP Server 192.168.6.35:520，配置键 Local_IP/Server_Port）</i></p>
+<p style="color:#444;"><i>报文格式：JSON（UTF-8），粘包按花括号深度解析；除 Read_Ready 外所有指令需携带 Checksum（幂等去重）</i></p>
+<p>&nbsp;</p>
+<h2>一、通用约定</h2>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;• 指令 JSON：`{ "Cmd_Name": "指令名", "Value": true, "Checksum": "唯一校验码", ...业务字段 }`</p>
+<p>&nbsp;&nbsp;• Checksum：每次下发唯一（如时间戳字符串）；同一 Checksum 重复下发将被忽略（幂等去重，防止重复执行）</p>
+<p>&nbsp;&nbsp;• 响应 JSON：`{ "Cmd_Name": "...", "Status": "Success|Error", "Value": true|false, "Message": "..." }`</p>
+<p>&nbsp;&nbsp;• 查询频率：Read_Ready 建议 500ms 一次；查询类指令不产生服务端日志</p>
+<p>&nbsp;</p>
+<h2>二、指令清单</h2>
+<p>&nbsp;</p>
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;font-size:10.5pt;">
+<tr>
+<td>指令</td>
+<td>功能</td>
+<td>允许状态</td>
+<td>说明</td>
+</tr>
+<tr>
+<td>START_INSPECTION</td>
+<td>下发巡检任务</td>
+<td>空闲/就绪/完成/错误</td>
+<td>携带 tasks 数组（见 §三）</td>
+</tr>
+<tr>
+<td>Pause</td>
+<td>暂停任务</td>
+<td>采集中</td>
+<td>暂停机械臂+底盘任务</td>
+</tr>
+<tr>
+<td>Resume</td>
+<td>恢复任务</td>
+<td>暂停中</td>
+<td>恢复机械臂+底盘任务</td>
+</tr>
+<tr>
+<td>Cancel_Task</td>
+<td>取消任务</td>
+<td><b>任意状态</b></td>
+<td>立即停止退出：停机械臂+停底盘+门控复位（2026-11-04 定稿）</td>
+</tr>
+<tr>
+<td>Emergency_Stop</td>
+<td>软急停</td>
+<td>任意</td>
+<td>停机械臂（89=3）</td>
+</tr>
+<tr>
+<td>Return_Home</td>
+<td>回原点</td>
+<td>空闲/就绪/完成/错误</td>
+<td>机械臂回零位</td>
+</tr>
+<tr>
+<td>Read_Ready</td>
+<td>状态查询</td>
+<td>任意</td>
+<td>无需 Checksum；响应全中文 Key（见 §四）</td>
+</tr>
+</table>
+<p>&nbsp;</p>
+<h2>三、START_INSPECTION 指令格式</h2>
+<p>&nbsp;</p>
+<p>{</p>
+<p>    "Cmd_Name": "START_INSPECTION",</p>
+<p>    "Value": true,</p>
+<p>    "Checksum": "1792843238257",</p>
+<p>    "wheelsetCount": 2,</p>
+<p>    "tasks": [</p>
+<p>        {</p>
+<p>            "taskId": "202610261352ZQM3B22328109M3B22328CRH380B",</p>
+<p>            "carType": "CRH380B",</p>
+<p>            "wheelsetKind": "M3B",</p>
+<p>            "axleType": "22328",</p>
+<p>            "wheelsetNo": "109M3B22328",</p>
+<p>            "axleNo": "ZQM3B2232802",</p>
+<p>            "sendUnit": "SHDCD",</p>
+<p>            "startTime": "202610242000",</p>
+<p>            "repairLevel": "L3",</p>
+<p>            "wheelsetPosition": {</p>
+<p>                "posId": 1,</p>
+<p>                "mapPointName": "Lunduizhijian001",</p>
+<p>                "positions": ["P1", "P1.1", "P4.1", "P5", "P6"]</p>
+<p>            }</p>
+<p>        },</p>
+<p>        {</p>
+<p>            "taskId": "202610261352ZQM3B22079109M3B22079CRH380B",</p>
+<p>            "carType": "CRH380B",</p>
+<p>            "wheelsetKind": "M3B",</p>
+<p>            "axleType": "22079",</p>
+<p>            "wheelsetNo": "109M3B22079",</p>
+<p>            "axleNo": "ZQM3B2207901",</p>
+<p>            "sendUnit": "SHDCD",</p>
+<p>            "startTime": "202610242000",</p>
+<p>            "repairLevel": "L3",</p>
+<p>            "wheelsetPosition": {</p>
+<p>                "posId": 2,</p>
+<p>                "mapPointName": "Lunduizhijian001",</p>
+<p>                "positions": ["P1.1", "P2", "P3", "P4", "P4.1"]</p>
+<p>            }</p>
+<p>        }</p>
+<p>    ]</p>
+<p>}</p>
+<p>&nbsp;</p>
+<p><b>字段说明</b>：</p>
+<p>&nbsp;</p>
+<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;font-size:10.5pt;">
+<tr>
+<td>字段</td>
+<td>说明</td>
+<td>约束</td>
+</tr>
+<tr>
+<td>wheelsetCount</td>
+<td>工位数（1=单工位/2=双工位）</td>
+<td>1 或 2</td>
+</tr>
+<tr>
+<td>taskId</td>
+<td>任务唯一号（年月日时分+车型+车号）</td>
+<td>禁空格/&/-</td>
+</tr>
+<tr>
+<td>carType / wheelsetKind</td>
+<td>车型 / 轮对类型</td>
+<td>禁空格/&/-</td>
+</tr>
+<tr>
+<td>axleType / wheelsetNo / axleNo</td>
+<td>车轴型号 / 轮对号 / 轴号</td>
+<td>禁空格/&/-</td>
+</tr>
+<tr>
+<td>sendUnit</td>
+<td>送修单位</td>
+<td>禁空格/&/-</td>
+</tr>
+<tr>
+<td>startTime</td>
+<td>开始时间 yyyyMMddHHmm</td>
+<td>12 位纯数字</td>
+</tr>
+<tr>
+<td>repairLevel</td>
+<td>修程（L3 等）</td>
+<td>禁空格/&/-</td>
+</tr>
+<tr>
+<td>posId</td>
+<td>工位号</td>
+<td>1 或 2</td>
+</tr>
+<tr>
+<td>mapPointName</td>
+<td>巡检地图名</td>
+<td>与底盘地图名一致</td>
+</tr>
+<tr>
+<td>positions</td>
+<td>巡检点序列</td>
+<td>P0/P001/P1~P6 命名</td>
+</tr>
+</table>
+<p>&nbsp;</p>
+<h2>四、Read_Ready 状态查询响应（Key 全中文，2026-10-28 定稿）</h2>
+<p>&nbsp;</p>
+<p>{</p>
+<p>    "状态": "OK",</p>
+<p>    "时间": "20261104120000",</p>
+<p>    "任务": {</p>
+<p>        "任务编号": "...", "任务状态": 2, "当前任务序号": 0, "任务总数": 2,</p>
+<p>        "当前工位": 0, "采集图像数": 8, "车型": "CRH380B", "轮对类型": "M3B",</p>
+<p>        "轮对号": "...", "车轴号": "...", "送修单位": "SHDCD", "开始时间": "202610242000",</p>
+<p>        "修程": "L3", "工位号": "1", "地图点": "Lunduizhijian001",</p>
+<p>        "当前增益": 17, "当前轨迹": 2, "一级部件": "...", "二级部件": "...", "巡检点": "01",</p>
+<p>        "最近指令校验码": "..."</p>
+<p>    },</p>
+<p>    "底盘": { "连接": true, "定位": true, "电量": 80, "充电状态": 0, "充电中": false,</p>
+<p>              "急停": false, "防撞": 0, "工作模式": 1, "错误码": 0,</p>
+<p>              "位置": { "X": 1.2, "Y": 3.4, "角度": 45.0 } },</p>
+<p>    "机械臂": { "连接": true, "模式": 1, "程序状态": 0, "运行中": false, "错误码": 0,</p>
+<p>               "当前程序索引": 2, "速度比例": 50, "上电": true,</p>
+<p>               "TCP位姿": { "X": 0.0, "Y": 0.0, "Z": 0.0, "RX": 0.0, "RY": 0.0, "RZ": 0.0 } },</p>
+<p>    "相机": { "远程连接": true, "反馈连接": true, "转发连接": true, "监听": true, "相机心跳": true },</p>
+<p>    "IO模块": { "连接": true, "就绪": true },</p>
+<p>    "语音": { "连接": true, "在线": true, "播放中": 0, "播报次数": 5, "设备状态": 0 },</p>
+<p>    "服务": { "客户端连接": true, "监听": true, "客户端数": 1 },</p>
+<p>    "最近报警": ["报警码A05_CAMERA_FAULT PA021"]</p>
+<p>}</p>
+<p>&nbsp;</p>
+<p><b>任务状态（任务状态字段）</b>：0=空闲 1=就绪 2=采集中 3=暂停 4=完成 5=错误</p>
+<p>&nbsp;</p>
+<h2>五、调用示例（C#/Java/任意 TCP 客户端伪码）</h2>
+<p>&nbsp;</p>
+<p>// 1. 下发巡检任务</p>
+<p>send(json({</p>
+<p>    "Cmd_Name": "START_INSPECTION",</p>
+<p>    "Value": true,</p>
+<p>    "Checksum": "20261104120000task001",</p>
+<p>    "wheelsetCount": 1,</p>
+<p>    "tasks": [ { ...单工位任务字段... } ]</p>
+<p>}));</p>
+<p>&nbsp;</p>
+<p>// 2. 查询状态（500ms 轮询，无需 Checksum）</p>
+<p>send(json({ "Cmd_Name": "Read_Ready" }));</p>
+<p>&nbsp;</p>
+<p>// 3. 暂停 / 恢复 / 取消</p>
+<p>send(json({ "Cmd_Name": "Pause", "Value": true, "Checksum": "..." }));</p>
+<p>send(json({ "Cmd_Name": "Resume", "Value": true, "Checksum": "..." }));</p>
+<p>send(json({ "Cmd_Name": "Cancel_Task", "Value": true, "Checksum": "..." }));  // 任意状态可用，立即停止</p>
+<p>&nbsp;</p>
+<p>// 4. 软急停 / 回原点</p>
+<p>send(json({ "Cmd_Name": "Emergency_Stop", "Value": true, "Checksum": "..." }));</p>
+<p>send(json({ "Cmd_Name": "Return_Home", "Value": true, "Checksum": "..." }));</p>
+<p>&nbsp;</p>
+<h2>六、注意事项</h2>
+<p>&nbsp;</p>
+<p>1.&nbsp;除 Read_Ready 外所有指令必须带 Checksum；重复 Checksum 会被幂等忽略</p>
+<p>2.&nbsp;Cancel_Task 在任意状态（含采集中/暂停中）均有效——取消后机器人立即停止并退出任务（2026-11-04 定稿）</p>
+<p>3.&nbsp;状态查询响应 Key 为全中文（2026-10-28 定稿），旧英文 Key 已废除</p>
+<p>4.&nbsp;Read_Ready 以 500ms 频率查询不会产生服务端日志（日志抑制）</p>
+<p>5.&nbsp;TCP 断线后服务端自动清理客户端并监听新连接</p>
+<p>&nbsp;</p>
+</body></html>

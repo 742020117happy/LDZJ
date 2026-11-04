@@ -208,13 +208,13 @@ if (cmd != QLatin1String("Read_Ready")) {
 		void (c_Server_Remote::*signal)();
 	};
 	static const ControlMap table[] = {
-		// 2026-08-19 修复：Cancel_Task 按协议§2.5 允许 IDLE/READY/COMPLETED/ERROR（不允许采集中/暂停中取消）
-		{ "Cancel_Task", SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR, &c_Server_Remote::Cancel_Task_Cmd },
-		{ "Pause", SM_COLLECTING, &c_Server_Remote::Pause_Task_Cmd },
-		{ "Resume", SM_PAUSED, &c_Server_Remote::Resume_Task_Cmd },
-		{ "Emergency_Stop", SM_ANY, &c_Server_Remote::Emergency_Stop_Cmd },
-		{ "Return_Home", SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR, &c_Server_Remote::Return_Home_Cmd },
-	};
+	// 2026-11-04 用户定稿：Cancel_Task 允许任意状态取消（含采集中/暂停中）——取消任务立即停止退出并让机器人停止运行
+	{ "Cancel_Task", SM_ANY, &c_Server_Remote::Cancel_Task_Cmd },
+	{ "Pause", SM_COLLECTING, &c_Server_Remote::Pause_Task_Cmd },
+	{ "Resume", SM_PAUSED, &c_Server_Remote::Resume_Task_Cmd },
+	{ "Emergency_Stop", SM_ANY, &c_Server_Remote::Emergency_Stop_Cmd },
+	{ "Return_Home", SM_IDLE | SM_READY | SM_COMPLETED | SM_ERROR, &c_Server_Remote::Return_Home_Cmd },
+};
 	for (const auto &entry : table) {
 		if (cmd == entry.name) {
 			if (!Check_State(cmd, entry.allowedMask)) return;
