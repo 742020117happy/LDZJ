@@ -343,12 +343,19 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 				double eigVal[3] = { 0,0,0 };
 				vtkMath::Jacobi(covPtr, eigVal, eigPtr);
 
-				// 特征向量（列主）→ 新基：主1→X、主2→Z、主3→Y
-				// 世界点 = Rot·局部点 → Rot 列 = 特征向量
+				// 2026-11-04 按零件类型对齐（主轴方向核对，装配体零位几何）：
+				//   R6-01 肩部：主1=144.4=竖直 J1→J2 方向→FK Y（Y1=世界竖直）；主2=131.2=J2 轴→Z；主3→X
+				//   R6-02/03 大臂小臂：主1=541/489.5=连杆长→FK X；主2=壳体宽=关节轴→Z；主3→Y
+				//   R6-04/05/06 腕部法兰：主1=108.8/89.7/81.9=关节轴向（d4/d5/法兰轴）→FK Z；主2→X；主3→Y
+				int ax1 = 0, ax2 = 2, ax3 = 1;   // 默认大臂小臂：主1→X、主2→Z、主3→Y
+				if (i == 1) { ax1 = 1; ax2 = 2; ax3 = 0; }      // 肩部：主1→Y、主2→Z、主3→X
+				else if (i >= 4) { ax1 = 2; ax2 = 0; ax3 = 1; }  // 腕部/法兰：主1→Z、主2→X、主3→Y
+
+				// 特征向量（列主）→ 新基（世界点 = Rot·局部点 → Rot 列 = 特征向量）
 				for (int r = 0; r < 3; ++r) {
-					mPca(r, 0) = eigVec[r][0];
-					mPca(r, 2) = eigVec[r][1];
-					mPca(r, 1) = eigVec[r][2];
+					mPca(r, ax1) = eigVec[r][0];
+					mPca(r, ax2) = eigVec[r][1];
+					mPca(r, ax3) = eigVec[r][2];
 				}
 			}
 		}
