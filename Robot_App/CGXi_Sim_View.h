@@ -67,9 +67,8 @@ private:
 	double m_a[6], m_d[6], m_alpha[6], m_off[6];
 	Eigen::Matrix4d m_Base_Install_Matrix;
 
-	// 零位补偿矩阵
-	Eigen::Matrix4d m_Zero_Poses[7];        // 零位时的 7 个 FK 位姿
-	Eigen::Matrix4d m_Compensate[7];        // 每个连杆的补偿矩阵（需现场校准）
+	// 2026-11-04 用户定稿：忽略任何偏差——STL 原点已按标准调整（关节旋转轴心），
+	// 变换直接使用 FK 绝对位姿；初始姿态以机械臂完全竖直为准（DH 偏置保证全零竖直）
 
 											// 渲染节流
 	QElapsedTimer m_Last_Render_Time;

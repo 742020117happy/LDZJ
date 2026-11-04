@@ -92,14 +92,8 @@ void c_CGXi_Sim_View::Init_G6_DH()
 	// 默认正装（无安装补偿）
 	m_Base_Install_Matrix = Eigen::Matrix4d::Identity();
 
-	// ===== 计算零位时的 7 个 FK 位姿（用于补偿矩阵） =====
-	// 注意：不能使用 C99 复合字面量 (double[6]){0,0,0,0,0,0}，VS2015 不支持（C4576）
-	double zero_joints[6] = { 0, 0, 0, 0, 0, 0 };
-	std::vector<Eigen::Matrix4d> zero_poses = FK(zero_joints);
-	for (int i = 0; i < 7; ++i) {
-		m_Zero_Poses[i] = zero_poses[i];
-		m_Compensate[i] = Eigen::Matrix4d::Identity();  // 初始补偿为单位矩阵
-	}
+	// 2026-11-04 用户定稿：忽略任何偏差——补偿已移除；初始姿态以机械臂完全竖直为准
+	// （DH 偏置 off[1]=-90/off[3]=90 保证全零关节角时 FK 输出竖直）
 }
 
 /******************************************************************************
@@ -115,12 +109,7 @@ void c_CGXi_Sim_View::Set_Install_Compensate(double tilt_y_deg, double base_z_de
 	m_Base_Install_Matrix = Eigen::Matrix4d::Identity();
 	m_Base_Install_Matrix.block<3, 3>(0, 0) = R;
 
-	// 安装矩阵变化后需重新计算零位位姿
-	double zero_joints[6] = { 0, 0, 0, 0, 0, 0 };
-	std::vector<Eigen::Matrix4d> zero_poses = FK(zero_joints);
-	for (int i = 0; i < 7; ++i) {
-		m_Zero_Poses[i] = zero_poses[i];
-	}
+	// 2026-11-04 用户定稿：忽略偏差——安装矩阵变化无需重算零位
 }
 
 /******************************************************************************
@@ -338,7 +327,7 @@ void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &p
 		// 2026-11-04 优化：新 STL 原点已重建为关节旋转轴心（机械工程师按方案重导）——
 		// 变换简化为 Final = Current × Compensate（去掉原零位逆运算 Inverse(Zero)）；
 		// Compensate 配置保留用于现场微调（Sim_Compensate_{i}_{X/Y/Z}，缺省 0）
-		Eigen::Matrix4d final_pose = poses[i] * m_Compensate[i];
+		Eigen::Matrix4d final_pose = poses[i];	// 2026-11-04 用户定稿：忽略偏差，直接 FK 绝对位姿
 
 		// Eigen → VTK（列主序 → 行主序，必须转置）
 		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
