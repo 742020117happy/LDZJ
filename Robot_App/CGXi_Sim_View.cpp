@@ -149,27 +149,50 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 	for (int i = 0; i < 6; ++i) j[i] = j_deg[i];
 	Check_Limit(j);
 
+	static const double D2R = 3.14159265358979323846 / 180.0;
+
+	// 2026-11-05 SDK 权威关节链（cr_get_stdDhParmeter + cr_kineForward 数值提取）：
+	//   零位关节轴心（SDK 基座坐标）与轴方向：
+	//   J1(0,0,0)Z  J2(0,0,167.5)Y  J3(0,0,592.5)Y  J4(0,0,985.5)Y
+	//   J5(0,-120.3,985.5)Z  J6(0,-120.3,1091.5)Z  TCP(0,-222.9,1091.5)
+	//   验证：J2~TCP=924.9（手册最大工作半径 924 ✓）、J3~TCP=499.9 ✓
+	static const double P[7][3] = {
+		{ 0.0,     0.0,     0.0     },
+		{ 0.0,     0.0,     167.5   },
+		{ 0.0,     0.0,     592.5   },
+		{ 0.0,     0.0,     985.5   },
+		{ 0.0,   -120.3,   985.5   },
+		{ 0.0,   -120.3,  1091.5   },
+		{ 0.0,   -222.9,  1091.5   }
+	};
+	static const double AX[6][3] = {
+		{ 0.0, 0.0, 1.0 },
+		{ 0.0, -1.0, 0.0 },
+		{ 0.0, -1.0, 0.0 },
+		{ 0.0, -1.0, 0.0 },
+		{ 0.0, 0.0, 1.0 },
+		{ 0.0, 0.0, 1.0 }
+	};
+
 	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
 	Eigen::Matrix4d T = m_Base_Install_Matrix;
 	poses[0] = T;
 
-	static const double D2R = 3.14159265358979323846 / 180.0;
-
 	for (int i = 0; i < 6; ++i) {
-		double th = (j[i] + m_off[i]) * D2R;
-		double al = m_alpha[i] * D2R;
-		// 标准 DH 矩阵: Rz(th) * Tz(d) * Tx(a) * Rx(al)
-		Eigen::Matrix4d A;
-		A << std::cos(th), -std::sin(th)*std::cos(al), std::sin(th)*std::sin(al), m_a[i] * std::cos(th),
-			std::sin(th), std::cos(th)*std::cos(al), -std::cos(th)*std::sin(al), m_a[i] * std::sin(th),
-			0.0, std::sin(al), std::cos(al), m_d[i],
-			0.0, 0.0, 0.0, 1.0;
-		T = T * A;
+		Eigen::Vector3d dP(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1], P[i + 1][2] - P[i][2]);
+		Eigen::Matrix4d tr = Eigen::Matrix4d::Identity();
+		tr.block<3, 1>(0, 3) = dP;
+		T = T * tr;
+
+		Eigen::Vector3d ax(AX[i][0], AX[i][1], AX[i][2]);
+		Eigen::Matrix4d rot = Eigen::Matrix4d::Identity();
+		rot.block<3, 3>(0, 0) = Eigen::AngleAxisd(j[i] * D2R, ax).toRotationMatrix();
+		T = T * rot;
+
 		poses[i + 1] = T;
 	}
 	return poses;
 }
-
 /******************************************************************************
 * 初始化 VTK 场景
 ******************************************************************************/
@@ -252,37 +275,35 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 			continue;
 		}
 
-		// 2026-11-04 逐零件归一化（终版）：装配体全局坐标 STL → FK 局部坐标。
-		//   ① 平移：关节轴心→原点（实测：零件交界+DH 距离链交叉验证）
-		//   ② 旋转：R_align^T 把零件几何轴映射到 FK 约定轴（X=连杆、Z=关节轴）
-		// 零位显示=FK 零位姿态（正立机械臂），运动时 FK 绝对直驱绕各自轴心旋转。
-		double axis[7][3] = {
+		// 2026-11-05 归一化（SDK 关节链对齐）：装配体全局坐标 STL → SDK 关节链零位坐标。
+		//   p_norm = Translate(P_chain[i]) · Rx(180°) · Translate(-P_stl[i]) · p_raw
+		//   P_stl[i] = 零件下游关节轴心（装配体坐标实测）；P_chain[i] = SDK 关节链零位位置
+		//   Rx(180°) 统一翻转（装配体倒挂→SDK 正立）。FK 用 SDK 权威关节链绝对直驱。
+		static const double P_stl[7][3] = {
 			{ 119.7, 153.5, 1061.2 },
-			{ 119.7, 169.2, 995.0 },
-			{ 119.7, 169.2, 570.0 },
-			{ 119.7, 169.2, 177.0 },
-			{ 119.7, 302.2, 177.0 },
-			{ 119.7, 302.2, 77.0 },
-			{ 119.7, 384.2, 77.0 }
+			{ 119.7, 237.1, 1062.4 },
+			{ 119.7, 373.7,  564.7 },
+			{ 119.7, 246.8,  181.95 },
+			{ 119.7, 343.35, 117.0 },
+			{ 119.7, 350.5,   28.5 },
+			{ 119.7, 427.6,   27.6 }
 		};
-		double rAlign[7][3][3] = {
-			{ { 1,0,0 },{ 0,-1,0 },{ 0,0,-1 } },
-			{ { -1,0,0 },{ 0,0,1 },{ 0,1,0 } },
-			{ { 0,0,1 },{ 1,0,0 },{ 0,1,0 } },
-			{ { 0,0,1 },{ 1,0,0 },{ 0,1,0 } },
-			{ { 1,0,0 },{ 0,0,-1 },{ 0,1,0 } },
-			{ { -1,0,0 },{ 0,0,1 },{ 0,-1,0 } },
-			{ { 1,0,0 },{ 0,-1,0 },{ 0,0,-1 } }
+		static const double P_chain[7][3] = {
+			{ 0.0,    0.0,     0.0 },
+			{ 0.0,    0.0,   167.5 },
+			{ 0.0,    0.0,   592.5 },
+			{ 0.0,    0.0,   985.5 },
+			{ 0.0, -120.3,   985.5 },
+			{ 0.0, -120.3,  1091.5 },
+			{ 0.0, -222.9,  1091.5 }
 		};
 		Eigen::Matrix4d mNorm = Eigen::Matrix4d::Identity();
-		for (int r = 0; r < 3; ++r) {
-			for (int cc = 0; cc < 3; ++cc) {
-				mNorm(r, cc) = rAlign[i][cc][r];
-			}
-		}
-		Eigen::Vector4d axisH(axis[i][0], axis[i][1], axis[i][2], 1.0);
-		Eigen::Vector4d nt = mNorm * axisH;
-		mNorm(0, 3) = -nt(0); mNorm(1, 3) = -nt(1); mNorm(2, 3) = -nt(2);
+		mNorm(1, 1) = -1.0; mNorm(2, 2) = -1.0;
+		Eigen::Vector4d pt(P_stl[i][0], P_stl[i][1], P_stl[i][2], 1.0);
+		Eigen::Vector4d nt = mNorm * pt;
+		mNorm(0, 3) = P_chain[i][0] - nt(0);
+		mNorm(1, 3) = P_chain[i][1] - nt(1);
+		mNorm(2, 3) = P_chain[i][2] - nt(2);
 
 		vtkSmartPointer<vtkMatrix4x4> normMat = vtkSmartPointer<vtkMatrix4x4>::New();
 		for (int r = 0; r < 4; ++r) {
