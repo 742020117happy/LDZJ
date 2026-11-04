@@ -136,7 +136,7 @@ Draw_HUD(p, m_Current_Joints);
 ******************************************************************************/
 void c_CGXi_Sim_View::Draw_Base(QPainter &p)
 {
-QPointF base = World_To_View(0, 0);
+QPointF base = World_To_View(0, 0, 0);
 // 基座矩形（100mm × 80mm）
 p.setPen(QPen(QColor(100, 120, 150), 2));
 p.setBrush(QColor(60, 80, 110, 200));
@@ -168,17 +168,19 @@ QColor(100, 200, 255),  // J5 蓝
 QColor(200, 100, 255)   // J6 紫
 };
 
-// 绘制连杆（从基座到 J6）
-for (int i = 0; i < 6; ++i) {
-// 起点 = poses[i] 的平移向量（世界坐标 mm）
-double x1 = poses[i](0, 3);
-double y1 = poses[i](1, 3);
-// 终点 = poses[i+1] 的平移向量
-double x2 = poses[i + 1](0, 3);
-double y2 = poses[i + 1](1, 3);
+	// 绘制连杆（从基座到 J6，等轴测 3D 投影）
+	for (int i = 0; i < 6; ++i) {
+		// 起点 = poses[i] 的平移向量（世界坐标 mm）
+		double x1 = poses[i](0, 3);
+		double y1 = poses[i](1, 3);
+		double z1 = poses[i](2, 3);
+		// 终点 = poses[i+1] 的平移向量
+		double x2 = poses[i + 1](0, 3);
+		double y2 = poses[i + 1](1, 3);
+		double z2 = poses[i + 1](2, 3);
 
-QPointF p1 = World_To_View(x1, y1);
-QPointF p2 = World_To_View(x2, y2);
+		QPointF p1 = World_To_View(x1, y1, z1);
+		QPointF p2 = World_To_View(x2, y2, z2);
 
 // 连杆线段（粗线）
 p.setPen(QPen(colors[i], 8, Qt::SolidLine, Qt::RoundCap));
@@ -195,8 +197,8 @@ p.setFont(QFont("Consolas", 9, QFont::Bold));
 p.drawText(QRectF(p1.x() - 8, p1.y() - 8, 16, 16), Qt::AlignCenter, QString("J%1").arg(i + 1));
 }
 
-// TCP 点（J6 末端）
-QPointF tcp = World_To_View(poses[6](0, 3), poses[6](1, 3));
+	// TCP 点（J6 末端）
+	QPointF tcp = World_To_View(poses[6](0, 3), poses[6](1, 3), poses[6](2, 3));
 p.setPen(QPen(Qt::white, 2));
 p.setBrush(QColor(255, 255, 0));
 p.drawEllipse(tcp, 8, 8);
@@ -207,19 +209,28 @@ p.drawEllipse(tcp, 8, 8);
 ******************************************************************************/
 void c_CGXi_Sim_View::Draw_TCP(QPainter &p, const Eigen::Matrix4d &tcp_pose)
 {
-QPointF tcp = World_To_View(tcp_pose(0, 3), tcp_pose(1, 3));
+	QPointF tcp = World_To_View(tcp_pose(0, 3), tcp_pose(1, 3), tcp_pose(2, 3));
 
-// X 轴（红）
-Eigen::Vector3d x_axis = tcp_pose.block<3, 1>(0, 0);
-QPointF x_end = World_To_View(tcp_pose(0, 3) + x_axis(0) * 50, tcp_pose(1, 3) + x_axis(1) * 50);
-p.setPen(QPen(QColor(255, 80, 80), 2));
-p.drawLine(tcp, x_end);
+	// X 轴（红，3D 轴向量等轴测投影）
+	Eigen::Vector3d x_axis = tcp_pose.block<3, 1>(0, 0);
+	QPointF x_end = World_To_View(tcp_pose(0, 3) + x_axis(0) * 50,
+		tcp_pose(1, 3) + x_axis(1) * 50, tcp_pose(2, 3) + x_axis(2) * 50);
+	p.setPen(QPen(QColor(255, 80, 80), 2));
+	p.drawLine(tcp, x_end);
 
-// Y 轴（绿）
-Eigen::Vector3d y_axis = tcp_pose.block<3, 1>(0, 1);
-QPointF y_end = World_To_View(tcp_pose(0, 3) + y_axis(0) * 50, tcp_pose(1, 3) + y_axis(1) * 50);
-p.setPen(QPen(QColor(80, 255, 80), 2));
-p.drawLine(tcp, y_end);
+	// Y 轴（绿）
+	Eigen::Vector3d y_axis = tcp_pose.block<3, 1>(0, 1);
+	QPointF y_end = World_To_View(tcp_pose(0, 3) + y_axis(0) * 50,
+		tcp_pose(1, 3) + y_axis(1) * 50, tcp_pose(2, 3) + y_axis(2) * 50);
+	p.setPen(QPen(QColor(80, 255, 80), 2));
+	p.drawLine(tcp, y_end);
+
+	// Z 轴（蓝，2026-11-04 补：3D 完整姿态轴）
+	Eigen::Vector3d z_axis = tcp_pose.block<3, 1>(0, 2);
+	QPointF z_end = World_To_View(tcp_pose(0, 3) + z_axis(0) * 50,
+		tcp_pose(1, 3) + z_axis(1) * 50, tcp_pose(2, 3) + z_axis(2) * 50);
+	p.setPen(QPen(QColor(80, 80, 255), 2));
+	p.drawLine(tcp, z_end);
 
 // TCP 标签
 p.setPen(QColor(255, 255, 100));
@@ -232,7 +243,7 @@ p.drawText(tcp + QPointF(12, -12), "TCP");
 ******************************************************************************/
 void c_CGXi_Sim_View::Draw_Singularity_Zone(QPainter &p)
 {
-QPointF base = World_To_View(0, 0);
+QPointF base = World_To_View(0, 0, 0);
 // 奇异区：Base 正上方/正下方 半径 100mm 圆柱（侧视投影为矩形）
 double r = 100.0 * m_Scale;
 
@@ -254,7 +265,7 @@ p.drawText(QRectF(base.x() - r, base.y() - 320, r * 2, 20), Qt::AlignCenter, "�
 ******************************************************************************/
 void c_CGXi_Sim_View::Draw_Workspace(QPainter &p)
 {
-QPointF base = World_To_View(0, 0);
+QPointF base = World_To_View(0, 0, 0);
 double r = 818.0 * m_Scale;  // 可变姿态空间半径
 
 p.setPen(QPen(QColor(100, 180, 255, 80), 1, Qt::DashLine));
@@ -276,7 +287,7 @@ p.setPen(QColor(200, 220, 255));
 p.setFont(QFont("Consolas", 8));
 
 for (int i = 0; i < 6; ++i) {
-QPointF jpos = World_To_View(poses[i](0, 3), poses[i](1, 3));
+QPointF jpos = World_To_View(poses[i](0, 3), poses[i](1, 3), poses[i](2, 3));
 QString txt = QString("%1°").arg(m_Current_Joints[i], 0, 'f', 1);
 p.drawText(jpos + QPointF(15, 5), txt);
 }
@@ -308,10 +319,14 @@ y += 18;
 }
 
 /******************************************************************************
-* 世界坐标 → 视图坐标（Y 轴翻转）
+* 世界坐标（3D mm）→ 视图坐标（2D 等轴测投影）
+* 2026-11-04 完善：原 X-Y 平面投影忽略 Z 高度（J2/J3 俯仰不可见）；
+* 改为等轴测投影——screenX=(x-y)*cos30°，screenY=(x+y)*sin30°-z，J1 旋转/J2/J3 俯仰/高度全可见
 ******************************************************************************/
-QPointF c_CGXi_Sim_View::World_To_View(double x_mm, double y_mm) const
+QPointF c_CGXi_Sim_View::World_To_View(double x_mm, double y_mm, double z_mm) const
 {
-return QPointF(m_View_Center.x() + x_mm * m_Scale,
-m_View_Center.y() - y_mm * m_Scale);
+	static const double COS30 = 0.8660254037844386;
+	static const double SIN30 = 0.5;
+	return QPointF(m_View_Center.x() + (x_mm - y_mm) * COS30 * m_Scale,
+		m_View_Center.y() - ((x_mm + y_mm) * SIN30 - z_mm) * m_Scale);
 }

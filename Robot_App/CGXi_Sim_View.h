@@ -58,7 +58,7 @@ void Draw_HUD(QPainter &p, const double j_deg[6]);
 void Draw_Joint_Angles(QPainter &p, const std::vector<Eigen::Matrix4d> &poses);
 
 // ===== 坐标变换 =====
-QPointF World_To_View(double x_mm, double y_mm) const;
+QPointF World_To_View(double x_mm, double y_mm, double z_mm) const;	// 2026-11-04 等轴测 3D 投影
 
 // ===== DH 参数（G6 占位初值，需现场标定） =====
 double m_a[6], m_d[6], m_alpha[6], m_off[6];
