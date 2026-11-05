@@ -94,7 +94,8 @@ private:
 	double m_Joint_Limit_Low[6] = { 0, 0, 0, 0, 0, 0 };
 	double m_Joint_Limit_High[6] = { 0, 0, 0, 0, 0, 0 };
 
-	Eigen::Matrix4d m_Base_Install_Matrix;
+	// 2026-11-05 修复：声明即初始化 Identity（未初始化垃圾值致 FK 全链 NaN → 模型不显示）
+	Eigen::Matrix4d m_Base_Install_Matrix = Eigen::Matrix4d::Identity();
 
 	// 渲染节流
 	QElapsedTimer m_Last_Render_Time;
