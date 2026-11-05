@@ -1,7 +1,7 @@
 ﻿# AGENTS.md — 轮对质检机器人 Robot_App 重构工程 Agent 指南
 
 > 本文件是项目重构的权威约束。所有代码修改必须遵守本文件。
-> **仿真运动学定稿（2026-11-05 用户定稿）**：机械臂仿真 DH/运动学参数**以 URDF 文件为准**（R6.SLDASM/urdf/R6.SLDASM.urdf，SolidWorks URDF Exporter 导出，三处同步：运行目录/源码目录/资料目录）；CGXi_Sim_View 按 URDF 链 FK（origin/axis/limit 解析自 URDF），关节角偏移 m_Joint_Offset 默认 0。
+> **仿真运动学定稿（2026-11-05 用户定稿）**：机械臂仿真 DH/运动学参数**以 URDF 文件为准**（R6.SLDASM/urdf/R6.SLDASM.urdf，SolidWorks URDF Exporter 导出，三处同步：运行目录/源码目录/资料目录）；CGXi_Sim_View 按 URDF 链 FK（origin/axis/limit 解析自 URDF），关节角偏移 m_Joint_Offset 默认 0；**连杆几何数据（如大臂尺寸）以 URDF mesh 为准**（mesh 与 joint 参数为 SolidWorks 导出自洽体系，不另行重导）。
 > 2026-10-26 更新：第三十四阶段收官（SS 系列协议对齐回归与规范终审）。**累计 34 阶段全部完成，代码规范终态见知识库 §51/§53/§35.4。**
 > **指令字段铁律（2026-10-26 用户定稿）**：巡检任务指令字段值禁止 空格、&、- 分隔符（防污染图像采集指令/文件名/数据库/EMIS）；软件校验层已强制拒绝。
 > **三通道地址定稿（协议 2026-10-26）**：Remote 6.35:8000→6.34:8000（发采集指令）；Monitor 6.35:8001←6.34:8001（收反馈）；Tran 6.35:9000（TCP，机械臂脚本触发）。
