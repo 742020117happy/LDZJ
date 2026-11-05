@@ -84,10 +84,10 @@ bool c_CGXi_Sim_View::Parse_Urdf(const QString &path)
 		if (nm == "link") {
 			s_Urdf_Link link;
 			link.name = xml.attributes().value("name").toString();
-			// 读 mesh 文件名（visual/geometry/mesh）
-			while (!(xml.isEndElement() && xml.name() == "link")) {
+			// 读 mesh 文件名（visual 段首个非空为准；collision 同名不重复取）
+			while (!(xml.isEndElement() && xml.name() == "link") && !xml.atEnd()) {
 				xml.readNext();
-				if (xml.isStartElement() && xml.name() == "mesh") {
+				if (xml.isStartElement() && xml.name() == "mesh" && link.meshFile.isEmpty()) {
 					link.meshFile = xml.attributes().value("filename").toString();
 				}
 			}
@@ -96,7 +96,7 @@ bool c_CGXi_Sim_View::Parse_Urdf(const QString &path)
 		else if (nm == "joint") {
 			s_Urdf_Joint jt;
 			jt.name = xml.attributes().value("name").toString();
-			while (!(xml.isEndElement() && xml.name() == "joint")) {
+			while (!(xml.isEndElement() && xml.name() == "joint") && !xml.atEnd()) {
 				xml.readNext();
 				if (!xml.isStartElement()) continue;
 				if (xml.name() == "origin") {
@@ -128,6 +128,19 @@ bool c_CGXi_Sim_View::Parse_Urdf(const QString &path)
 			T.block<3, 1>(0, 3) = jt.xyz;
 			jt.origin = T;
 			m_Joints.append(jt);
+			// 2026-11-05 完善：限位随 joint 顺序暂存（弧度→度），URDF 为准
+			// （J3=±2.88rad=±165°、其余±6.283rad=±360°，与硬件篇表 A-1 一致）
+			static const double R2D = 180.0 / 3.14159265358979323846;
+			if (jt.lower != 0.0 || jt.upper != 0.0) {
+				int idx = m_Joints.size() - 1;
+				if (idx >= 0 && idx < 6) {
+					m_Joint_Limit_Low[idx] = jt.lower * R2D;
+					m_Joint_Limit_High[idx] = jt.upper * R2D;
+				}
+			}
+			else {
+				c_Log::Warn("ARM", "Sim", QString("urdf joint %1 limit undefined (0,0), fallback hardcoded").arg(jt.name));
+			}
 		}
 	}
 	bool ok = !xml.hasError();
@@ -270,16 +283,22 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 }
 
 /******************************************************************************
-* 关节限位校验（G6 硬件篇 表A-1；URDF limit 兜底）
+* 关节限位校验：URDF limit 为准（解析自导出器），未定义时硬编码兜底
+* 兜底：J1/J2/J4/J5/J6 ±360°，J3 ±165°（G6 硬件篇 表A-1）
 ******************************************************************************/
 bool c_CGXi_Sim_View::Check_Limit(double j_deg[6])
 {
 	bool ok = true;
 	for (int i = 0; i < 6; ++i) {
-		double lim = (i == 2) ? 165.0 : 360.0;  // J3 ±165°，其余 ±360°
-		if (j_deg[i] > lim || j_deg[i] < -lim) {
+		double low = m_Joint_Limit_Low[i], high = m_Joint_Limit_High[i];
+		if (low == 0.0 && high == 0.0) {
+			double lim = (i == 2) ? 165.0 : 360.0;
+			low = -lim;
+			high = lim;
+		}
+		if (j_deg[i] > high || j_deg[i] < low) {
 			ok = false;
-			j_deg[i] = qBound(-lim, j_deg[i], lim);
+			j_deg[i] = qBound(low, j_deg[i], high);
 		}
 	}
 	return ok;
