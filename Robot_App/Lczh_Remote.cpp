@@ -531,11 +531,10 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 				return;
 			}
 		}
-		// 2026-10-27 用户定稿：一级部件/二级部件=机械臂脚本额外定义的零部件名称与分类（非车型），
-		// 程序透传不做语义校验；仅同一轨迹内（FINISH 边界）part1 突变才告警（日志发现 CRRH380B 笔误）
+		// 2026-11-05 用户定稿：同一轨迹内一级部件字段变化是正常的（机械臂按巡检点切换零部件），
+		// 不再告警；仅记录变化日志供调试（m_LastPart1 以 FINISH 为轨迹边界复位）
 		if (!m_LastPart1.isEmpty() && photo[1] != m_LastPart1) {
-			c_Log::Warn("SCAN", "Field", QString("part1 changed %1→%2 in one track (check arm script)").arg(m_LastPart1, photo[1]));
-			emit Status(m_Camera_num + QString("CGXi消息：同一轨迹内一级部件字段变化（%1→%2），疑似机械臂脚本错误").arg(m_LastPart1, photo[1]));
+			c_Log::Info("SCAN", "Field", QString("part1 changed %1→%2 in one track (normal)").arg(m_LastPart1, photo[1]));
 		}
 		m_LastPart1 = photo[1];
 
