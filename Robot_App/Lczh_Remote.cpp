@@ -579,7 +579,7 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 	else if (msg == QLatin1String("PHOTO&FINISH!")) {
 		// 无需额外校验，直接转发；2026-10-27 现场：日志补全——机械臂 FINISH 脚本（轨迹最后一步）→ 采集结束指令
 		c_Log::Info("SCAN", "Cmd", "recv PHOTO&FINISH! from arm → send finish");
-		m_LastPart1.clear();	// 2026-10-27 轨迹边界复位一级部件检测（现场机械臂不发 START&!，以 FINISH 为边界）
+		m_LastPart1.clear();	// 2026-11-05 轨迹边界复位一级部件变化日志（现场机械臂不发 START&!，以 FINISH 为边界）
 		// 2026-10-28 用户定稿：轨迹结束停重发（异常场景：机械臂已结束但相机未回 COMPLETE，不再重发）
 		m_PhotoPending = false;
 		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->stop(); }
