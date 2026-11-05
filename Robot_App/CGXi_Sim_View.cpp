@@ -153,7 +153,8 @@ bool c_CGXi_Sim_View::Parse_Urdf(const QString &path)
 ******************************************************************************/
 void c_CGXi_Sim_View::Load_Robot_Models()
 {
-	QString baseDir = QCoreApplication::applicationDirPath() + "/R6.SLDASM/";
+	// 2026-11-05 路径：URDF 包在 exe 目录\Robot_App\R6.SLDASM（与旧 STL 模型目录约定一致）
+	QString baseDir = QCoreApplication::applicationDirPath() + "/Robot_App/R6.SLDASM/";
 	QString urdfPath = baseDir + "urdf/R6.SLDASM.urdf";
 	if (!Parse_Urdf(urdfPath)) {
 		c_Log::Error("ARM", "Sim", "urdf parse failed");
