@@ -930,7 +930,8 @@ void c_Robot_App_Widget::CGXi_Scan()
 		// 寄存器 220-231：joint_actual_position（float，单位°）
 		joints[i] = cgxi.data.joint_actual_position[i];
 	}
-	//ui->CGXi_Sim->Update_Pose(joints);
+	// 2026-11-05 用户定稿：机械臂仿真运动学参数以 URDF 文件为准——实机关节角直接驱动 URDF 链
+	ui->CGXi_Sim->Update_Pose(joints);
 
 	// 2026-10-24 重构 T18：CO 位上升沿直连 Work_Remote 完成信号（原经 UI 灯控件三层转发，脆弱且依赖 Fr_Light 边沿契约）
 	if (m_Work_Remote) {
