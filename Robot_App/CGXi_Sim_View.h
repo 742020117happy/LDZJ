@@ -1,31 +1,48 @@
 ﻿#pragma once
 /******************************************************************************
 * @file    CGXi_Sim_View.h
-* @brief   长广溪 G6 机械臂 3D 仿真视图（VTK 8.0 + STL 真实模型）
+* @brief   长广溪 G6 机械臂 3D 仿真视图（URDF 方案，2026-11-05 定稿）
 * @details 设计依据：
-*   1. VTK 8.0 QVTKWidget（项目已链接 vtkGUISupportQt-8.0.lib）
-*   2. 加载 7 个独立 STL 文件（R6-00 ~ R6-06，SolidWorks 导出）
-*   3. Eigen3 标准 DH 正解（UR 型 6R 构型，G6 手册图32）
-*   4. 每帧将 FK 位姿矩阵赋给对应 vtkActor 的 UserTransform
-*   5. 零位补偿矩阵：修正 STL 模型原点与关节旋转中心的偏差
-*   6. 渲染节流 30FPS，避免 10ms CGXi_Scan 拖垮 GUI
-*   7. 关节限位：J1/J2/J4/J5/J6 ±360°，J3 ±165°（硬件篇表A-1）
-*   8. 模型路径：exe 目录 /Robot_App/（与 stuqss.css 同级）
-*
-* 2026-11-04 L：终版（适配 Qt 5.12.1 + VTK 8.0 + VS2015 v140 + C++14）
+*   1. SolidWorks URDF Exporter 导出包 R6.SLDASM（urdf + meshes，三处同步）
+*   2. 加载 URDF 解析：link 列表 + joint 链（origin/axis/limit 精确来自导出器）
+*   3. FK：URDF 链 T_child = T_parent · Origin · Rot(axis, q+offset)
+*   4. 关节角偏移 m_Joint_Offset：URDF q=0 姿态（大臂水平）→ 实机零位（竖直）校准
+*   5. 限位：URDF limit（J3±165° 其余±360°，导出器已设）兜底 Check_Limit
+*   6. 每帧 FK 位姿赋 vtkActor UserTransform；30FPS 节流
+*   7. 路径：exe 目录 R6.SLDASM/urdf/R6.SLDASM.urdf + R6.SLDASM/meshes/*.STL
 ******************************************************************************/
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QElapsedTimer>
 #include <QCoreApplication>
+#include <QVector>
 #include <Eigen/Dense>
 #include <vector>
 
-// VTK 8.0 头文件（Qt 5.12.1 下只能用 QVTKWidget，不能用 QVTKOpenGLNativeWidget）
+// VTK 8.0 头文件（Qt 5.12.1 下只能用 QVTKWidget）
 #include <QVTKWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkActor.h>
+
+// URDF 解析后的单个关节数据
+struct s_Urdf_Joint
+{
+	QString name;
+	QString parent;
+	QString child;
+	Eigen::Vector3d xyz;
+	Eigen::Vector3d rpy;      // URDF 固定轴 X-Y-Z 欧拉角（弧度）
+	Eigen::Vector3d axis;
+	double lower, upper;      // 限位（弧度）
+	Eigen::Matrix4d origin;   // xyz+rpy 构造的 4x4
+};
+
+struct s_Urdf_Link
+{
+	QString name;
+	QString meshFile;         // 本地 mesh 路径（已替换 package://）
+};
 
 class c_CGXi_Sim_View : public QWidget
 {
@@ -49,29 +66,33 @@ public:
 private:
 	void Init_VTK_Scene();
 	void Load_Robot_Models();
+	bool Parse_Urdf(const QString &path);   // 解析 URDF → m_Links/m_Joints
+	bool Load_Meshes();                     // 加载各 link mesh → actor
 
-	// 运动学解算（G6 UR 构型标准 DH）
-	void Init_G6_DH();
+	// FK：URDF 链（返回 7 个位姿：base + 6 link，顺序与 m_Joint_Order 对应）
 	std::vector<Eigen::Matrix4d> FK(const double j_deg[6]);
 	bool Check_Limit(double j_deg[6]);
 
-	// 零位补偿（修正 STL 模型原点与关节旋转中心的偏差）
 	void Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &poses);
 
 	// VTK 对象
 	QVTKWidget *m_VTK_Widget = nullptr;
 	vtkSmartPointer<vtkRenderer> m_Renderer;
-	std::vector<vtkSmartPointer<vtkActor>> m_Link_Actors;   // 7 个 actor: Base + Link1~6
+	std::vector<vtkSmartPointer<vtkActor>> m_Link_Actors;   // 与 m_Link_Order 对应
 
-															// DH 参数（G6 占位初值，需现场标定）
-	double m_a[6], m_d[6], m_alpha[6], m_off[6];
+	// URDF 数据
+	QVector<s_Urdf_Link> m_Links;           // 全部 link（含 base）
+	QVector<s_Urdf_Joint> m_Joints;         // 全部 joint
+	QStringList m_Link_Order;               // FK 展开顺序：base_link, J1_Link..J6_Link
+	QStringList m_Joint_Order;              // 关节顺序：J1..J6
+	int m_Link_Index[7] = { 0,0,0,0,0,0,0 };// link_Order 在 m_Links 的下标
+
+	// 关节角偏移（URDF q=0 姿态 → 实机零位姿态校准，度；现场/SDK 标定）
+	double m_Joint_Offset[6] = { 0, 0, 0, 0, 0, 0 };
+
 	Eigen::Matrix4d m_Base_Install_Matrix;
 
-	// 零位补偿矩阵
-	Eigen::Matrix4d m_Zero_Poses[7];        // 零位时的 7 个 FK 位姿
-	Eigen::Matrix4d m_Compensate[7];        // 每个连杆的补偿矩阵（需现场校准）
-
-											// 渲染节流
+	// 渲染节流
 	QElapsedTimer m_Last_Render_Time;
 	static const int RENDER_INTERVAL_MS = 33;   // 30FPS
 };
