@@ -245,6 +245,14 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 	std::vector<Eigen::Matrix4d> zeroP = FK(zero);
 	Update_Pose_Internal(zeroP);
 
+	// 2026-11-05 诊断日志：FK 零位各 link 位姿（对比理论：J1(0,0,0.096) J2(0,-0.073,0.167)
+	// J3(0,-0.073,0.592) J4(0,-0.077,0.985) J5(0,-0.026,1.039) J6(0,0.028,1.090)）
+	for (int i = 0; i < 7 && i < (int)zeroP.size(); ++i) {
+		c_Log::Info("ARM", "Sim", QString("zeroP[%1] pos=(%2,%3,%4)")
+			.arg(i).arg(zeroP[i](0, 3), 0, 'f', 4)
+			.arg(zeroP[i](1, 3), 0, 'f', 4).arg(zeroP[i](2, 3), 0, 'f', 4));
+	}
+
 	m_Renderer->ResetCamera();
 	m_Renderer->GetActiveCamera()->Azimuth(45);
 	m_Renderer->GetActiveCamera()->Elevation(30);
