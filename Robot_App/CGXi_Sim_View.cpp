@@ -118,12 +118,14 @@ bool c_CGXi_Sim_View::Parse_Urdf(const QString &path)
 					jt.upper = xml.attributes().value("upper").toString().toDouble();
 				}
 			}
-			// origin 4x4：T_origin = Translate(xyz) · R(rpy 固定轴 X-Y-Z)
+			// origin 4x4：T_origin = Translate(xyz) · R(rpy)
+			// 2026-11-05 修正：URDF rpy=固定轴 X-Y-Z（ROS 约定）→ R=Rz(yaw)·Ry(pitch)·Rx(roll)
+			// （原误写 Rx·Ry·Rz，致 J2/J4 含多轴 rpy 的关节朝向错→各关节位置关联错误）
 			Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
 			Eigen::Matrix3d R =
-				(Eigen::AngleAxisd(jt.rpy[0], Eigen::Vector3d::UnitX()) *
+				(Eigen::AngleAxisd(jt.rpy[2], Eigen::Vector3d::UnitZ()) *
 					Eigen::AngleAxisd(jt.rpy[1], Eigen::Vector3d::UnitY()) *
-					Eigen::AngleAxisd(jt.rpy[2], Eigen::Vector3d::UnitZ())).toRotationMatrix();
+					Eigen::AngleAxisd(jt.rpy[0], Eigen::Vector3d::UnitX())).toRotationMatrix();
 			T.block<3, 3>(0, 0) = R;
 			T.block<3, 1>(0, 3) = jt.xyz;
 			jt.origin = T;
