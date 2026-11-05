@@ -508,8 +508,10 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.workState = 0;
 	}
-	c_Variable::getInstance().g_Work.Connected = false;
+	// 2026-11-05 现场修复：完成时间上报必须在 Connected 置 false 之前发出——
+	// 原顺序先断开再发，被 Emis 门控"未在巡检中"屏蔽，致 EMIS 完成时间缺失
 	emit actual_return_time();
+	c_Variable::getInstance().g_Work.Connected = false;
 	c_Log::Info("WORK", "Flow", QString("finish task_id=%1").arg(c_Variable::getInstance().g_Work_DB.taskId));
 	emit Status("巡检完成");
 }

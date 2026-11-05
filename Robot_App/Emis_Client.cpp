@@ -67,6 +67,13 @@ void c_Emis_Remote::actual_return_time() {
 }
 void c_Emis_Remote::Update_Info(QString timeType)
 {
+	// 2026-11-05 现场修复：入口重置重试计数后发送（重试经 Send_Report 不重置）
+	m_Retry_Count = 0;
+	Send_Report(timeType);
+}
+// 2026-11-05 现场修复：构建+发送（重试复用；锁内仅构建请求，发送经信号出线程）
+void c_Emis_Remote::Send_Report(const QString &timeType)
+{
 	// 2026-10-24 C2：init 前槽调用防护（互斥锁惰性创建）
 	if (!m_Mutex) m_Mutex = new QMutex;
 	// 加锁保护构建请求的过程
@@ -88,6 +95,8 @@ void c_Emis_Remote::Update_Info(QString timeType)
 		urlStr = c_Variable::getInstance().g_Communicate_DB.value("EMIS_Url").toString();
 	}
 
+	m_Last_TimeType = timeType;
+
 	// 2026-10-25 L：EMIS 上报请求（只打印时间点类型与任务ID）
 	c_Log::Info("EMIS", "Report", QString("send type=%1 task_id=%2").arg(timeType).arg(c_Variable::getInstance().g_Work_DB.taskId));
 
@@ -106,6 +115,15 @@ void c_Emis_Remote::On_Response_Done(QString api, QJsonObject body)
 void c_Emis_Remote::On_Response_Error(QString api, QString error_msg)
 {
 	Q_UNUSED(api);
+	// 2026-11-05 现场修复：超时/失败重试 2 次（间隔 2s）——HTTP 5s 超时一次失败
+	// 致 EMIS 时间点缺失（现场日志：精扫结束时间上报超时失败后无补发）
+	if (m_Retry_Count < 2 && !m_Last_TimeType.isEmpty()) {
+		m_Retry_Count++;
+		c_Log::Warn("EMIS", "Report", QString("failed retry %1/2 type=%2 err=%3").arg(m_Retry_Count).arg(m_Last_TimeType, error_msg));
+		emit Status(QString("EMIS 上报失败，2s 后重试（%1/2）").arg(m_Retry_Count));
+		QTimer::singleShot(2000, this, [this]() { Send_Report(m_Last_TimeType); });
+		return;
+	}
 	// 2026-10-25 L：上报失败（只记录错误原因）
 	c_Log::Error("EMIS", "Report", QString("failed err=%1").arg(error_msg));
 	emit Status("EMIS 上报失败: " + error_msg);

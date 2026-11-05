@@ -30,6 +30,11 @@ private slots:
 	void On_Response_Error(QString api, QString error_msg);
 
 private:
+	// 2026-11-05 现场修复：上报超时重试（HTTP 5s 超时一次失败致 EMIS 时间点缺失）
+	void Send_Report(const QString &timeType);   // 构建+发送（重试复用）
+	QString m_Last_TimeType;                     // 上次上报类型（重试用）
+	int m_Retry_Count = 0;                       // 已重试次数（≤2）
+
 	QMutex *m_Mutex = nullptr;	// 2026-10-24 C2：初始化防 init 前槽调用空指针
 	// 2026-10-28 ZZ2：组合 HTTP 通讯层对象（原业务层直连 QNetworkAccessManager 违反三层架构定稿）
 	c_HTTP_Client *m_HTTP_Client = nullptr;
