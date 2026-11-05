@@ -931,7 +931,7 @@ void c_Robot_App_Widget::CGXi_Scan()
 		joints[i] = cgxi.data.joint_actual_position[i];
 	}
 	// 2026-11-05 用户定稿：机械臂仿真运动学参数以 URDF 文件为准——实机关节角直接驱动 URDF 链
-	//ui->CGXi_Sim->Update_Pose(joints);
+	ui->CGXi_Sim->Update_Pose(joints);
 
 	// 2026-10-24 重构 T18：CO 位上升沿直连 Work_Remote 完成信号（原经 UI 灯控件三层转发，脆弱且依赖 Fr_Light 边沿契约）
 	if (m_Work_Remote) {
@@ -1446,17 +1446,17 @@ void c_Robot_App_Widget::Server_Init()
 		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_89", Qt::QueuedConnection);
 	});
 	QObject::connect(m_Server_Remote, &c_Server_Remote::Return_Home_Cmd, this, [this]() {
-		Write_Work_List("WEB->回原点");
-		// 2026-10-25 FF1：回原点语音播报（PA016 运行中 / PA018 条件未达到）
-		if (!c_Variable::getInstance().g_CGXi.Connected) {
-			QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA018", Qt::QueuedConnection);
-			Write_Work_List("WEB->回原点失败：机械臂未连接");
-			return;
-		}
+		// 2026-11-05 用户定稿：回原点=控制底盘回充电原点；机械臂回原点必须经示教器
+		// （软件无法判断机械臂回原点过程安全性，任意位置回原点有碰撞风险——不再下发机械臂回零位）
+		Write_Work_List("WEB->回原点（底盘回充电原点）");
 		QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA016", Qt::QueuedConnection);
-		// 2026-08-19 修复：寄存器89仅接受1/2/3，回零位应走点动寄存器800（26=回零位 27=回初始位）
-		c_Variable::getInstance().g_CGXi.Transfer.jog_type = 26;
-		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_800", Qt::QueuedConnection);
+		QString curMap;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
+		}
+		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Recharge", Qt::QueuedConnection,
+			Q_ARG(QString, curMap), Q_ARG(QString, c_Variable::getInstance().g_Magic.WriteData.chargePointName));
 	});
 	QObject::connect(m_Server_Remote, &c_Server_Remote::Start_Cmd, this, [=](QJsonObject cmd) {
 		QJsonArray arr = cmd.value("tasks").toArray();
@@ -2225,16 +2225,17 @@ void c_Robot_App_Widget::Work_Button()
 		Write_Work_List("本地->停止");
 	});
 	QObject::connect(ui->Work_Btn_Home, &QPushButton::clicked, this, [this]() {
-		// 2026-10-25 FF1：回原点语音播报（PA016 运行中 / PA018 条件未达到）
-		if (!c_Variable::getInstance().g_CGXi.Connected) {
-			QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA018", Qt::QueuedConnection);
-			Write_Work_List("本地->回原点失败：机械臂未连接");
-			return;
-		}
+		// 2026-11-05 用户定稿：回原点=控制底盘回充电原点；机械臂回原点必须经示教器
+		// （软件无法判断机械臂回原点过程安全性，任意位置回原点有碰撞风险——不再下发机械臂回零位）
 		QMetaObject::invokeMethod(m_Voice_Remote, "Play_PA016", Qt::QueuedConnection);
-		c_Variable::getInstance().g_CGXi.Transfer.jog_type = 26;	// 手册 26=回零位
-		QMetaObject::invokeMethod(m_CGXi_Remote, "Set_HoldingRegisters_800", Qt::QueuedConnection);
-		Write_Work_List("本地->回原点");
+		QString curMap;
+		{
+			QReadLocker locker(&c_Variable::g_lock);
+			curMap = c_Variable::getInstance().g_Magic.ReadData.currentMap;
+		}
+		QMetaObject::invokeMethod(m_Magic_Remote, "Start_Recharge", Qt::QueuedConnection,
+			Q_ARG(QString, curMap), Q_ARG(QString, c_Variable::getInstance().g_Magic.WriteData.chargePointName));
+		Write_Work_List("本地->回原点（底盘回充电原点）");
 	});
 
 	QObject::connect(ui->Work_Btn_Start, &QPushButton::clicked, this, &c_Robot_App_Widget::Show_Axis_Position_Dialog);
