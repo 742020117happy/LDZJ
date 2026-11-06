@@ -348,7 +348,9 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 		}
 		if (!jt) continue;
 
-		double q = j_deg[i] + m_Joint_Offset[i];
+		// 2026-11-06 修复：q 转弧度（AngleAxisd 接收弧度；此前度直接传入致姿态错乱——
+		// 静态零位 q=0 不暴露，实机角度非零后 Sim TCP 与实机严重不符）
+		double q = (j_deg[i] + m_Joint_Offset[i]) * D2R;
 		double low = jt->lower, high = jt->upper;
 		if (low == 0.0 && high == 0.0) {
 			double lim = (i == 2 ? 165.0 : 360.0) * D2R;
