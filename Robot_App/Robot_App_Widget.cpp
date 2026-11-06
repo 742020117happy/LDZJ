@@ -2095,7 +2095,6 @@ void c_Robot_App_Widget::Work_Scan()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Work_Button()
 {
-
 	QObject::connect(ui->actualStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actual_start_time);
 	QObject::connect(ui->precisScanStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precis_scan_start_time);
 	QObject::connect(ui->precisScanEndTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precis_scan_end_time);
