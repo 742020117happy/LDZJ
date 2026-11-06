@@ -25,6 +25,7 @@ VTK_MODULE_INIT(vtkRenderingFreeType);
 #include <vtkMatrix4x4.h>
 
 #include <QDir>
+#include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
 #include <QXmlStreamReader>
@@ -374,6 +375,41 @@ void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 
 	std::vector<Eigen::Matrix4d> poses = FK(joints_deg);
 	Update_Pose_Internal(poses);
+
+	// 2026-11-06 段2：HUD 更新（关节名+角度+TCP，参考 ROS2 发布格式）
+	if (m_HUD_Label) {
+		QString txt = QString("G6 关节角 (°)\n")
+			+ QString("G6_joint1: %1\n").arg(joints_deg[0], 7, 'f', 2)
+			+ QString("G6_joint2: %1\n").arg(joints_deg[1], 7, 'f', 2)
+			+ QString("G6_joint3: %1\n").arg(joints_deg[2], 7, 'f', 2)
+			+ QString("G6_joint4: %1\n").arg(joints_deg[3], 7, 'f', 2)
+			+ QString("G6_joint5: %1\n").arg(joints_deg[4], 7, 'f', 2)
+			+ QString("G6_joint6: %1\n").arg(joints_deg[5], 7, 'f', 2)
+			+ QString("TCP: %1, %2, %3 m")
+				.arg(poses[6](0, 3), 0, 'f', 3).arg(poses[6](1, 3), 0, 'f', 3).arg(poses[6](2, 3), 0, 'f', 3);
+		m_HUD_Label->setText(txt);
+		m_HUD_Label->adjustSize();
+	}
+
+	// 2026-11-06 段3：角速度超限检测（J1-J3≤3.6652 rad/s、J4-J6≤6.2832，参考 joint_limits.yaml）
+	{
+		qint64 now = QDateTime::currentMSecsSinceEpoch();
+		if (m_Last_Joint_Time > 0) {
+			double dt = (now - m_Last_Joint_Time) / 1000.0;
+			if (dt > 0.01 && dt < 1.0) {
+				for (int i = 0; i < 6; ++i) {
+					double v = std::fabs(joints_deg[i] - m_Last_Joints[i]) * 3.14159265358979323846 / 180.0 / dt;
+					double limit = (i < 3) ? 3.6652 : 6.2832;
+					if (v > limit) {
+						c_Log::Warn("ARM", "Sim", QString("joint%d velocity %.2f rad/s exceeds limit %.2f")
+							.arg(i + 1).arg(v).arg(limit));
+					}
+				}
+			}
+		}
+		for (int i = 0; i < 6; ++i) m_Last_Joints[i] = joints_deg[i];
+		m_Last_Joint_Time = now;
+	}
 }
 
 /******************************************************************************

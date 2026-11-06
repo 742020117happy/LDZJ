@@ -12,6 +12,7 @@
 *   7. 路径：exe 目录 R6.SLDASM/urdf/R6.SLDASM.urdf + R6.SLDASM/meshes/*.STL
 ******************************************************************************/
 #include <QWidget>
+#include <QLabel>
 #include <QVBoxLayout>
 #include <QElapsedTimer>
 #include <QCoreApplication>
@@ -102,6 +103,13 @@ private:
 	// 2026-11-05 修复：声明即初始化 Identity（未初始化垃圾值致 FK 全链 NaN → 模型不显示）
 	Eigen::Matrix4d m_Base_Install_Matrix = Eigen::Matrix4d::Identity();
 
+
+	// 2026-11-06 HUD：关节名+角度+TCP 位姿显示（参考 ROS2 joint_state_publisher name/position 格式）
+	QLabel *m_HUD_Label = nullptr;
+
+	// 2026-11-06 角速度超限检测（参考 ROS2 joint_limits：J1-J3≤3.6652、J4-J6≤6.2832 rad/s）
+	double m_Last_Joints[6] = { 0, 0, 0, 0, 0, 0 };
+	qint64 m_Last_Joint_Time = 0;
 
 	// 渲染节流
 	QElapsedTimer m_Last_Render_Time;
