@@ -12,6 +12,7 @@
 *   7. 路径：exe 目录 R6.SLDASM/urdf/R6.SLDASM.urdf + R6.SLDASM/meshes/*.STL
 ******************************************************************************/
 #include <QWidget>
+#include <QLabel>
 
 #include <QVBoxLayout>
 #include <QElapsedTimer>
@@ -106,8 +107,8 @@ private:
 	Eigen::Matrix4d m_Base_Install_Matrix = Eigen::Matrix4d::Identity();
 
 
-	// 2026-11-06 HUD：关节名+角度+TCP 位姿显示（vtkTextActor 2D——QLabel 被 QGLWidget 覆盖不可见）
-	vtkSmartPointer<vtkTextActor> m_Text_Actor;
+	// 2026-11-06 HUD：关节名+角度+TCP 位姿显示（独立布局行 QLabel——叠加被 GL 覆盖不可见）
+	QLabel *m_HUD_Label = nullptr;
 
 	// 2026-11-06 角速度超限检测（参考 ROS2 joint_limits：J1-J3≤3.6652、J4-J6≤6.2832 rad/s）
 	double m_Last_Joints[6] = { 0, 0, 0, 0, 0, 0 };

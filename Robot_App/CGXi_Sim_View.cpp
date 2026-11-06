@@ -301,13 +301,10 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 
 	Update_Pose_Internal(urdfZero);   // 静态显示 URDF 零位链
 	// 2026-11-06 HUD 初始文本（静态加载也显示——Update_Pose 被屏蔽时 HUD 不空）
-	if (m_Text_Actor) {
-		m_Text_Actor->GetTextProperty()->SetFontSize(13);
-		m_Text_Actor->GetTextProperty()->SetColor(0.85, 0.9, 1.0);
-		QString initTxt = QString("G6 URDF Loaded\n")
-			+ QString("Zero: TCP = %1, %2, %3 m")
-				.arg(urdfZero[6](0, 3), 0, 'f', 3).arg(urdfZero[6](1, 3), 0, 'f', 3).arg(urdfZero[6](2, 3), 0, 'f', 3);
-		m_Text_Actor->SetInput(initTxt.toStdString().c_str());
+	if (m_HUD_Label) {
+		QString initTxt = QString("G6 URDF Loaded\nZero: TCP = %1, %2, %3 m")
+			.arg(urdfZero[6](0, 3), 0, 'f', 3).arg(urdfZero[6](1, 3), 0, 'f', 3).arg(urdfZero[6](2, 3), 0, 'f', 3);
+		m_HUD_Label->setText(initTxt);
 	}
 	// 2026-11-06 诊断日志：URDF 零位链位姿
 	for (int i = 0; i < 7 && i < (int)urdfZero.size(); ++i) {
@@ -397,7 +394,7 @@ void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 
 	// 2026-11-06 段2：HUD 更新（关节名+角度+TCP，参考 ROS2 发布格式）
 	// 2026-11-06 优化：增加实机 TCP（寄存器 500-511，单位 mm）对比——姿态差异一眼定位
-	if (m_Text_Actor) {
+	if (m_HUD_Label) {
 		double tcpR[3] = { 0, 0, 0 };
 		{
 			QReadLocker locker(&c_Variable::g_lock);
@@ -405,15 +402,14 @@ void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 			tcpR[1] = c_Variable::getInstance().g_CGXi.data.tcp_actual_position[1];
 			tcpR[2] = c_Variable::getInstance().g_CGXi.data.tcp_actual_position[2];
 		}
-		QString txt = QString("G6 Joint (deg)\n")
-			+ QString("J1: %1  J2: %2\n").arg(joints_deg[0], 7, 'f', 2).arg(joints_deg[1], 7, 'f', 2)
-			+ QString("J3: %1  J4: %2\n").arg(joints_deg[2], 7, 'f', 2).arg(joints_deg[3], 7, 'f', 2)
-			+ QString("J5: %1  J6: %2\n").arg(joints_deg[4], 7, 'f', 2).arg(joints_deg[5], 7, 'f', 2)
+		QString txt = QString("J1:%1 J2:%2 J3:%3 J4:%4 J5:%5 J6:%6 (deg)\n")
+			.arg(joints_deg[0], 7, 'f', 2).arg(joints_deg[1], 7, 'f', 2).arg(joints_deg[2], 7, 'f', 2)
+			.arg(joints_deg[3], 7, 'f', 2).arg(joints_deg[4], 7, 'f', 2).arg(joints_deg[5], 7, 'f', 2)
 			+ QString("Sim TCP: %1, %2, %3 m\n")
 				.arg(poses[6](0, 3), 0, 'f', 3).arg(poses[6](1, 3), 0, 'f', 3).arg(poses[6](2, 3), 0, 'f', 3)
 			+ QString("Real TCP: %1, %2, %3 mm")
 				.arg(tcpR[0], 0, 'f', 1).arg(tcpR[1], 0, 'f', 1).arg(tcpR[2], 0, 'f', 1);
-		m_Text_Actor->SetInput(txt.toStdString().c_str());
+		m_HUD_Label->setText(txt);
 	}
 
 	// 2026-11-06 段3：角速度超限检测（J1-J3≤3.6652 rad/s、J4-J6≤6.2832，参考 joint_limits.yaml）
