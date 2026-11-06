@@ -635,13 +635,20 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 		// 2026-10-25 L：采集完成（只记录，不改变转发/计数逻辑）
 		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
-		{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.totalImages += 4;
+		// 2026-11-06 用户定稿：只有轮对质检过程中采集的图才上传 MySql——
+		// 非巡检时收到 COMPLETE 不触发上传（不计数、不发 Photo_Completed）
+		if (c_Variable::getInstance().g_Work.Connected) {
+			{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁
+				QWriteLocker locker(&c_Variable::g_lock);
+				c_Variable::getInstance().g_Work_DB.totalImages += 4;
+			}
+			// 2026-11-06 详细日志：采集完成（经 Status 桥接写入左精扫消息.log）
+			emit Status(m_Camera_num + QString("采集完成：name=%1（转发 COMPLETE，MySql 入队）").arg(m_LastPhotoName));
+			emit Photo_Completed(m_LastPhotoName);	// 2026-08-19 修复：精确匹配分支补齐 MySQL 入库回调
 		}
-		// 2026-11-06 详细日志：采集完成（经 Status 桥接写入左精扫消息.log）
-		emit Status(m_Camera_num + QString("采集完成：name=%1（转发 COMPLETE，MySql 入队）").arg(m_LastPhotoName));
-		emit Photo_Completed(m_LastPhotoName);	// 2026-08-19 修复：精确匹配分支补齐 MySQL 入库回调
+		else {
+			c_Log::Info("SCAN", "Feedback", QString("COMPLETE name=%1 but not inspecting (skip MySql upload)").arg(m_LastPhotoName));
+		}
 	}
 	else if (msg.startsWith(QLatin1String("PHOTO&COMPLETE"))) {
 		// 带有额外后缀的 COMPLETE（如含文件名），仍视为成功
@@ -655,11 +662,19 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->stop(); }
 		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE* name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
-		{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁
-			QWriteLocker locker(&c_Variable::g_lock);
-			c_Variable::getInstance().g_Work_DB.totalImages += 4;
+		// 2026-11-06 用户定稿：非巡检时 COMPLETE 不触发上传（不计数、不发 Photo_Completed）
+		if (c_Variable::getInstance().g_Work.Connected) {
+			{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁
+				QWriteLocker locker(&c_Variable::g_lock);
+				c_Variable::getInstance().g_Work_DB.totalImages += 4;
+			}
+			// 2026-11-06 详细日志：采集完成（带后缀变体）
+			emit Status(m_Camera_num + QString("采集完成：name=%1（带后缀 COMPLETE，MySql 入队）").arg(m_LastPhotoName));
+			emit Photo_Completed(m_LastPhotoName);
 		}
-		emit Photo_Completed(m_LastPhotoName);
+		else {
+			c_Log::Info("SCAN", "Feedback", QString("COMPLETE* name=%1 but not inspecting (skip MySql upload)").arg(m_LastPhotoName));
+		}
 	}
 	else if (msg == QLatin1String("PHOTO&ERROR")) {
 		// 2026-10-25 L：采集失败 ERROR（只记录；2026-11-06 定稿：不触发 MySql 缓存）
