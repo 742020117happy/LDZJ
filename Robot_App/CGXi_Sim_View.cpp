@@ -180,7 +180,17 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 	c_Log::Info("ARM", "Sim", QString("urdf parsed links=%1 joints=%2").arg(m_Links.size()).arg(m_Joints.size()));
 
 	// 从关节链构建顺序：从 base_link 出发按 parent→child 拓扑排序
-	QString root = "base_link";
+	// 2026-11-06 根 link 自动识别（无 parent 的 link——官方 G6_base；兜底第一个 link）
+	QString root;
+	for (const s_Urdf_Link &l : m_Links) {
+		bool isChild = false;
+		for (const s_Urdf_Joint &jt : m_Joints) {
+			if (jt.child == l.name) { isChild = true; break; }
+		}
+		if (!isChild) { root = l.name; break; }
+	}
+	if (root.isEmpty() && !m_Links.isEmpty()) root = m_Links.first().name;
+	c_Log::Info("ARM", "Sim", QString("urdf root link=%1").arg(root));
 	QStringList order;
 	order << root;
 	bool added = true;
