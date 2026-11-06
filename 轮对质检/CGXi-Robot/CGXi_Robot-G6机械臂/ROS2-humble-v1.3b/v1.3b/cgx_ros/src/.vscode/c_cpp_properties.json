@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/cgx/cgx_ros/install/cgx_driver/include/**",
+        "/home/cgx/Desktop/dev_ws/install/learning_interface/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/cgx/cgx_ros/src/cgx_driver/include/**",
+        "/home/cgx/cgx_ros/src/my_robot_description/include/**",
+        "/home/cgx/cgx_ros/src/robot_arm_control/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

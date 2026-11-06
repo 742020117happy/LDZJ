@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="multipleshapes">
+    <xacro:arg name="initial_positions_file" default="$(find my_robot_description)/config/initial_positions.yaml" />
+
+    <xacro:include filename="$(find my_robot_description)/urdf/G6_urdf.xacro" />
+
+    <xacro:include filename="$(find my_robot_description)/urdf/G6_ros2_control.xacro" />
+
+    <xacro:G6_ros2_control name="G6_ros2_control" initial_positions_file="$(arg initial_positions_file)"/>
+
+</robot>

@@ -1,0 +1,12 @@
+# CgxDriverService.srv
+float32[] pose
+float32[] jointpos
+float32[] speed
+float32[] acc
+string coordinate_type
+string point_trans_type
+float32 point_trans_radius
+int16 is_block
+---
+int16 ret
+string message

@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<robot name="multipleshapes"
+    xmlns:xacro="http://wiki.ros.org/xacro">
+    <dh_type type="modified"/>
+    <safety_para singularity_consistent="0.02 0.01 10 0.2 0.045 10"/>
+    <friction_coeff value="0.65"/>
+    <link name="G6_base">
+        <inertial>
+            <origin xyz="0.000136 0.001601 0.018986" rpy="0 0 0" />
+            <mass value="2.592" />
+            <inertia ixx="0.008524" ixy="-0.000001" ixz="-0.000005" iyy="0.007934" iyz="-0.000081" izz="0.015304" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/visual/base.dae" />
+            </geometry>
+            <material name="">
+                <color rgba="1 1 1 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/collision/base.stl" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <link name="G6_link1">
+        <inertial>
+            <origin xyz="-0.000004 0.005112 -0.026275" rpy="0 0 0" />
+            <mass value="10.180139" />
+            <inertia ixx="0.043326" ixy="0.000003" ixz="0.000003" iyy="0.042233" iyz="-0.001767" izz="0.029902" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/visual/link1.dae" />
+            </geometry>
+            <material name="">
+                <color rgba="0.89804 0.91765 0.92941 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/collision/link1.stl" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <joint name="G6_joint1" type="revolute">
+        <origin xyz="0 0 0.1607" rpy="0 0 0"/>
+        <parent link="G6_base" />
+        <child link="G6_link1" />
+        <axis xyz="0 0 1" />
+        <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="267" start_stop="411" velocity="3.1416" />
+    </joint>
+
+
+    <link name="G6_link2">
+        <inertial>
+            <origin xyz="0.231117 -0.000013 -0.022852" rpy="0 0 0" />
+            <mass value="18.096361" />
+            <inertia ixx="0.064904" ixy="0.00003" ixz="-0.033711" iyy="1.524623" iyz="0.000015" izz="1.505664" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/visual/link2.dae" />
+            </geometry>
+            <material name="">
+                <color rgba="0.89804 0.91765 0.92941 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/collision/link2.stl" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <joint name="G6_joint2" type="revolute">
+        <origin xyz="0 0 0" rpy="1.57079632679 -1.57079632679 0"/>
+        <parent link="G6_link1" />
+        <child link="G6_link2" />
+        <axis xyz="0 0 1" />
+        <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="267" start_stop="411" velocity="3.1416" />
+    </joint>
+
+
+    <link name="G6_link3">
+        <inertial>
+            <origin xyz="0.41956 -0.000019 0.118053" rpy="0 0 0" />
+            <mass value="4.448092" />
+            <inertia ixx="0.006799" ixy="0.000016" ixz="0.004004" iyy="0.246194" iyz="0.000005" izz="0.24479" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/visual/link3.dae" />
+            </geometry>
+            <material name="">
+                <color rgba="1 1 1 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/collision/link3.stl" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <joint name="G6_joint3" type="revolute">
+        <origin xyz="0.425 0 0" rpy="0 0 0"/>
+        <parent link="G6_link2" />
+        <child link="G6_link3" />
+        <axis xyz="0 0 1" />
+        <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="133" start_stop="207" velocity="2.5656" />
+    </joint>
+
+
+    <link name="G6_link4">
+        <inertial>
+            <origin xyz="0.000047 0.009773 -0.005726" rpy="0 0 0" />
+            <mass value="1.79166" />
+            <inertia ixx="0.002457" ixy="0.000004" ixz="0.000001" iyy="0.00159" iyz="-0.000123" izz="0.002183" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/visual/link4.dae" />
+            </geometry>
+            <material name="">
+                <color rgba="1 1 1 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/collision/link4.stl" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <joint name="G6_joint4" type="revolute">
+        <origin xyz="0.393 0 0.1133" rpy="0 0 -1.57079632679"/>
+        <parent link="G6_link3" />
+        <child link="G6_link4" />
+        <axis xyz="0 0 1" />
+        <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="49" start_stop="66" velocity="3.1416" />
+    </joint>
+
+
+    <link name="G6_link5">
+        <inertial>
+            <origin xyz="-0.000038 -0.011278 -0.001539" rpy="0 0 0" />
+            <mass value="1.628022" />
+            <inertia ixx="0.001951" ixy="0.000003" ixz="-0.000001" iyy="0.001154" iyz="0.000042" izz="0.001931" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/visual/link5.dae" />
+            </geometry>
+            <material name="">
+                <color rgba="1 1 1 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/collision/link5.stl" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <joint name="G6_joint5" type="revolute">
+        <origin xyz="0 0.099 0" rpy="-1.57079632679 0 0 "/>
+        <parent link="G6_link4" />
+        <child link="G6_link5" />
+        <axis xyz="0 0 1" />
+        <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="13.5" start_stop="34" velocity="3.1416" />
+    </joint>
+
+
+    <link name="G6_link6">
+        <inertial>
+            <origin xyz="0.000022 0.0006 -0.017081" rpy="0 0 0" />
+            <mass value="0.1978" />
+            <inertia ixx="0.000118" ixy="0" ixz="0" iyy="0.000112" iyz="0.000001" izz="0.000184" />
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/visual/link6.dae" />
+            </geometry>
+            <material name="">
+                <color rgba="1 1 1 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="file://$(find my_robot_description)/meshes/collision/link6.stl" />
+            </geometry>
+        </collision>
+    </link>
+
+
+    <joint name="G6_joint6" type="revolute">
+        <origin xyz="0 -0.0936 0" rpy="1.57079632679 0 0 "/>
+        <parent link="G6_link5" />
+        <child link="G6_link6" />
+        <axis xyz="0 0 1" />
+        <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="13.5" start_stop="34" velocity="3.1416" />
+    </joint>
+
+       
+      
+     
+    
+    <link name="world" />
+
+    <joint name="world_joint" type="fixed">
+        <parent link="world" />
+        <child link = "G6_base" />
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    </joint>
+
+</robot>
