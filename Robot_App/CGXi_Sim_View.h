@@ -75,7 +75,8 @@ private:
 	bool Load_Meshes();                     // 加载各 link mesh → actor
 
 	// FK：URDF 链（返回 7 个位姿：base + 6 link，顺序与 m_Joint_Order 对应）
-	std::vector<Eigen::Matrix4d> FK(const double j_deg[6]);
+	std::vector<Eigen::Matrix4d> FK_URDF(const double j_deg[6]);   // URDF 链（静态基准）
+	std::vector<Eigen::Matrix4d> FK_SDK(const double j_deg[6]);    // SDK 权威链（运动增量）
 	bool Check_Limit(double j_deg[6]);
 
 	void Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &poses);
@@ -101,8 +102,10 @@ private:
 
 	// 2026-11-05 修复：声明即初始化 Identity（未初始化垃圾值致 FK 全链 NaN → 模型不显示）
 	Eigen::Matrix4d m_Base_Install_Matrix = Eigen::Matrix4d::Identity();
-	// 2026-11-06 相对驱动：SDK 关节链零位位姿（Final=poses·Inv(zero)，零位 I 保持 URDF 静态）
-	Eigen::Matrix4d m_Zero_Poses[7];
+	// 2026-11-06 双基准：静态显示 URDF 零位链；运动 = URDF_zero × SDK 相对增量
+	//（URDF 与 SDK 轴心同一机械臂仅基座原点差，SDK 相对旋转绕 URDF 轴心正确）
+	Eigen::Matrix4d m_URDF_Zero[7];
+	Eigen::Matrix4d m_SDK_Zero[7];
 
 	// 渲染节流
 	QElapsedTimer m_Last_Render_Time;

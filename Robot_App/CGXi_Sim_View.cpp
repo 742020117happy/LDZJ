@@ -213,11 +213,13 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 		{ 0.25, 0.28, 0.32 }, { 0.85, 0.25, 0.25 }, { 0.90, 0.55, 0.20 },
 		{ 0.85, 0.80, 0.25 }, { 0.30, 0.75, 0.35 }, { 0.25, 0.65, 0.85 }, { 0.55, 0.35, 0.80 }
 	};
-	// 2026-11-06：FK 零位提前计算（相对驱动基准 m_Zero_Poses）
+	// 2026-11-06：双基准零位计算（静态=URDF 链、运动=SDK 相对增量）
 	double zero[6] = { 0, 0, 0, 0, 0, 0 };
-	std::vector<Eigen::Matrix4d> zeroP = FK(zero);
-	for (int z = 0; z < 7 && z < (int)zeroP.size(); ++z) {
-		m_Zero_Poses[z] = zeroP[z];
+	std::vector<Eigen::Matrix4d> urdfZero = FK_URDF(zero);
+	std::vector<Eigen::Matrix4d> sdkZero = FK_SDK(zero);
+	for (int z = 0; z < 7 && z < (int)urdfZero.size(); ++z) {
+		m_URDF_Zero[z] = urdfZero[z];
+		m_SDK_Zero[z] = sdkZero[z];
 	}
 
 	int loaded = 0;
@@ -286,13 +288,12 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 	}
 
 
-	Update_Pose_Internal(zeroP);
-// 2026-11-05 诊断日志：FK 零位各 link 位姿（对比理论：J1(0,0,0.096) J2(0,-0.073,0.167)
-	// J3(0,-0.073,0.592) J4(0,-0.077,0.985) J5(0,-0.026,1.039) J6(0,0.028,1.090)）
-	for (int i = 0; i < 7 && i < (int)zeroP.size(); ++i) {
+	Update_Pose_Internal(urdfZero);   // 静态显示 URDF 零位链
+	// 2026-11-06 诊断日志：URDF 零位链位姿
+	for (int i = 0; i < 7 && i < (int)urdfZero.size(); ++i) {
 		c_Log::Info("ARM", "Sim", QString("zeroP[%1] pos=(%2,%3,%4)")
-			.arg(i).arg(zeroP[i](0, 3), 0, 'f', 4)
-			.arg(zeroP[i](1, 3), 0, 'f', 4).arg(zeroP[i](2, 3), 0, 'f', 4));
+			.arg(i).arg(urdfZero[i](0, 3), 0, 'f', 4)
+			.arg(urdfZero[i](1, 3), 0, 'f', 4).arg(urdfZero[i](2, 3), 0, 'f', 4));
 	}
 
 	m_Renderer->ResetCamera();
@@ -306,13 +307,45 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 * FK：URDF 链（含关节角偏移）
 * T_child = T_parent · Origin_joint · Rot(axis, q+offset)
 ******************************************************************************/
-std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
+std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK_URDF(const double j_deg[6])
 {
 	static const double D2R = 3.14159265358979323846 / 180.0;
 
-	// 2026-11-06 用户选定：代码轴修正——URDF 的 J2（方向反）/J3（轴错）与实机不符，
-	// FK 改用 SDK 权威关节链（实机正解数值提取，R271 验证：J2~TCP=924.9=手册 924）。
-	// 静态显示仍以 URDF 零位（相对驱动零位=I）；运动绕实机正确轴心/轴向。
+	// URDF 链（2026-11-06 09:53 导出）：静态基准——origin/axis/limit 以 URDF 为准
+	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
+	Eigen::Matrix4d T = m_Base_Install_Matrix;
+	poses[0] = T;
+
+	for (int i = 0; i < m_Joint_Order.size() && i < 6; ++i) {
+		const s_Urdf_Joint *jt = nullptr;
+		for (const s_Urdf_Joint &c : m_Joints) {
+			if (c.name == m_Joint_Order[i]) { jt = &c; break; }
+		}
+		if (!jt) continue;
+
+		double q = j_deg[i] + m_Joint_Offset[i];
+		double low = jt->lower, high = jt->upper;
+		if (low == 0.0 && high == 0.0) {
+			double lim = (i == 2 ? 165.0 : 360.0) * D2R;
+			low = -lim;
+			high = lim;
+		}
+		q = qBound(low, q, high);
+
+		Eigen::Matrix4d rot = Eigen::Matrix4d::Identity();
+		rot.block<3, 3>(0, 0) = Eigen::AngleAxisd(q, jt->axis).toRotationMatrix();
+
+		T = T * jt->origin * rot;
+		poses[i + 1] = T;
+	}
+	return poses;
+}
+
+std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK_SDK(const double j_deg[6])
+{
+	static const double D2R = 3.14159265358979323846 / 180.0;
+
+	// 2026-11-06 代码轴修正：SDK 权威关节链（实机正解数值提取，R271 验证 J2~TCP=924.9=手册 924）
 	static const double P[7][3] = {
 		{ 0.0,      0.0,      0.0     },
 		{ 0.0,      0.0,      0.1675  },
@@ -323,12 +356,12 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 		{ 0.0,    -0.2229,    1.0915  }
 	};
 	static const double AX[6][3] = {
-		{ 0.0,  0.0,  1.0 },   // J1 竖直（基座旋转）
-		{ 0.0, -1.0,  0.0 },   // J2 水平（肩俯仰，SDK 验证轴 -Y）
-		{ 0.0, -1.0,  0.0 },   // J3 水平（肘俯仰）
-		{ 0.0, -1.0,  0.0 },   // J4 水平（腕1）
-		{ 0.0,  0.0,  1.0 },   // J5 竖直（腕2）
-		{ 0.0,  0.0,  1.0 }    // J6 竖直（腕3/法兰）
+		{ 0.0,  0.0,  1.0 },
+		{ 0.0, -1.0,  0.0 },
+		{ 0.0, -1.0,  0.0 },
+		{ 0.0, -1.0,  0.0 },
+		{ 0.0,  0.0,  1.0 },
+		{ 0.0,  0.0,  1.0 }
 	};
 
 	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
@@ -350,28 +383,21 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 		poses[i + 1] = T;
 	}
 	return poses;
-}/******************************************************************************
-* 关节限位校验：URDF limit 为准（解析自导出器），未定义时硬编码兜底
-* 兜底：J1/J2/J4/J5/J6 ±360°，J3 ±165°（G6 硬件篇 表A-1）
-******************************************************************************/
-
+}
 /******************************************************************************
-* 内部更新：FK 位姿应用到 actor
+* 内部更新：FK 位姿应用到 actor（绝对应用——combined 已含基准）
 ******************************************************************************/
 void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &poses)
 {
 	if (m_Link_Actors.size() < 7) return;
 	for (size_t i = 0; i < m_Link_Actors.size() && i < poses.size(); ++i) {
-		// 2026-11-06 相对驱动：Final = poses · Inv(zero)——零位 I（保持 URDF 静态姿态），
-		// 运动绕 SDK 权威关节轴（修复 URDF J2 方向反/J3 轴错）
-		Eigen::Matrix4d final_pose = poses[i] * m_Zero_Poses[i].inverse();
+		Eigen::Matrix4d final_pose = poses[i];
 		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 		vtkSmartPointer<vtkMatrix4x4> vtkMat = vtkSmartPointer<vtkMatrix4x4>::New();
 		for (int r = 0; r < 4; ++r) {
-			for (int c = 0; c < 4; ++c) {
-				// 2026-11-06 修复：Eigen (r,c) 与 VTK Element[r][c] 同为逻辑行列，无需转置——
-				// 原转置写法把平移丢到 (3,0)（VTK 平移在 (0,3)），致所有 link 平移丢失叠在原点
-				vtkMat->SetElement(r, c, final_pose(r, c));
+			for (int c2 = 0; c2 < 4; ++c2) {
+				// Eigen (r,c) 与 VTK Element[r][c] 同为逻辑行列，无需转置
+				vtkMat->SetElement(r, c2, final_pose(r, c2));
 			}
 		}
 		transform->SetMatrix(vtkMat);
@@ -389,8 +415,13 @@ void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 	if (m_Last_Render_Time.elapsed() < RENDER_INTERVAL_MS) return;
 	m_Last_Render_Time.restart();
 
-	std::vector<Eigen::Matrix4d> poses = FK(joints_deg);
-	Update_Pose_Internal(poses);
+	// 2026-11-06 组合：URDF 零位（静态基准）× SDK 相对增量（实机轴修正）
+	std::vector<Eigen::Matrix4d> sdkPoses = FK_SDK(joints_deg);
+	std::vector<Eigen::Matrix4d> combined(7, Eigen::Matrix4d::Identity());
+	for (int i = 0; i < 7 && i < (int)sdkPoses.size(); ++i) {
+		combined[i] = m_URDF_Zero[i] * sdkPoses[i] * m_SDK_Zero[i].inverse();
+	}
+	Update_Pose_Internal(combined);
 }
 
 /******************************************************************************
