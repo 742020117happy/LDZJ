@@ -77,7 +77,7 @@ private:
 
 	// FK：URDF 链（返回 7 个位姿：base + 6 link，顺序与 m_Joint_Order 对应）
 	std::vector<Eigen::Matrix4d> FK(const double j_deg[6]);   // URDF 链（官方 G6.urdf 权威）
-	bool Check_Limit(double j_deg[6]);
+	bool Check_Limit(float j_deg[6]);
 
 	void Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &poses);
 
