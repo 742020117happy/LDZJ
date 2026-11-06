@@ -139,11 +139,22 @@ void c_Sql_Remote::On_Photo_Completed(QString fname)
 	if (!m_Mutex) m_Mutex = new QMutex;
 
 	bool shouldFlush = false;
+	int qsize = 0;
 	{
 		QMutexLocker locker(m_Mutex);
 		m_imagePathList.append(fname);
-		shouldFlush = (m_imagePathList.size() == 1);
+		qsize = m_imagePathList.size();
+		shouldFlush = (qsize == 1);
 	}
+
+	// 2026-11-06 详细日志：图像入队（经 Status 桥接写入左精扫消息.log）
+	QString taskIdSnap;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		taskIdSnap = c_Variable::getInstance().g_Work_DB.taskId;
+	}
+	emit Status(QString("MySQL 图像入队：name=%1 task_id=%2 队列长度=%3")
+		.arg(fname).arg(taskIdSnap).arg(qsize));
 
 	if (shouldFlush) {
 		flush_collect_time();
@@ -199,6 +210,9 @@ void c_Sql_Remote::flush_collect_time()
 	else {
 		m_imagePathList.removeFirst();
 		m_flushRetryMs = 100;	// 2026-10-24 重构 T20：成功复位重试间隔
+		// 2026-11-06 详细日志：插库成功（经 Status 桥接写入左精扫消息.log）
+		emit Status(QString("MySQL 图像上传成功：name=%1 task_id=%2 collection_time=NOW()")
+			.arg(imagePath).arg(taskId));
 	}
 
 	if (!m_imagePathList.isEmpty()) {

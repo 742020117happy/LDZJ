@@ -639,6 +639,8 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 			QWriteLocker locker(&c_Variable::g_lock);
 			c_Variable::getInstance().g_Work_DB.totalImages += 4;
 		}
+		// 2026-11-06 详细日志：采集完成（经 Status 桥接写入左精扫消息.log）
+		emit Status(m_Camera_num + QString("采集完成：name=%1（转发 COMPLETE，MySql 入队）").arg(m_LastPhotoName));
 		emit Photo_Completed(m_LastPhotoName);	// 2026-08-19 修复：精确匹配分支补齐 MySQL 入库回调
 	}
 	else if (msg.startsWith(QLatin1String("PHOTO&COMPLETE"))) {
