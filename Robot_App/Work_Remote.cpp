@@ -407,6 +407,13 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 	return_cmd.insert("Status", "Success");
 	return_cmd.insert("Value", true);
 	emit Write_Json(return_cmd);
+	// 2026-11-06 用户定稿：actual_start_time 按工位 taskId 上传——
+	// 单工位按本工位 taskId；双工位按 {taskId_1}&{taskId_2}
+	if (wheelsetCount == 2) {
+		QWriteLocker locker(&c_Variable::g_lock);
+		c_Variable::getInstance().g_Work_DB.taskId =
+			t1.value("taskId").toString() + "&" + t2.value("taskId").toString();
+	}
 	emit actual_start_time();
 	// 2026-11-06 用户定稿：precisScanStartTime 按工位第一次执行轨迹时各发一次（taskId 随工位）——
 	// 原全局一次改为循环内按工位触发（见下）
