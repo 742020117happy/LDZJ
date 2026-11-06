@@ -93,6 +93,10 @@ void c_Emis_Remote::Send_Report(const QString &timeType)
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		urlStr = c_Variable::getInstance().g_Communicate_DB.value("EMIS_Url").toString();
+		// 2026-11-06 用户定稿：EMIS 默认 URL（配置缺失/为空时兜底）
+		if (urlStr.isEmpty()) {
+			urlStr = "http://192.168.0.107:80/robot/wheelset-service/wheelset-dispatch/report-time";
+		}
 	}
 
 	m_Last_TimeType = timeType;

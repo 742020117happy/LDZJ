@@ -132,5 +132,5 @@
   "Log_MaxMB": 100,
   "Log_Level": "DEBUG",
   "Light_Auto": true,
-  "EMIS_Url": "http://192.168.0.107:80/robot/robot-service/emis/task/reportTime"
+  "EMIS_Url": "http://192.168.0.107:80/robot/wheelset-service/wheelset-dispatch/report-time"
 }
