@@ -388,7 +388,7 @@ void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 
 	// 2026-11-06 段2：HUD 更新（关节名+角度+TCP，参考 ROS2 发布格式）
 	// 2026-11-06 优化：增加实机 TCP（寄存器 500-511，单位 mm）对比——姿态差异一眼定位
-	if (m_HUD_Label) {
+	if (m_Text_Actor) {
 		double tcpR[3] = { 0, 0, 0 };
 		{
 			QReadLocker locker(&c_Variable::g_lock);
@@ -396,19 +396,15 @@ void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 			tcpR[1] = c_Variable::getInstance().g_CGXi.data.tcp_actual_position[1];
 			tcpR[2] = c_Variable::getInstance().g_CGXi.data.tcp_actual_position[2];
 		}
-		QString txt = QString("G6 关节角 (°)\n")
-			+ QString("G6_joint1: %1\n").arg(joints_deg[0], 7, 'f', 2)
-			+ QString("G6_joint2: %1\n").arg(joints_deg[1], 7, 'f', 2)
-			+ QString("G6_joint3: %1\n").arg(joints_deg[2], 7, 'f', 2)
-			+ QString("G6_joint4: %1\n").arg(joints_deg[3], 7, 'f', 2)
-			+ QString("G6_joint5: %1\n").arg(joints_deg[4], 7, 'f', 2)
-			+ QString("G6_joint6: %1\n").arg(joints_deg[5], 7, 'f', 2)
-			+ QString("仿真TCP: %1, %2, %3 m\n")
+		QString txt = QString("G6 Joint (deg)\n")
+			+ QString("J1: %1  J2: %2\n").arg(joints_deg[0], 7, 'f', 2).arg(joints_deg[1], 7, 'f', 2)
+			+ QString("J3: %1  J4: %2\n").arg(joints_deg[2], 7, 'f', 2).arg(joints_deg[3], 7, 'f', 2)
+			+ QString("J5: %1  J6: %2\n").arg(joints_deg[4], 7, 'f', 2).arg(joints_deg[5], 7, 'f', 2)
+			+ QString("Sim TCP: %1, %2, %3 m\n")
 				.arg(poses[6](0, 3), 0, 'f', 3).arg(poses[6](1, 3), 0, 'f', 3).arg(poses[6](2, 3), 0, 'f', 3)
-			+ QString("实机TCP: %1, %2, %3 mm")
+			+ QString("Real TCP: %1, %2, %3 mm")
 				.arg(tcpR[0], 0, 'f', 1).arg(tcpR[1], 0, 'f', 1).arg(tcpR[2], 0, 'f', 1);
-		m_HUD_Label->setText(txt);
-		m_HUD_Label->adjustSize();
+		m_Text_Actor->SetInput(txt.toStdString().c_str());
 	}
 
 	// 2026-11-06 段3：角速度超限检测（J1-J3≤3.6652 rad/s、J4-J6≤6.2832，参考 joint_limits.yaml）
