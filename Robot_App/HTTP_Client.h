@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Variable.h"
 #include <QObject>
+#include <QPointer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>

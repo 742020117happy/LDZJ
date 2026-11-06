@@ -95,11 +95,14 @@ QNetworkRequest c_HTTP_Client::Prepare_Request(const QUrl &url, const QJsonObjec
 
 // 通用超时设置：使用QTimer::singleShot(receiver, lambda)避免每次new QTimer对象
 void c_HTTP_Client::Setup_Timeout(QNetworkReply *reply, int ms) {
-	QTimer::singleShot(ms, this, [reply]() {
-		// 2026-11-06 完善：超时标记（区分"超时"与"被取消"——原统一报"超时或被取消"无法定位）
-		if (reply->isRunning()) {
-			reply->setProperty("timedOut", true);
-			reply->abort();
+	// 2026-11-06 崩溃修复：QPointer 防护——timer 触发时 reply 可能已被 deleteLater 销毁
+	//（14:33/14:34 Qt5Network 访问违例闪退根因：悬空指针调用 setProperty 虚函数）
+	QPointer<QNetworkReply> guard(reply);
+	QTimer::singleShot(ms, this, [guard]() {
+		if (!guard) { return; }   // reply 已销毁，静默跳过
+		if (guard->isRunning()) {
+			guard->setProperty("timedOut", true);   // 超时标记（区分"超时"与"被取消"）
+			guard->abort();
 		}
 	});
 }
