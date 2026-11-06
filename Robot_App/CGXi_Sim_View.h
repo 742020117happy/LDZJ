@@ -25,6 +25,7 @@
 #include <vtkRenderer.h>
 #include <vtkActor.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkMath.h>
 
 // URDF 解析后的单个关节数据
 struct s_Urdf_Joint
