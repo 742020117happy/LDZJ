@@ -95,8 +95,12 @@ QNetworkRequest c_HTTP_Client::Prepare_Request(const QUrl &url, const QJsonObjec
 
 // 通用超时设置：使用QTimer::singleShot(receiver, lambda)避免每次new QTimer对象
 void c_HTTP_Client::Setup_Timeout(QNetworkReply *reply, int ms) {
-	QTimer::singleShot(ms, reply, [reply]() {
-		if (reply->isRunning()) reply->abort();
+	QTimer::singleShot(ms, this, [reply]() {
+		// 2026-11-06 完善：超时标记（区分"超时"与"被取消"——原统一报"超时或被取消"无法定位）
+		if (reply->isRunning()) {
+			reply->setProperty("timedOut", true);
+			reply->abort();
+		}
 	});
 }
 
@@ -225,14 +229,20 @@ void c_HTTP_Client::Read_Ready(QNetworkReply *reply) {
 			reply->deleteLater();
 			return;
 		}
-	QString errMsg = reply->errorString();
-	if (reply->error() == QNetworkReply::OperationCanceledError)
-		errMsg = "超时或被取消 (5s)";
-	// 2026-10-25 L：请求失败/超时（只打印 API 与错误信息，不打印请求内容）
-	c_Log::Error("HTTP", "Response", QString("failed api=%1 err=%2").arg(api).arg(errMsg));
-	emit Response_Error(api, errMsg);
-	reply->deleteLater();
-	return;
+		QString errMsg = reply->errorString();
+		// 2026-11-06 完善：细分超时/取消/其他——原统一"超时或被取消 (5s)"无法定位原因
+		if (reply->property("timedOut").toBool()) {
+			errMsg = "超时 (5s)";
+		}
+		else if (reply->error() == QNetworkReply::OperationCanceledError) {
+			errMsg = "被取消";
+		}
+		// 2026-10-25 L：请求失败/超时（只打印 API 与错误信息，不打印请求内容）
+		c_Log::Error("HTTP", "Response", QString("failed api=%1 err=%2 code=%3")
+			.arg(api).arg(errMsg).arg((int)reply->error()));
+		emit Response_Error(api, errMsg);
+		reply->deleteLater();
+		return;
 	}
 
 	QByteArray buffer = reply->readAll();

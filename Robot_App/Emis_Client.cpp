@@ -101,8 +101,12 @@ void c_Emis_Remote::Send_Report(const QString &timeType)
 
 	m_Last_TimeType = timeType;
 
-	// 2026-10-25 L：EMIS 上报请求（只打印时间点类型与任务ID）
-	c_Log::Info("EMIS", "Report", QString("send type=%1 task_id=%2").arg(timeType).arg(c_Variable::getInstance().g_Work_DB.taskId));
+	// 2026-11-06 完善：发送日志含上传内容（时间点类型+任务ID+时间值）——现场可核对上报了什么
+	c_Log::Info("EMIS", "Report", QString("send type=%1 task_id=%2 time=%3 url=%4")
+		.arg(timeType)
+		.arg(c_Variable::getInstance().g_Work_DB.taskId)
+		.arg(body.value("time").toString())
+		.arg(urlStr));
 
 	// 3. 经 HTTP 通讯层发送（2026-10-28 ZZ2：绝对 URL POST，Content-Type 由通讯层 Prepare_Request 设置）
 	emit Signal_Send_POST(urlStr, body, QJsonObject());
@@ -128,8 +132,11 @@ void c_Emis_Remote::On_Response_Error(QString api, QString error_msg)
 		QTimer::singleShot(2000, this, [this]() { Send_Report(m_Last_TimeType); });
 		return;
 	}
-	// 2026-10-25 L：上报失败（只记录错误原因）
-	c_Log::Error("EMIS", "Report", QString("failed err=%1").arg(error_msg));
-	emit Status("EMIS 上报失败: " + error_msg);
+	// 2026-11-06 完善：失败日志含上报内容（时间点类型+任务ID+原因细分）
+	c_Log::Error("EMIS", "Report", QString("failed type=%1 task_id=%2 err=%3")
+		.arg(m_Last_TimeType)
+		.arg(c_Variable::getInstance().g_Work_DB.taskId)
+		.arg(error_msg));
+	emit Status(QString("EMIS 上报失败[%1]: %2").arg(m_Last_TimeType).arg(error_msg));
 	emit Update_Error();
 }
