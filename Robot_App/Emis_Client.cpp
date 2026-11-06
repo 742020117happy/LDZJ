@@ -34,57 +34,55 @@ void c_Emis_Remote::Init()
 	emit Status("EMIS 初始化完成（组合 HTTP 通讯层）");
 }
 //巡检开始时间
-void c_Emis_Remote::actual_start_time() {
+void c_Emis_Remote::actual_start_time(QString taskId) {
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		emit Status("未在巡检中屏蔽巡检开始时间");
 		return;
 	}
-	c_Emis_Remote::Update_Info("actualStartTime"); 
+	c_Emis_Remote::Update_Info("actualStartTime", taskId); 
 }
 //精扫开始时间
-void c_Emis_Remote::precis_scan_start_time() { 
+void c_Emis_Remote::precis_scan_start_time(QString taskId) { 
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		emit Status("未在巡检中，屏蔽精扫开始时间");
 		return;
 	}
-	c_Emis_Remote::Update_Info("precisScanStartTime");
+	c_Emis_Remote::Update_Info("precisScanStartTime", taskId);
 }
 //精扫结束时间
-void c_Emis_Remote::precis_scan_end_time() { 
+void c_Emis_Remote::precis_scan_end_time(QString taskId) { 
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		emit Status("未在巡检中，屏蔽精扫结束时间");
 		return;
 	}
-	c_Emis_Remote::Update_Info("precisScanEndTime");
+	c_Emis_Remote::Update_Info("precisScanEndTime", taskId);
 }
 //完成时间
-void c_Emis_Remote::actual_return_time() { 
+void c_Emis_Remote::actual_return_time(QString taskId) { 
 	if (!c_Variable::getInstance().g_Work.Connected) {
 		emit Status("未在巡检中，屏蔽发送完成时间");
 		return;
 	}
-	c_Emis_Remote::Update_Info("actualReturnTime"); 
+	c_Emis_Remote::Update_Info("actualReturnTime", taskId); 
 }
-void c_Emis_Remote::Update_Info(QString timeType)
+void c_Emis_Remote::Update_Info(QString timeType, QString taskId)
 {
 	// 2026-11-05 现场修复：入口重置重试计数后发送（重试经 Send_Report 不重置）
 	m_Retry_Count = 0;
-	Send_Report(timeType);
+	Send_Report(timeType, taskId);
 }
 // 2026-11-05 现场修复：构建+发送（重试复用；锁内仅构建请求，发送经信号出线程）
-void c_Emis_Remote::Send_Report(const QString &timeType)
+void c_Emis_Remote::Send_Report(const QString &timeType, const QString &taskId)
 {
 	// 2026-10-24 C2：init 前槽调用防护（互斥锁惰性创建）
 	if (!m_Mutex) m_Mutex = new QMutex;
 	// 加锁保护构建请求的过程
 	QMutexLocker locker(m_Mutex);
 
-	// 1. 构建 JSON 对象（2026-10-24 T92：taskId 跨线程写，读侧持读锁快照）
+	// 2026-11-06 taskId 显式传参：跨线程 queued 槽执行时全局 taskId 可能已被下一工位 Switch 覆盖
+	//（现场日志实锤：双工位两条 EndTime 均用 2 号 taskId）——构建 body 直接使用传入值
 	QJsonObject body;
-	{
-		QReadLocker locker(&c_Variable::g_lock);
-		body.insert("inspectionTaskNum", c_Variable::getInstance().g_Work_DB.taskId);
-	}
+	body.insert("inspectionTaskNum", taskId);
 	body.insert("timeType", timeType);
 	body.insert("time", QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
 
@@ -100,11 +98,12 @@ void c_Emis_Remote::Send_Report(const QString &timeType)
 	}
 
 	m_Last_TimeType = timeType;
+	m_Last_TaskId = taskId;
 
 	// 2026-11-06 完善：发送日志含上传内容（时间点类型+任务ID+时间值）——现场可核对上报了什么
 	c_Log::Info("EMIS", "Report", QString("send type=%1 task_id=%2 time=%3 url=%4")
 		.arg(timeType)
-		.arg(c_Variable::getInstance().g_Work_DB.taskId)
+		.arg(taskId)
 		.arg(body.value("time").toString())
 		.arg(urlStr));
 
@@ -129,13 +128,13 @@ void c_Emis_Remote::On_Response_Error(QString api, QString error_msg)
 		m_Retry_Count++;
 		c_Log::Warn("EMIS", "Report", QString("failed retry %1/2 type=%2 err=%3").arg(m_Retry_Count).arg(m_Last_TimeType, error_msg));
 		emit Status(QString("EMIS 上报失败，2s 后重试（%1/2）").arg(m_Retry_Count));
-		QTimer::singleShot(2000, this, [this]() { Send_Report(m_Last_TimeType); });
+		QTimer::singleShot(2000, this, [this]() { Send_Report(m_Last_TimeType, m_Last_TaskId); });
 		return;
 	}
 	// 2026-11-06 完善：失败日志含上报内容（时间点类型+任务ID+原因细分）
 	c_Log::Error("EMIS", "Report", QString("failed type=%1 task_id=%2 err=%3")
 		.arg(m_Last_TimeType)
-		.arg(c_Variable::getInstance().g_Work_DB.taskId)
+		.arg(m_Last_TaskId)
 		.arg(error_msg));
 	emit Status(QString("EMIS 上报失败[%1]: %2").arg(m_Last_TimeType).arg(error_msg));
 	emit Update_Error();

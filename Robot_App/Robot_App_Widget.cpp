@@ -2095,10 +2095,22 @@ void c_Robot_App_Widget::Work_Scan()
 *************************************************************************************************************************************************/
 void c_Robot_App_Widget::Work_Button()
 {
-	QObject::connect(ui->actualStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actual_start_time);
-	QObject::connect(ui->precisScanStartTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precis_scan_start_time);
-	QObject::connect(ui->precisScanEndTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::precis_scan_end_time);
-	QObject::connect(ui->actualReturnTime, &QPushButton::clicked, m_Emis_Remote, &c_Emis_Remote::actual_return_time);
+	QObject::connect(ui->actualStartTime, &QPushButton::clicked, this, [this]() {
+		QString tid; { QReadLocker l(&c_Variable::g_lock); tid = c_Variable::getInstance().g_Work_DB.taskId; }
+		QMetaObject::invokeMethod(m_Emis_Remote, "actual_start_time", Qt::QueuedConnection, Q_ARG(QString, tid));
+	});
+	QObject::connect(ui->precisScanStartTime, &QPushButton::clicked, this, [this]() {
+		QString tid; { QReadLocker l(&c_Variable::g_lock); tid = c_Variable::getInstance().g_Work_DB.taskId; }
+		QMetaObject::invokeMethod(m_Emis_Remote, "precis_scan_start_time", Qt::QueuedConnection, Q_ARG(QString, tid));
+	});
+	QObject::connect(ui->precisScanEndTime, &QPushButton::clicked, this, [this]() {
+		QString tid; { QReadLocker l(&c_Variable::g_lock); tid = c_Variable::getInstance().g_Work_DB.taskId; }
+		QMetaObject::invokeMethod(m_Emis_Remote, "precis_scan_end_time", Qt::QueuedConnection, Q_ARG(QString, tid));
+	});
+	QObject::connect(ui->actualReturnTime, &QPushButton::clicked, this, [this]() {
+		QString tid; { QReadLocker l(&c_Variable::g_lock); tid = c_Variable::getInstance().g_Work_DB.taskId; }
+		QMetaObject::invokeMethod(m_Emis_Remote, "actual_return_time", Qt::QueuedConnection, Q_ARG(QString, tid));
+	});
 	// 2026-10-24 T92：Work 信号→Emis 已在 Work_Init 集中连接（2150-2152），此处原重复连接已删除（否则每时间点双报 EMIS）
 
 	QObject::connect(m_Work_Remote, &c_Work_Remote::RefreshMapList, ui->btn_RefreshMapList, &QPushButton::click);

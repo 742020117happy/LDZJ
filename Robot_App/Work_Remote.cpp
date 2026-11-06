@@ -414,7 +414,7 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 		c_Variable::getInstance().g_Work_DB.taskId =
 			t1.value("taskId").toString() + "&" + t2.value("taskId").toString();
 	}
-	emit actual_start_time();
+	emit actual_start_time(c_Variable::getInstance().g_Work_DB.taskId);
 	// 2026-11-06 用户定稿：precisScanStartTime 按工位第一次执行轨迹时各发一次（taskId 随工位）——
 	// 原全局一次改为循环内按工位触发（见下）
 
@@ -430,7 +430,7 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 			QString Point_Name = positions.at(i).toString();
 			if (!allowedPoints.isEmpty() && !allowedPoints.contains(Point_Name)) { continue; }
 			if (prog_kind1.value(Point_Name) == QJsonValue::Undefined) { fail_step("巡检点不存在", "PA007"); return; }
-			if (i == 0) { emit precis_scan_start_time(); }	// 2026-11-06 定稿：单工位第一次执行轨迹时发精扫开始时间
+			if (i == 0) { emit precis_scan_start_time(c_Variable::getInstance().g_Work_DB.taskId); }	// 2026-11-06 定稿：单工位第一次执行轨迹时发精扫开始时间
 			if (!wait_StartTask(Point_Name)) {
 		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
 		fail_step("机器人定位失败", "PA022"); return;
@@ -476,7 +476,7 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 				// （保证 START/PHOTO/FINISH 帧信息与工位一致）
 				Switch_Work_Station(t1, posId);
 				// 2026-11-06 定稿：第一次执行 1 号工位轨迹时发精扫开始时间（按 1 号 task_id）
-				if (!pos1StartDone) { emit precis_scan_start_time(); pos1StartDone = true; }
+				if (!pos1StartDone) { emit precis_scan_start_time(t1.value("taskId").toString()); pos1StartDone = true; }
 				// 2026-10-26 现场矫正：工位1 取数组第一条（at(0)）
 				QJsonArray arr1 = prog_kind1.value(Point_Name).toArray();
 				if (!arr1.isEmpty()) {
@@ -489,7 +489,7 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 				// 2026-10-28 用户定稿：采集信息随工位切换——2 号工位采集前切任务 2 字段
 				Switch_Work_Station(t2, posId_2);
 				// 2026-11-06 定稿：第一次执行 2 号工位轨迹时发精扫开始时间（按 2 号 task_id）
-				if (!pos2StartDone) { emit precis_scan_start_time(); pos2StartDone = true; }
+				if (!pos2StartDone) { emit precis_scan_start_time(t2.value("taskId").toString()); pos2StartDone = true; }
 				QJsonArray arr2 = prog_kind2.value(Point_Name).toArray();
 				if (!arr2.isEmpty()) {
 					if (!wait_CGXi_Prog_Start(arr2.at(arr2.size() - 1).toInt())) { fail_step("机械臂运行失败（第二工位轨迹）", "PA003"); return; }
@@ -503,12 +503,12 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 	// 1 号工位轨迹全部完成→按 1 号 task_id 发；2 号工位轨迹全部完成→按 2 号 task_id 发
 	if (wheelsetCount == 2) {
 		Switch_Work_Station(t1, posId);
-		emit precis_scan_end_time();      // 1 号工位精扫图像全部采集完成时间
+		emit precis_scan_end_time(t1.value("taskId").toString());      // 1 号工位精扫图像全部采集完成时间
 		Switch_Work_Station(t2, posId_2);
-		emit precis_scan_end_time();      // 2 号工位精扫图像全部采集完成时间
+		emit precis_scan_end_time(t2.value("taskId").toString());      // 2 号工位精扫图像全部采集完成时间
 	}
 	else {
-		emit precis_scan_end_time();      // 单工位精扫图像全部采集完成时间
+		emit precis_scan_end_time(c_Variable::getInstance().g_Work_DB.taskId);      // 单工位精扫图像全部采集完成时间
 	}
 	if (wheelsetCount == 2) {
 		// 2026-10-25 GG1：第二工位字段写入补写锁（T83/T86 遗漏点）
@@ -541,7 +541,7 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 		c_Variable::getInstance().g_Work_DB.taskId =
 			t1.value("taskId").toString() + "&" + t2.value("taskId").toString();
 	}
-	emit actual_return_time();
+	emit actual_return_time(c_Variable::getInstance().g_Work_DB.taskId);
 	// 2026-11-06 用户定稿：actual_return_time 后等待 500ms 才能置 Connected=false（保证 MySql 正常写入）
 	msleep(500);
 	c_Variable::getInstance().g_Work.Connected = false;

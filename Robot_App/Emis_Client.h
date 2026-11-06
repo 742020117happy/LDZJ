@@ -12,10 +12,10 @@ public:
 
 public slots:
 	void Init();
-	void actual_start_time();//巡检开始时间
-	void precis_scan_start_time();//精扫开始时间
-	void precis_scan_end_time();//精扫结束时间
-	void actual_return_time();//完成时间
+	void actual_start_time(QString taskId);//巡检开始时间
+	void precis_scan_start_time(QString taskId);//精扫开始时间
+	void precis_scan_end_time(QString taskId);//精扫结束时间
+	void actual_return_time(QString taskId);//完成时间
 
 signals:
 	void Update_Done();
@@ -24,15 +24,16 @@ signals:
 	void Signal_Send_POST(QString api, QJsonObject body, QJsonObject headers);
 
 private slots:
-	void Update_Info(QString timeType);
+	void Update_Info(QString timeType, QString taskId);
 	// 2026-10-28 ZZ2：HTTP 通讯层响应回调（成功/失败）
 	void On_Response_Done(QString api, QJsonObject body);
 	void On_Response_Error(QString api, QString error_msg);
 
 private:
 	// 2026-11-05 现场修复：上报超时重试（HTTP 5s 超时一次失败致 EMIS 时间点缺失）
-	void Send_Report(const QString &timeType);   // 构建+发送（重试复用）
+	void Send_Report(const QString &timeType, const QString &taskId);   // 构建+发送（重试复用）
 	QString m_Last_TimeType;                     // 上次上报类型（重试用）
+	QString m_Last_TaskId;                       // 2026-11-06 上次上报 taskId（重试用）
 	int m_Retry_Count = 0;                       // 已重试次数（≤2）
 
 	QMutex *m_Mutex = nullptr;	// 2026-10-24 C2：初始化防 init 前槽调用空指针
