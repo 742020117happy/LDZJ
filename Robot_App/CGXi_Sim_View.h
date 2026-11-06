@@ -101,6 +101,8 @@ private:
 
 	// 2026-11-05 修复：声明即初始化 Identity（未初始化垃圾值致 FK 全链 NaN → 模型不显示）
 	Eigen::Matrix4d m_Base_Install_Matrix = Eigen::Matrix4d::Identity();
+	// 2026-11-06 相对驱动：SDK 关节链零位位姿（Final=poses·Inv(zero)，零位 I 保持 URDF 静态）
+	Eigen::Matrix4d m_Zero_Poses[7];
 
 	// 渲染节流
 	QElapsedTimer m_Last_Render_Time;

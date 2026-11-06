@@ -213,9 +213,12 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 		{ 0.25, 0.28, 0.32 }, { 0.85, 0.25, 0.25 }, { 0.90, 0.55, 0.20 },
 		{ 0.85, 0.80, 0.25 }, { 0.30, 0.75, 0.35 }, { 0.25, 0.65, 0.85 }, { 0.55, 0.35, 0.80 }
 	};
-	// 2026-11-06：FK 零位提前计算（mesh 加载循环内 PCA 对齐需要 zeroP 旋转）
+	// 2026-11-06：FK 零位提前计算（相对驱动基准 m_Zero_Poses）
 	double zero[6] = { 0, 0, 0, 0, 0, 0 };
 	std::vector<Eigen::Matrix4d> zeroP = FK(zero);
+	for (int z = 0; z < 7 && z < (int)zeroP.size(); ++z) {
+		m_Zero_Poses[z] = zeroP[z];
+	}
 
 	int loaded = 0;
 	for (int i = 0; i < order.size() && i < 7; ++i) {
@@ -307,38 +310,47 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 {
 	static const double D2R = 3.14159265358979323846 / 180.0;
 
+	// 2026-11-06 用户选定：代码轴修正——URDF 的 J2（方向反）/J3（轴错）与实机不符，
+	// FK 改用 SDK 权威关节链（实机正解数值提取，R271 验证：J2~TCP=924.9=手册 924）。
+	// 静态显示仍以 URDF 零位（相对驱动零位=I）；运动绕实机正确轴心/轴向。
+	static const double P[7][3] = {
+		{ 0.0,      0.0,      0.0     },
+		{ 0.0,      0.0,      0.1675  },
+		{ 0.0,      0.0,      0.5925  },
+		{ 0.0,      0.0,      0.9855  },
+		{ 0.0,    -0.1203,    0.9855  },
+		{ 0.0,    -0.1203,    1.0915  },
+		{ 0.0,    -0.2229,    1.0915  }
+	};
+	static const double AX[6][3] = {
+		{ 0.0,  0.0,  1.0 },   // J1 竖直（基座旋转）
+		{ 0.0, -1.0,  0.0 },   // J2 水平（肩俯仰，SDK 验证轴 -Y）
+		{ 0.0, -1.0,  0.0 },   // J3 水平（肘俯仰）
+		{ 0.0, -1.0,  0.0 },   // J4 水平（腕1）
+		{ 0.0,  0.0,  1.0 },   // J5 竖直（腕2）
+		{ 0.0,  0.0,  1.0 }    // J6 竖直（腕3/法兰）
+	};
+
 	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
 	Eigen::Matrix4d T = m_Base_Install_Matrix;
 	poses[0] = T;
 
-	for (int i = 0; i < m_Joint_Order.size() && i < 6; ++i) {
-		const s_Urdf_Joint *jt = nullptr;
-		for (const s_Urdf_Joint &c : m_Joints) {
-			if (c.name == m_Joint_Order[i]) { jt = &c; break; }
-		}
-		if (!jt) continue;
+	for (int i = 0; i < 6; ++i) {
+		Eigen::Matrix4d tr = Eigen::Matrix4d::Identity();
+		tr(0, 3) = P[i + 1][0] - P[i][0];
+		tr(1, 3) = P[i + 1][1] - P[i][1];
+		tr(2, 3) = P[i + 1][2] - P[i][2];
+		T = T * tr;
 
-		// 2026-11-06 优化：限位直接取 URDF joint limit（弧度）；(0,0)=未定义时硬编码兜底
-		// （J3±165 其余±360——G6 硬件篇表 A-1）；偏移+限位都在 FK 内完成，运动参数以 URDF 为准
-		double q = j_deg[i] + m_Joint_Offset[i];
-		double low = jt->lower, high = jt->upper;
-		if (low == 0.0 && high == 0.0) {
-			double lim = (i == 2 ? 165.0 : 360.0) * D2R;
-			low = -lim;
-			high = lim;
-		}
-		q = qBound(low, q, high);
-
+		Eigen::Vector3d ax(AX[i][0], AX[i][1], AX[i][2]);
 		Eigen::Matrix4d rot = Eigen::Matrix4d::Identity();
-		rot.block<3, 3>(0, 0) =
-			Eigen::AngleAxisd(q, jt->axis).toRotationMatrix();
+		rot.block<3, 3>(0, 0) = Eigen::AngleAxisd((j_deg[i] + m_Joint_Offset[i]) * D2R, ax).toRotationMatrix();
+		T = T * rot;
 
-		T = T * jt->origin * rot;
 		poses[i + 1] = T;
 	}
 	return poses;
-}
-/******************************************************************************
+}/******************************************************************************
 * 关节限位校验：URDF limit 为准（解析自导出器），未定义时硬编码兜底
 * 兜底：J1/J2/J4/J5/J6 ±360°，J3 ±165°（G6 硬件篇 表A-1）
 ******************************************************************************/
@@ -350,7 +362,9 @@ void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &p
 {
 	if (m_Link_Actors.size() < 7) return;
 	for (size_t i = 0; i < m_Link_Actors.size() && i < poses.size(); ++i) {
-		Eigen::Matrix4d final_pose = poses[i];
+		// 2026-11-06 相对驱动：Final = poses · Inv(zero)——零位 I（保持 URDF 静态姿态），
+		// 运动绕 SDK 权威关节轴（修复 URDF J2 方向反/J3 轴错）
+		Eigen::Matrix4d final_pose = poses[i] * m_Zero_Poses[i].inverse();
 		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 		vtkSmartPointer<vtkMatrix4x4> vtkMat = vtkSmartPointer<vtkMatrix4x4>::New();
 		for (int r = 0; r < 4; ++r) {
