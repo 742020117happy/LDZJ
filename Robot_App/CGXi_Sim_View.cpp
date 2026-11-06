@@ -54,8 +54,16 @@ void c_CGXi_Sim_View::Init_VTK_Scene()
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
 
+	// 2026-11-06 HUD：独立布局行（上方 QLabel——QGLWidget 叠加不可见问题根治）
+	m_HUD_Label = new QLabel(this);
+	m_HUD_Label->setStyleSheet("background-color: rgba(0,0,0,160); color: #d0e0ff;"
+		"font-family: Consolas; font-size: 11px; padding: 4px;");
+	m_HUD_Label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+	m_HUD_Label->setText("G6 URDF loading...");
+	layout->addWidget(m_HUD_Label);
+
 	m_VTK_Widget = new QVTKWidget(this);
-	layout->addWidget(m_VTK_Widget);
+	layout->addWidget(m_VTK_Widget, 1);
 
 	m_Renderer = vtkSmartPointer<vtkRenderer>::New();
 	m_Renderer->SetBackground(0.15, 0.15, 0.18);
