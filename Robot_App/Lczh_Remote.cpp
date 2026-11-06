@@ -621,6 +621,13 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 	}
 
 	if (msg == QLatin1String("PHOTO&COMPLETE")) {
+		// 2026-11-06 去重：仅在途 PHOTO（m_PhotoPending）的 COMPLETE 才处理——
+		// 相机对重发帧/重复帧补发 COMPLETE 时 pending 已 false，忽略防 MySql 重复入队
+		//（现场：MySql 图像数量与 COMPLETE 次数不一致）
+		if (!m_PhotoPending) {
+			c_Log::Warn("SCAN", "Feedback", "recv PHOTO&COMPLETE but no pending (duplicate ignored)");
+			return;
+		}
 		// 2026-10-28 用户定稿：收到完成反馈 → 停重发定时器（在途 PHOTO 闭环）
 		m_PhotoPending = false;
 		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->stop(); }
@@ -635,6 +642,11 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 	}
 	else if (msg.startsWith(QLatin1String("PHOTO&COMPLETE"))) {
 		// 带有额外后缀的 COMPLETE（如含文件名），仍视为成功
+		// 2026-11-06 去重：同在途 PHOTO 校验（重复 COMPLETE 忽略）
+		if (!m_PhotoPending) {
+			c_Log::Warn("SCAN", "Feedback", "recv PHOTO&COMPLETE* but no pending (duplicate ignored)");
+			return;
+		}
 		// 2026-10-28 用户定稿：收到完成反馈 → 停重发定时器
 		m_PhotoPending = false;
 		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->stop(); }
