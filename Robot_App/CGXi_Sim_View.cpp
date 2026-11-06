@@ -321,9 +321,12 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 			.arg(urdfZero[i](1, 3), 0, 'f', 4).arg(urdfZero[i](2, 3), 0, 'f', 4));
 	}
 
-	m_Renderer->ResetCamera();
-	m_Renderer->GetActiveCamera()->Azimuth(45);
-	m_Renderer->GetActiveCamera()->Elevation(30);
+	// 2026-11-06 用户定稿：初始视角——Z 轴竖直向上、Y 轴水平向右
+	// 相机在 +X 方向观察（视线 -X），up=+Z → 屏幕右=视线×up=+Y（水平向右）、Z 竖直向上
+	vtkSmartPointer<vtkCamera> cam = m_Renderer->GetActiveCamera();
+	cam->SetPosition(2.5, 0.0, 0.6);
+	cam->SetFocalPoint(0.0, 0.0, 0.55);
+	cam->SetViewUp(0.0, 0.0, 1.0);
 	m_Renderer->ResetCameraClippingRange();
 	m_VTK_Widget->GetRenderWindow()->Render();
 }
