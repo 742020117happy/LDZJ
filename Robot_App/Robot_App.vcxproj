@@ -169,6 +169,7 @@
     <None Include="..\lib\vcruntime140.dll" />
     <None Include="..\lib\vcruntime140_1.dll" />
     <None Include="..\lib\zlib.dll" />
+    <None Include="..\System_DB\Communicate_DB.json" />
     <None Include="..\x64\Release\Robot_App\stuqss.css" />
     <None Include="..\x64\Release\System_DB\Communicate_DB.json" />
     <None Include="..\x64\Release\Work_DB\Axis_Position.json" />
@@ -177,6 +178,8 @@
     <None Include="Images\Bjtds.aps" />
     <None Include="Robot_App\stuqss.css" />
     <None Include="System_DB\Communicate_DB.json" />
+    <None Include="Work_DB\Axis_Position.json" />
+    <None Include="Work_DB\InspectionPlan.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Images\Bjtds.rc" />

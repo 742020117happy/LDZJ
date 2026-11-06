@@ -223,7 +223,7 @@ void c_Robot_App_Widget::Variable_Init()
 void c_Robot_App_Widget::Variable_DB()
 {
 	//打开文件
-	QFile File;
+	QFile File; 
 	File.setFileName(QCoreApplication::applicationDirPath() + "/System_DB/Communicate_DB.json");
 	if (!File.open(QFile::ReadOnly | QIODevice::Text)) {
 		c_Variable::getInstance().g_Communicate_DB = QJsonObject(); // 文件不存在时使用空配置

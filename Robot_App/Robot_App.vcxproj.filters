@@ -4,9 +4,6 @@
     <Filter Include="主函数">
       <UniqueIdentifier>{b0348c6b-8b97-46c4-82a9-0d4a8a7fb379}</UniqueIdentifier>
     </Filter>
-    <Filter Include="运行文件">
-      <UniqueIdentifier>{03adaeab-a15b-438f-94ce-5f619fb4453b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="通讯层">
       <UniqueIdentifier>{253ef675-2ce6-4a19-9eb9-3fbf3732a850}</UniqueIdentifier>
     </Filter>
@@ -81,6 +78,15 @@
     </Filter>
     <Filter Include="软件开发工具包\机械臂仿真">
       <UniqueIdentifier>{bdabde4c-f5b0-4215-b67f-b84950a24696}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="编译目录">
+      <UniqueIdentifier>{62b4f204-1c21-4945-b8a9-e3daaedbf27b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="工作目录">
+      <UniqueIdentifier>{931af31b-12a8-403f-9c02-8696ad57ed20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="运行目录">
+      <UniqueIdentifier>{03adaeab-a15b-438f-94ce-5f619fb4453b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -216,23 +222,14 @@
     </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Robot_App\stuqss.css">
-      <Filter>界面层\主界面</Filter>
-    </None>
     <None Include="Images\Bjtds.aps">
       <Filter>软件开发工具包\图标资源工具包</Filter>
     </None>
     <None Include="..\x64\Release\Work_DB\Axis_Position.json">
-      <Filter>运行文件</Filter>
-    </None>
-    <None Include="..\x64\Release\System_DB\Communicate_DB.json">
-      <Filter>运行文件</Filter>
+      <Filter>运行目录</Filter>
     </None>
     <None Include="..\x64\Release\Robot_App\stuqss.css">
-      <Filter>运行文件</Filter>
-    </None>
-    <None Include="System_DB\Communicate_DB.json">
-      <Filter>业务层\数据缓存</Filter>
+      <Filter>运行目录</Filter>
     </None>
     <None Include="..\lib\CGXIZip.dll">
       <Filter>软件开发工具包\长广溪SDK</Filter>
@@ -274,10 +271,28 @@
       <Filter>软件开发工具包\长广溪SDK</Filter>
     </None>
     <None Include="..\轮对质检\轮对质检机器人-图像采集上传协议.md">
-      <Filter>运行文件</Filter>
+      <Filter>运行目录</Filter>
     </None>
     <None Include="..\x64\Release\Work_DB\InspectionPlan.json">
-      <Filter>运行文件</Filter>
+      <Filter>运行目录</Filter>
+    </None>
+    <None Include="..\System_DB\Communicate_DB.json">
+      <Filter>工作目录</Filter>
+    </None>
+    <None Include="Robot_App\stuqss.css">
+      <Filter>编译目录</Filter>
+    </None>
+    <None Include="System_DB\Communicate_DB.json">
+      <Filter>编译目录</Filter>
+    </None>
+    <None Include="..\x64\Release\System_DB\Communicate_DB.json">
+      <Filter>运行目录</Filter>
+    </None>
+    <None Include="Work_DB\Axis_Position.json">
+      <Filter>编译目录</Filter>
+    </None>
+    <None Include="Work_DB\InspectionPlan.json">
+      <Filter>编译目录</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
