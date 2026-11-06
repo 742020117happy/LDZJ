@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
@@ -8,16 +8,16 @@
     name="base_link">
     <inertial>
       <origin
-        xyz="-1.7601E-06 -0.0024492 -0.053766"
+        xyz="1.7601E-06 0.0024492 -0.053766"
         rpy="0 0 0" />
       <mass
         value="1.2411" />
       <inertia
         ixx="0.0022415"
         ixy="-6.7738E-09"
-        ixz="-4.0519E-08"
+        ixz="4.0519E-08"
         iyy="0.0022228"
-        iyz="3.1256E-06"
+        iyz="-3.1256E-06"
         izz="0.0026546" />
     </inertial>
     <visual>
@@ -48,22 +48,22 @@
     name="J1_Link">
     <inertial>
       <origin
-        xyz="0.00034661 5.5165E-07 -0.065302"
-        rpy="3.1416 0 0" />
+        xyz="-5.5165E-07 0.00034661 -0.065302"
+        rpy="0 0 0" />
       <mass
         value="1.7718" />
       <inertia
-        ixx="0.0034603"
-        ixy="5.0191E-08"
-        ixz="-0.00031259"
-        iyy="0.0036161"
-        iyz="-3.044E-08"
+        ixx="0.0036161"
+        ixy="-5.0191E-08"
+        ixz="3.044E-08"
+        iyy="0.0034603"
+        iyz="-0.00031259"
         izz="0.0032856" />
     </inertial>
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="3.1416 0 0" />
+        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="package://R6.SLDASM/meshes/J1_Link.STL" />
@@ -77,7 +77,7 @@
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="3.1416 0 0" />
+        rpy="0 0 0" />
       <geometry>
         <mesh
           filename="package://R6.SLDASM/meshes/J1_Link.STL" />
@@ -88,14 +88,14 @@
     name="J1"
     type="revolute">
     <origin
-      xyz="0 0 0"
-      rpy="1.5708 -1.5708 0" />
+      xyz="0 -0.0732 0.0715"
+      rpy="1.5708 0 0" />
     <parent
       link="base_link" />
     <child
       link="J1_Link" />
     <axis
-      xyz="-1 0 0" />
+      xyz="0 -1 0" />
     <limit
       lower="-6.283"
       upper="6.283"
@@ -146,8 +146,8 @@
     name="J2"
     type="revolute">
     <origin
-      xyz="0.4245 0 0"
-      rpy="3.1416 0 0" />
+      xyz="0 0.4245 0"
+      rpy="3.1416 0 1.5708" />
     <parent
       link="J1_Link" />
     <child
@@ -164,16 +164,16 @@
     name="J3_Link">
     <inertial>
       <origin
-        xyz="3.0184E-06 -0.19703 -0.050258"
+        xyz="-0.19703 -3.0248E-06 -0.050257"
         rpy="0 0 0" />
       <mass
         value="2.5895" />
       <inertia
-        ixx="0.011067"
-        ixy="4.4193E-08"
-        ixz="-1.3101E-07"
-        iyy="0.0022576"
-        iyz="8.2629E-05"
+        ixx="0.0022576"
+        ixy="-6.5374E-08"
+        ixz="8.2622E-05"
+        iyy="0.011067"
+        iyz="1.1854E-07"
         izz="0.011146" />
     </inertial>
     <visual>
@@ -205,7 +205,7 @@
     type="revolute">
     <origin
       xyz="0.393 0 0.004"
-      rpy="3.1416 0 1.5708" />
+      rpy="3.1416 0 0" />
     <parent
       link="J2_Link" />
     <child
@@ -262,8 +262,8 @@
     name="J4"
     type="revolute">
     <origin
-      xyz="0 0.0542 0.051"
-      rpy="-1.5708 0 0" />
+      xyz="0.0542 0 0.051"
+      rpy="-1.5708 0 -1.5708" />
     <parent
       link="J3_Link" />
     <child

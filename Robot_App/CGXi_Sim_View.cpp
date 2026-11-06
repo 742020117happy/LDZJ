@@ -259,61 +259,7 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 			m_Visual_Filters.push_back(vF);
 			curPoly = vF->GetOutput();
 			curFilter = vF;
-		}
-		// ② 2026-11-06 PCA 主轴对齐：mesh 长轴 → 该 link 世界竖直方向（导出器 mesh 朝向不一致修复）
-		if (i >= 1) {
-			double pcx = 0, pcy = 0, pcz = 0;
-			vtkIdType np = curPoly->GetNumberOfPoints();
-			for (vtkIdType p = 0; p < np; ++p) {
-				double pt[3]; curPoly->GetPoint(p, pt);
-				pcx += pt[0]; pcy += pt[1]; pcz += pt[2];
-			}
-			if (np > 0) { pcx /= np; pcy /= np; pcz /= np; }
-			double cov[3][3] = { {0,0,0},{0,0,0},{0,0,0} };
-			for (vtkIdType p = 0; p < np; ++p) {
-				double pt[3]; curPoly->GetPoint(p, pt);
-				double dx = pt[0] - pcx, dy = pt[1] - pcy, dz = pt[2] - pcz;
-				cov[0][0] += dx*dx; cov[0][1] += dx*dy; cov[0][2] += dx*dz;
-				cov[1][0] += dy*dx; cov[1][1] += dy*dy; cov[1][2] += dy*dz;
-				cov[2][0] += dz*dx; cov[2][1] += dz*dy; cov[2][2] += dz*dz;
-			}
-			double *covPtr[3] = { cov[0], cov[1], cov[2] };
-			double eigVec[3][3] = { {0,0,0},{0,0,0},{0,0,0} };
-			double *eigPtr[3] = { eigVec[0], eigVec[1], eigVec[2] };
-			double eigVal[3] = { 0,0,0 };
-			vtkMath::Jacobi(covPtr, eigVal, eigPtr);
-			Eigen::Vector3d u(eigVec[0][0], eigVec[1][0], eigVec[2][0]);
-			Eigen::Vector3d d = zeroP[i].block<3, 3>(0, 0).transpose() * Eigen::Vector3d::UnitZ();
-			if (u.dot(d) < 0) u = -u;
-			double cang = qBound(-1.0, u.dot(d), 1.0);
-			Eigen::Matrix3d R_align = Eigen::Matrix3d::Identity();
-			Eigen::Vector3d rax = u.cross(d);
-			double rn = rax.norm();
-			if (rn > 1e-9) {
-				rax /= rn;
-				R_align = Eigen::AngleAxisd(std::acos(cang), rax).toRotationMatrix();
-			}
-			Eigen::Matrix4d mExtra = Eigen::Matrix4d::Identity();
-			mExtra.block<3, 3>(0, 0) = R_align;
-			vtkSmartPointer<vtkMatrix4x4> aMat = vtkSmartPointer<vtkMatrix4x4>::New();
-			for (int r = 0; r < 4; ++r)
-				for (int c2 = 0; c2 < 4; ++c2)
-					aMat->SetElement(r, c2, mExtra(r, c2));
-			vtkSmartPointer<vtkTransform> aTr = vtkSmartPointer<vtkTransform>::New();
-			aTr->SetMatrix(aMat);
-			vtkSmartPointer<vtkTransformPolyDataFilter> aF =
-				vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-			aF->SetInputData(curPoly);
-			aF->SetTransform(aTr);
-			aF->Update();
-			m_Visual_Filters.push_back(aF);
-			curPoly = aF->GetOutput();
-			curFilter = aF;
-			c_Log::Info("ARM", "Sim", QString("pca align %1 ang=%.1f deg")
-				.arg(order[i]).arg(std::acos(cang) * 180.0 / 3.14159265358979323846));
-		}
-		if (curFilter) {
-			mapper->SetInputConnection(curFilter->GetOutputPort());
+		}		if (curFilter) {			mapper->SetInputConnection(curFilter->GetOutputPort());
 		}
 		else {
 			mapper->SetInputConnection(reader->GetOutputPort());
