@@ -24,6 +24,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkActor.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // URDF 解析后的单个关节数据
 struct s_Urdf_Joint
@@ -42,6 +43,9 @@ struct s_Urdf_Link
 {
 	QString name;
 	QString meshFile;         // 本地 mesh 路径（已替换 package://）
+	// 2026-11-06：visual origin 变换（xyz+rpy，URDF 标准视觉偏移；默认 I）
+	Eigen::Matrix4d visual_origin = Eigen::Matrix4d::Identity();
+	bool has_visual_origin = false;
 };
 
 class c_CGXi_Sim_View : public QWidget
@@ -79,6 +83,8 @@ private:
 	QVTKWidget *m_VTK_Widget = nullptr;
 	vtkSmartPointer<vtkRenderer> m_Renderer;
 	std::vector<vtkSmartPointer<vtkActor>> m_Link_Actors;   // 与 m_Link_Order 对应
+	// 2026-11-06：visual origin 变换管线保活（vtkTransformPolyDataFilter 须存活至渲染）
+	std::vector<vtkSmartPointer<vtkTransformPolyDataFilter>> m_Visual_Filters;
 
 	// URDF 数据
 	QVector<s_Urdf_Link> m_Links;           // 全部 link（含 base）

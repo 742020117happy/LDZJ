@@ -84,11 +84,33 @@ bool c_CGXi_Sim_View::Parse_Urdf(const QString &path)
 		if (nm == "link") {
 			s_Urdf_Link link;
 			link.name = xml.attributes().value("name").toString();
-			// 读 mesh 文件名（visual 段首个非空为准；collision 同名不重复取）
+			// 读 mesh 文件名与 visual origin（visual 段首个；collision 忽略）
+			bool inVisual = false;
 			while (!(xml.isEndElement() && xml.name() == "link") && !xml.atEnd()) {
 				xml.readNext();
-				if (xml.isStartElement() && xml.name() == "mesh" && link.meshFile.isEmpty()) {
-					link.meshFile = xml.attributes().value("filename").toString();
+				if (xml.isStartElement()) {
+					if (xml.name() == "visual") inVisual = true;
+					else if (xml.name() == "collision") inVisual = false;
+					else if (xml.name() == "mesh" && link.meshFile.isEmpty()) {
+						link.meshFile = xml.attributes().value("filename").toString();
+					}
+					else if (xml.name() == "origin" && inVisual && !link.has_visual_origin) {
+						// 2026-11-06：visual origin（xyz+rpy）解析——mesh 视觉偏移变换
+						QStringList xl = xml.attributes().value("xyz").toString().split(' ', QString::SkipEmptyParts);
+						QStringList rl = xml.attributes().value("rpy").toString().split(' ', QString::SkipEmptyParts);
+						Eigen::Vector3d vxyz = Eigen::Vector3d::Zero();
+						Eigen::Vector3d vrpy = Eigen::Vector3d::Zero();
+						if (xl.size() >= 3) vxyz = Eigen::Vector3d(xl[0].toDouble(), xl[1].toDouble(), xl[2].toDouble());
+						if (rl.size() >= 3) vrpy = Eigen::Vector3d(rl[0].toDouble(), rl[1].toDouble(), rl[2].toDouble());
+						Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+						T.block<3, 3>(0, 0) =
+							(Eigen::AngleAxisd(vrpy[2], Eigen::Vector3d::UnitZ()) *
+								Eigen::AngleAxisd(vrpy[1], Eigen::Vector3d::UnitY()) *
+								Eigen::AngleAxisd(vrpy[0], Eigen::Vector3d::UnitX())).toRotationMatrix();
+						T.block<3, 1>(0, 3) = vxyz;
+						link.visual_origin = T;
+						link.has_visual_origin = true;
+					}
 				}
 			}
 			m_Links.append(link);
@@ -212,8 +234,29 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 			continue;
 		}
 
+		// 2026-11-06：visual origin 变换应用到 mesh（URDF 标准视觉偏移；默认 I 跳过）
 		vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(reader->GetOutputPort());
+		if (m_Links[idx].has_visual_origin &&
+			!m_Links[idx].visual_origin.isApprox(Eigen::Matrix4d::Identity(), 1e-9)) {
+			vtkSmartPointer<vtkMatrix4x4> vMat = vtkSmartPointer<vtkMatrix4x4>::New();
+			for (int r = 0; r < 4; ++r) {
+				for (int c2 = 0; c2 < 4; ++c2) {
+					vMat->SetElement(r, c2, m_Links[idx].visual_origin(r, c2));
+				}
+			}
+			vtkSmartPointer<vtkTransform> vTr = vtkSmartPointer<vtkTransform>::New();
+			vTr->SetMatrix(vMat);
+			vtkSmartPointer<vtkTransformPolyDataFilter> vF =
+				vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+			vF->SetInputData(reader->GetOutput());
+			vF->SetTransform(vTr);
+			vF->Update();
+			m_Visual_Filters.push_back(vF);
+			mapper->SetInputConnection(vF->GetOutputPort());
+		}
+		else {
+			mapper->SetInputConnection(reader->GetOutputPort());
+		}
 
 		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 		actor->SetMapper(mapper);
