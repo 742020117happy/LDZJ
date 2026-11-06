@@ -90,9 +90,7 @@ private:
 	// 关节角偏移（URDF q=0 姿态 → 实机零位姿态校准，度；现场/SDK 标定）
 	double m_Joint_Offset[6] = { 0, 0, 0, 0, 0, 0 };
 
-	// 关节限位（度，解析自 URDF limit；0=未定义时回退硬编码兜底）
-	double m_Joint_Limit_Low[6] = { 0, 0, 0, 0, 0, 0 };
-	double m_Joint_Limit_High[6] = { 0, 0, 0, 0, 0, 0 };
+
 
 	// 2026-11-05 修复：声明即初始化 Identity（未初始化垃圾值致 FK 全链 NaN → 模型不显示）
 	Eigen::Matrix4d m_Base_Install_Matrix = Eigen::Matrix4d::Identity();

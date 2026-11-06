@@ -129,21 +129,7 @@ bool c_CGXi_Sim_View::Parse_Urdf(const QString &path)
 			T.block<3, 3>(0, 0) = R;
 			T.block<3, 1>(0, 3) = jt.xyz;
 			jt.origin = T;
-			m_Joints.append(jt);
-			// 2026-11-05 完善：限位随 joint 顺序暂存（弧度→度），URDF 为准
-			// （J3=±2.88rad=±165°、其余±6.283rad=±360°，与硬件篇表 A-1 一致）
-			static const double R2D = 180.0 / 3.14159265358979323846;
-			if (jt.lower != 0.0 || jt.upper != 0.0) {
-				int idx = m_Joints.size() - 1;
-				if (idx >= 0 && idx < 6) {
-					m_Joint_Limit_Low[idx] = jt.lower * R2D;
-					m_Joint_Limit_High[idx] = jt.upper * R2D;
-				}
-			}
-			else {
-				c_Log::Warn("ARM", "Sim", QString("urdf joint %1 limit undefined (0,0), fallback hardcoded").arg(jt.name));
-			}
-		}
+			m_Joints.append(jt);}
 	}
 	bool ok = !xml.hasError();
 	if (!ok) c_Log::Error("ARM", "Sim", QString("urdf parse error: %1").arg(xml.errorString()));
@@ -157,7 +143,13 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 {
 	// 2026-11-05 路径：URDF 包在 exe 目录\Robot_App\R6.SLDASM（与旧 STL 模型目录约定一致）
 	QString baseDir = QCoreApplication::applicationDirPath() + "/Robot_App/R6.SLDASM/";
-	QString urdfPath = baseDir + "urdf/R6.SLDASM.urdf";
+	// 2026-11-06 优化：自动查找 urdf 目录下第一个 .urdf（包名/文件名变化自适应）
+	QString urdfPath;
+	{
+		QDir udir(baseDir + "urdf");
+		QStringList ul = udir.entryList(QStringList() << "*.urdf", QDir::Files);
+		if (!ul.isEmpty()) urdfPath = udir.filePath(ul.first());
+	}
 	if (!Parse_Urdf(urdfPath)) {
 		c_Log::Error("ARM", "Sim", "urdf parse failed");
 		return;
@@ -205,7 +197,7 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 		if (idx < 0) { c_Log::Error("ARM", "Sim", QString("link not found %1").arg(order[i])); continue; }
 		QString meshRef = m_Links[idx].meshFile;
 		// package://R6.SLDASM/meshes/xxx.STL → 本地路径
-		meshRef.replace("package://R6.SLDASM/", "");
+		meshRef.replace(QRegExp("^package://[^/]+/"), "");	// 2026-11-06 优化：通用去包名前缀
 		QString meshPath = baseDir + meshRef;
 		if (!QFile::exists(meshPath)) {
 			c_Log::Error("ARM", "Sim", QString("mesh not found %1").arg(meshPath));
@@ -266,10 +258,6 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 ******************************************************************************/
 std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 {
-	double j[6];
-	for (int i = 0; i < 6; ++i) j[i] = j_deg[i];
-	Check_Limit(j);
-
 	static const double D2R = 3.14159265358979323846 / 180.0;
 
 	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
@@ -283,37 +271,30 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 		}
 		if (!jt) continue;
 
+		// 2026-11-06 优化：限位直接取 URDF joint limit（弧度）；(0,0)=未定义时硬编码兜底
+		// （J3±165 其余±360——G6 硬件篇表 A-1）；偏移+限位都在 FK 内完成，运动参数以 URDF 为准
+		double q = j_deg[i] + m_Joint_Offset[i];
+		double low = jt->lower, high = jt->upper;
+		if (low == 0.0 && high == 0.0) {
+			double lim = (i == 2 ? 165.0 : 360.0) * D2R;
+			low = -lim;
+			high = lim;
+		}
+		q = qBound(low, q, high);
+
 		Eigen::Matrix4d rot = Eigen::Matrix4d::Identity();
 		rot.block<3, 3>(0, 0) =
-			Eigen::AngleAxisd((j[i] + m_Joint_Offset[i]) * D2R, jt->axis).toRotationMatrix();
+			Eigen::AngleAxisd(q, jt->axis).toRotationMatrix();
 
 		T = T * jt->origin * rot;
 		poses[i + 1] = T;
 	}
 	return poses;
 }
-
 /******************************************************************************
 * 关节限位校验：URDF limit 为准（解析自导出器），未定义时硬编码兜底
 * 兜底：J1/J2/J4/J5/J6 ±360°，J3 ±165°（G6 硬件篇 表A-1）
 ******************************************************************************/
-bool c_CGXi_Sim_View::Check_Limit(double j_deg[6])
-{
-	bool ok = true;
-	for (int i = 0; i < 6; ++i) {
-		double low = m_Joint_Limit_Low[i], high = m_Joint_Limit_High[i];
-		if (low == 0.0 && high == 0.0) {
-			double lim = (i == 2) ? 165.0 : 360.0;
-			low = -lim;
-			high = lim;
-		}
-		if (j_deg[i] > high || j_deg[i] < low) {
-			ok = false;
-			j_deg[i] = qBound(low, j_deg[i], high);
-		}
-	}
-	return ok;
-}
 
 /******************************************************************************
 * 内部更新：FK 位姿应用到 actor
