@@ -1,0 +1,9 @@
+# Default initial positions for aubo_i10's ros2_control fake system
+
+initial_positions:
+  G6_joint1: 0
+  G6_joint2: 0
+  G6_joint3: 0
+  G6_joint4: 0
+  G6_joint5: 0
+  G6_joint6: 0

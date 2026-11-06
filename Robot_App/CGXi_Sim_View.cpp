@@ -215,12 +215,7 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 	};
 	// 2026-11-06：双基准零位计算（静态=URDF 链、运动=SDK 相对增量）
 	double zero[6] = { 0, 0, 0, 0, 0, 0 };
-	std::vector<Eigen::Matrix4d> urdfZero = FK_URDF(zero);
-	std::vector<Eigen::Matrix4d> sdkZero = FK_SDK(zero);
-	for (int z = 0; z < 7 && z < (int)urdfZero.size(); ++z) {
-		m_URDF_Zero[z] = urdfZero[z];
-		m_SDK_Zero[z] = sdkZero[z];
-	}
+	std::vector<Eigen::Matrix4d> urdfZero = FK(zero);
 
 	int loaded = 0;
 	for (int i = 0; i < order.size() && i < 7; ++i) {
@@ -228,7 +223,12 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 		if (idx < 0) { c_Log::Error("ARM", "Sim", QString("link not found %1").arg(order[i])); continue; }
 		QString meshRef = m_Links[idx].meshFile;
 		// package://R6.SLDASM/meshes/xxx.STL → 本地路径
-		meshRef.replace(QRegExp("^package://[^/]+/"), "");	// 2026-11-06 优化：通用去包名前缀
+		meshRef.replace(QRegExp("^package://[^/]+/"), "");
+		// 2026-11-06 官方 URDF 适配：visual 为 dae（VTK 无 Collada reader）——改用官方 collision STL
+		if (meshRef.endsWith(".dae")) {
+			meshRef.replace("visual/", "collision/");
+			meshRef.replace(".dae", ".stl");
+		}	// 2026-11-06 优化：通用去包名前缀
 		QString meshPath = baseDir + meshRef;
 		if (!QFile::exists(meshPath)) {
 			c_Log::Error("ARM", "Sim", QString("mesh not found %1").arg(meshPath));
@@ -307,11 +307,11 @@ void c_CGXi_Sim_View::Load_Robot_Models()
 * FK：URDF 链（含关节角偏移）
 * T_child = T_parent · Origin_joint · Rot(axis, q+offset)
 ******************************************************************************/
-std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK_URDF(const double j_deg[6])
+std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK(const double j_deg[6])
 {
 	static const double D2R = 3.14159265358979323846 / 180.0;
 
-	// URDF 链（2026-11-06 09:53 导出）：静态基准——origin/axis/limit 以 URDF 为准
+	// 2026-11-06 官方 G6.urdf（CGXi 官网）：链与 SDK 正解精确一致（零位/J1/J2/J3 全吻合）——直接权威驱动
 	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
 	Eigen::Matrix4d T = m_Base_Install_Matrix;
 	poses[0] = T;
@@ -341,49 +341,6 @@ std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK_URDF(const double j_deg[6])
 	return poses;
 }
 
-std::vector<Eigen::Matrix4d> c_CGXi_Sim_View::FK_SDK(const double j_deg[6])
-{
-	static const double D2R = 3.14159265358979323846 / 180.0;
-
-	// 2026-11-06 代码轴修正：SDK 权威关节链（实机正解数值提取，R271 验证 J2~TCP=924.9=手册 924）
-	static const double P[7][3] = {
-		{ 0.0,      0.0,      0.0     },
-		{ 0.0,      0.0,      0.1675  },
-		{ 0.0,      0.0,      0.5925  },
-		{ 0.0,      0.0,      0.9855  },
-		{ 0.0,    -0.1203,    0.9855  },
-		{ 0.0,    -0.1203,    1.0915  },
-		{ 0.0,    -0.2229,    1.0915  }
-	};
-	static const double AX[6][3] = {
-		{ 0.0,  0.0,  1.0 },
-		{ 0.0, -1.0,  0.0 },
-		{ 0.0, -1.0,  0.0 },
-		{ 0.0, -1.0,  0.0 },
-		{ 0.0,  0.0,  1.0 },
-		{ 0.0,  0.0,  1.0 }
-	};
-
-	std::vector<Eigen::Matrix4d> poses(7, Eigen::Matrix4d::Identity());
-	Eigen::Matrix4d T = m_Base_Install_Matrix;
-	poses[0] = T;
-
-	for (int i = 0; i < 6; ++i) {
-		Eigen::Matrix4d tr = Eigen::Matrix4d::Identity();
-		tr(0, 3) = P[i + 1][0] - P[i][0];
-		tr(1, 3) = P[i + 1][1] - P[i][1];
-		tr(2, 3) = P[i + 1][2] - P[i][2];
-		T = T * tr;
-
-		Eigen::Vector3d ax(AX[i][0], AX[i][1], AX[i][2]);
-		Eigen::Matrix4d rot = Eigen::Matrix4d::Identity();
-		rot.block<3, 3>(0, 0) = Eigen::AngleAxisd((j_deg[i] + m_Joint_Offset[i]) * D2R, ax).toRotationMatrix();
-		T = T * rot;
-
-		poses[i + 1] = T;
-	}
-	return poses;
-}
 /******************************************************************************
 * 内部更新：FK 位姿应用到 actor（绝对应用——combined 已含基准）
 ******************************************************************************/
@@ -415,13 +372,8 @@ void c_CGXi_Sim_View::Update_Pose(double joints_deg[6])
 	if (m_Last_Render_Time.elapsed() < RENDER_INTERVAL_MS) return;
 	m_Last_Render_Time.restart();
 
-	// 2026-11-06 组合：URDF 零位（静态基准）× SDK 相对增量（实机轴修正）
-	std::vector<Eigen::Matrix4d> sdkPoses = FK_SDK(joints_deg);
-	std::vector<Eigen::Matrix4d> combined(7, Eigen::Matrix4d::Identity());
-	for (int i = 0; i < 7 && i < (int)sdkPoses.size(); ++i) {
-		combined[i] = m_URDF_Zero[i] * sdkPoses[i] * m_SDK_Zero[i].inverse();
-	}
-	Update_Pose_Internal(combined);
+	std::vector<Eigen::Matrix4d> poses = FK(joints_deg);
+	Update_Pose_Internal(poses);
 }
 
 /******************************************************************************
