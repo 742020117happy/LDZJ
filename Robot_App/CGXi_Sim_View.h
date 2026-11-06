@@ -26,6 +26,7 @@
 #include <vtkRenderer.h>
 #include <vtkActor.h>
 #include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkMath.h>
 
