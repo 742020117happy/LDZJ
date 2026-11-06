@@ -308,7 +308,9 @@ void c_CGXi_Sim_View::Update_Pose_Internal(const std::vector<Eigen::Matrix4d> &p
 		vtkSmartPointer<vtkMatrix4x4> vtkMat = vtkSmartPointer<vtkMatrix4x4>::New();
 		for (int r = 0; r < 4; ++r) {
 			for (int c = 0; c < 4; ++c) {
-				vtkMat->SetElement(r, c, final_pose(c, r));  // Eigen 列主序 → VTK 行主序转置
+				// 2026-11-06 修复：Eigen (r,c) 与 VTK Element[r][c] 同为逻辑行列，无需转置——
+				// 原转置写法把平移丢到 (3,0)（VTK 平移在 (0,3)），致所有 link 平移丢失叠在原点
+				vtkMat->SetElement(r, c, final_pose(r, c));
 			}
 		}
 		transform->SetMatrix(vtkMat);
