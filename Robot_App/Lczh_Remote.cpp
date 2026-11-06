@@ -628,17 +628,12 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
 		{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁
-		QWriteLocker locker(&c_Variable::g_lock);
-		c_Variable::getInstance().g_Work_DB.totalImages += 4;
-	}
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.totalImages += 4;
+		}
 		emit Photo_Completed(m_LastPhotoName);	// 2026-08-19 修复：精确匹配分支补齐 MySQL 入库回调
 	}
-	else if (msg == QLatin1String("PHOTO&ERROR")) {
-		// 2026-10-25 L：采集失败 ERROR（只记录）
-		c_Log::Error("SCAN", "Feedback", QString("recv PHOTO&ERROR name=%1").arg(m_LastPhotoName));
-		emit Status(m_Camera_num + "相机反馈：采集失败");
-	}
-	else if (msg.startsWith("PHOTO&COMPLETE")) {
+	else if (msg.startsWith(QLatin1String("PHOTO&COMPLETE"))) {
 		// 带有额外后缀的 COMPLETE（如含文件名），仍视为成功
 		// 2026-10-28 用户定稿：收到完成反馈 → 停重发定时器
 		m_PhotoPending = false;
@@ -646,12 +641,17 @@ void c_Lczh_Remote::On_Camera_Feedback(QString msg)
 		c_Log::Info("SCAN", "Feedback", QString("recv PHOTO&COMPLETE* name=%1").arg(m_LastPhotoName));
 		emit Signal_Tran_Write("<COMPLETE><T1>!");
 		{	// 2026-10-24 T86：totalImages 跨线程读，写侧持写锁
-		QWriteLocker locker(&c_Variable::g_lock);
-		c_Variable::getInstance().g_Work_DB.totalImages += 4;
-	}
+			QWriteLocker locker(&c_Variable::g_lock);
+			c_Variable::getInstance().g_Work_DB.totalImages += 4;
+		}
 		emit Photo_Completed(m_LastPhotoName);
 	}
-	else if (msg.startsWith("PHOTO&ERROR")) {
+	else if (msg == QLatin1String("PHOTO&ERROR")) {
+		// 2026-10-25 L：采集失败 ERROR（只记录；2026-11-06 定稿：不触发 MySql 缓存）
+		c_Log::Error("SCAN", "Feedback", QString("recv PHOTO&ERROR name=%1").arg(m_LastPhotoName));
+		emit Status(m_Camera_num + "相机反馈：采集失败");
+	}
+	else if (msg.startsWith(QLatin1String("PHOTO&ERROR"))) {
 		c_Log::Error("SCAN", "Feedback", QString("recv PHOTO&ERROR* name=%1").arg(m_LastPhotoName));
 		emit Status(m_Camera_num + "相机反馈：采集错误");
 	}
