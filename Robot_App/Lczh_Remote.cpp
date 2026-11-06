@@ -581,7 +581,8 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		c_Log::Info("SCAN", "Cmd", "recv PHOTO&FINISH! from arm → send finish");
 		m_LastPart1.clear();	// 2026-11-05 轨迹边界复位一级部件变化日志（现场机械臂不发 START&!，以 FINISH 为边界）
 		// 2026-10-28 用户定稿：轨迹结束停重发（异常场景：机械臂已结束但相机未回 COMPLETE，不再重发）
-		m_PhotoPending = false;
+		// 2026-11-06 修正：不置 m_PhotoPending=false——迟到的 COMPLETE 仍应处理（防成功采集丢失）；
+		// 仅停重发定时器即可（pending 残留 true 无害，下一轨迹 PHOTO 发送时覆盖）
 		if (m_PhotoRetryTimer) { m_PhotoRetryTimer->stop(); }
 		Send_To_Camera("PHOTO&FINISH");	// WW1 收敛（固定帧无空格）
 		{	// 2026-10-24 CC/T86：currentPos 写侧持锁（原无锁别名写为数据竞争）
