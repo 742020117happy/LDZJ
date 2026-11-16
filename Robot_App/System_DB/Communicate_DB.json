@@ -83,7 +83,7 @@
   "Voice_Com": "COM1",
   "Voice_Enable": true,
   "Voice_Parity": 0,
-  "Voice_Volume": 5,
+  "Voice_Volume": 10,
   "Web_Server_Ip": "192.168.0.107",
   "Work_State": false
 }
