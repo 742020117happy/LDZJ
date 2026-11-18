@@ -151,14 +151,17 @@ void c_Lczh_Remote::Start_Scan()
 	}
 	{
 		QReadLocker locker(&c_Variable::g_lock);
-		// 2026-10-26 协议定稿：START&{sendUnit}&{yyyyMMdd}&{HHmm}&{carType}{wheelsetKind}&{taskId}
+		// 2026-11-06 用户定稿：弃用 startTime——taskId={yyyyMMddHHmm}{wheelsetNo}{carType}，
+		// 用 taskId 前 12 位（前 8 位 yyyyMMdd + 中 4 位 HHmm）代替 startTime 在采集指令中的作用
+		// 协议帧：START&{sendUnit}&{yyyyMMdd}&{HHmm}&{carType}{wheelsetKind}&{taskId}
+		QString taskIdSnap = c_Variable::getInstance().g_Work_DB.taskId;
 		cmd = QString("START&%1&%2&%3&%4%5&%6")
 			.arg(c_Variable::getInstance().g_Work_DB.sendUnit)
-			.arg(c_Variable::getInstance().g_Work_DB.startTime.left(8))
-			.arg(c_Variable::getInstance().g_Work_DB.startTime.right(4))
+			.arg(taskIdSnap.left(8))
+			.arg(taskIdSnap.mid(8, 4))
 			.arg(carType)
 			.arg(wheelsetKind)
-			.arg(c_Variable::getInstance().g_Work_DB.taskId);
+			.arg(taskIdSnap);
 	}
 	// 2026-10-25 L：START 指令发送（只打印允许字段：任务ID/轮对号/车轴号，不打印完整命令串）
 	c_Log::Info("SCAN", "Cmd", QString("send START task_id=%1 wheel=%2 axle=%3")
@@ -326,8 +329,11 @@ QString c_Lczh_Remote::Build_Photo_Filename()
 	QString name;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
+		// 2026-11-06 用户定稿：弃用 startTime——文件名 yyyyMMdd 段改用 taskId 前 8 位
+		//（taskId={yyyyMMddHHmm}{wheelsetNo}{carType}）
+		QString taskIdSnap = c_Variable::getInstance().g_Work_DB.taskId;
 		name = QString("T1-%1-%2%3-%4%5-%6-%7-%8-%9-%10-%11")
-			.arg(c_Variable::getInstance().g_Work_DB.startTime.left(8))
+			.arg(taskIdSnap.left(8))
 			.arg(c_Variable::getInstance().g_Work_DB.carType)
 			.arg(c_Variable::getInstance().g_Work_DB.wheelsetKind)
 			.arg(c_Variable::getInstance().g_Work_DB.axleType)
@@ -348,19 +354,18 @@ QString c_Lczh_Remote::Build_Photo_Filename()
 *************************************************************************************************************************************************/
 void c_Lczh_Remote::Send_Photo_Now()
 {
-	QString carType, wheelsetKind, startTime, repairLevel, sendUnit, wheelsetNo, axleNo;
+	QString carType, wheelsetKind, repairLevel, sendUnit, wheelsetNo, axleNo;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		carType      = c_Variable::getInstance().g_Work_DB.carType;
 		wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;
-		startTime    = c_Variable::getInstance().g_Work_DB.startTime;
 		repairLevel  = c_Variable::getInstance().g_Work_DB.repairLevel;
 		sendUnit     = c_Variable::getInstance().g_Work_DB.sendUnit;
 		wheelsetNo   = c_Variable::getInstance().g_Work_DB.wheelsetNo;
 		axleNo       = c_Variable::getInstance().g_Work_DB.axleNo;
 	}
-	// 校验：文件名参数完整性
-	if (startTime.isEmpty() || repairLevel.isEmpty() || sendUnit.isEmpty() ||
+	// 2026-11-06 定稿：startTime 弃用（文件名时间取自 taskId）——校验移除 startTime
+	if (repairLevel.isEmpty() || sendUnit.isEmpty() ||
 		wheelsetNo.isEmpty() || axleNo.isEmpty() || carType.isEmpty() || wheelsetKind.isEmpty()) {
 		emit Status(m_Camera_num + "CGXi消息：PHOTO指令缺少WEB任务参数");
 		return;
@@ -456,26 +461,26 @@ void c_Lczh_Remote::On_CGXi_Message(QByteArray buffer)
 		m_LastGain = -1;
 
 		// 2026-10-24 CC：读侧持锁字段快照（g_Work_DB 跨线程读写，锁外直读 QString 有 COW 引用计数竞争风险）
-		QString sendUnit, startTime, carType, wheelsetKind, taskId;
+		QString sendUnit, carType, wheelsetKind, taskId;
 		{
 			QReadLocker locker(&c_Variable::g_lock);
 			sendUnit     = c_Variable::getInstance().g_Work_DB.sendUnit;
-			startTime    = c_Variable::getInstance().g_Work_DB.startTime;
 			carType      = c_Variable::getInstance().g_Work_DB.carType;
 			wheelsetKind = c_Variable::getInstance().g_Work_DB.wheelsetKind;
 			taskId       = c_Variable::getInstance().g_Work_DB.taskId;
 		}
-		if (sendUnit.isEmpty() || startTime.isEmpty() || carType.isEmpty() || wheelsetKind.isEmpty() || taskId.isEmpty()) {
+		if (sendUnit.isEmpty() || carType.isEmpty() || wheelsetKind.isEmpty() || taskId.isEmpty()) {
 			// 2026-10-27 现场：空值拒绝（协议 START 字段缺失会发畸形帧污染采集软件）
 			emit Status(m_Camera_num + "CGXi消息：START指令缺少WEB任务字段");
 			return;
 		}
 
-		// 2026-10-26 协议定稿：第5段=车型轮对类型；remove 空白为防御（指令入口已禁，双保险）
+		// 2026-11-06 用户定稿：弃用 startTime——用 taskId 前 12 位（yyyyMMddHHmm）代替
+		// 第5段=车型轮对类型；remove 空白为防御（指令入口已禁，双保险）
 		QString cmd = QString("START&%1&%2&%3&%4%5&%6")
 			.arg(sendUnit)
-			.arg(startTime.left(8))
-			.arg(startTime.right(4))
+			.arg(taskId.left(8))
+			.arg(taskId.mid(8, 4))
 			.arg(carType)
 			.arg(wheelsetKind)
 			.arg(taskId);
