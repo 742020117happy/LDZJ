@@ -13,6 +13,9 @@ c_Magic_Remote::~c_Magic_Remote() {
 	if (m_CameraTimer) {
 		m_CameraTimer->stop();	// 2026-10-25 HH1：析构停相机轮询
 	}
+	if (m_LidarTimer) {
+		m_LidarTimer->stop();	// 2026-11-07：析构停激光轮询
+	}
 	if (m_HTTP_Thread) {
 		if (m_HTTP_Thread->isRunning()) {
 			m_HTTP_Thread->requestInterruption();
@@ -39,6 +42,11 @@ void c_Magic_Remote::Init() {
 	m_CameraTimer = new QTimer(this);
 	QObject::connect(m_CameraTimer, &QTimer::timeout, this, &c_Magic_Remote::Poll_Camera);
 
+	// 2026-11-07：激光专用定时器——原 Get_Laser2D 混在 1s 低频槽位（1Hz 点云卡顿），
+	// 独立 100ms 轮询提升至 10Hz（laser2d/scan 响应约数 KB，QNAM 并行通道充足）
+	m_LidarTimer = new QTimer(this);
+	QObject::connect(m_LidarTimer, &QTimer::timeout, this, &c_Magic_Remote::Poll_Lidar);
+
 	m_ReconnectTimer = new QTimer(this);
 	m_ReconnectTimer->setSingleShot(true);
 	QObject::connect(m_ReconnectTimer, &QTimer::timeout, this, &c_Magic_Remote::Try_Reconnect);
@@ -62,6 +70,7 @@ void c_Magic_Remote::Init() {
 		c_Variable::getInstance().g_Magic.Ready = false;
 		if (m_PollTimer) m_PollTimer->stop();
 		if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：断开同步停相机轮询
+		if (m_LidarTimer) m_LidarTimer->stop();	// 2026-11-07：断开同步停激光轮询
 		emit Status("Magic遥控：HTTP客户端已断开");
 		if (!m_LastIP.isEmpty()) Start_Reconnect();
 	});
@@ -115,7 +124,7 @@ void c_Magic_Remote::Poll_Status() {
 		Get_GPS();                   // 4.6.10 GPS数据
 		Get_Task_Current();          // 4.4.15 当前执行任务
 		Get_Sys_Status();            // 4.9.3 导航系统状态
-		Get_Laser2D();               // 4.6.7 2D激光扫描（数据量大，降为1Hz）
+		// 2026-11-07：Get_Laser2D 移出 1s 槽位 → 专用 m_LidarTimer 100ms 轮询（10Hz，MapView 联合显示）
 		Get_Local_Plan_Path();       // 4.6.15 局部路径
 	}
 	// 5. 超低频数据 (每30次轮询请求一次，6000ms)
@@ -147,6 +156,14 @@ void c_Magic_Remote::Poll_Camera() {
 	Get_Ahl2_RGB_Img();	// 4.6.11 后相机彩色图像
 }
 
+// ================= 2026-11-07：激光专用轮询（100ms → 2D 点云 10Hz，MapView 联合显示） =================
+void c_Magic_Remote::Poll_Lidar() {
+	if (!c_Variable::getInstance().g_Magic.is_connected || c_Variable::getInstance().g_Magic.token.isEmpty()) {
+		return;
+	}
+	Get_Laser2D();	// 4.6.7 2D激光扫描（响应解析后 emit update_RobotStatus → MapView 10Hz 刷新）
+}
+
 // ======================== 连接管理 ========================
 void c_Magic_Remote::Connect_Device(QString ip, quint16 port) {
 	QReadLocker locker(&c_Variable::g_lock);	// 2026-10-24 重构 T01：读侧持锁
@@ -176,6 +193,7 @@ void c_Magic_Remote::Set_Token_Done(QString token)
 	Stop_Reconnect();
 	if (m_PollTimer) m_PollTimer->start(200);	// 2026-10-24 C2：Init 未执行时防空指针
 	if (m_CameraTimer) m_CameraTimer->start(100);	// 2026-10-25 HH1：登录成功后启动相机轮询（10Hz）
+	if (m_LidarTimer) m_LidarTimer->start(100);	// 2026-11-07：登录成功后启动激光轮询（10Hz）
 }
 void c_Magic_Remote::Disconnect_Device() {
 	c_Variable::getInstance().g_Magic.is_connected = false;
@@ -188,6 +206,7 @@ void c_Magic_Remote::Disconnect_Device() {
 	c_Variable::getInstance().g_Magic.Ready = false;
 	if (m_PollTimer) m_PollTimer->stop();
 	if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：断开同步停相机轮询
+	if (m_LidarTimer) m_LidarTimer->stop();	// 2026-11-07：断开同步停激光轮询
 	// 2026-10-24 审查修复 D3：用户主动断开时清空 IP 并停重连定时器（原 Disconnect_Done 后又被自动重连）
 	m_LastIP.clear();
 	if (m_ReconnectTimer) m_ReconnectTimer->stop();
@@ -199,6 +218,7 @@ void c_Magic_Remote::Start_Reconnect() {
 	if (m_LastIP.isEmpty()) return;
 	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
 	if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：重连等待期停相机轮询
+	if (m_LidarTimer) m_LidarTimer->stop();	// 2026-11-07：重连等待期停激光轮询
 	int delay = qMin(1000 * (1 << m_ReconnectAttempt), 30000); // 1s,2s,4s,8s,16s,30s...
 	m_ReconnectAttempt++;
 	// 2026-10-25 LL2：断线自动重连（只记录，不改变退避序列）
@@ -233,6 +253,7 @@ void c_Magic_Remote::Login(QString user_code, QString password) {
 	m_LastPass = password;
 	if (m_PollTimer) m_PollTimer->stop();	// 2026-10-24 C2 空指针防护
 	if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：重登等待期停相机轮询
+	if (m_LidarTimer) m_LidarTimer->stop();	// 2026-11-07：重登等待期停激光轮询
 	// 2026-10-25 L：登录请求（只打印用户名，密码仅字段名不打印值——规范 §六）
 	c_Log::Info("CHASSIS", "Login", QString("request user=%1 password=******").arg(user_code));
 	QJsonObject body;
@@ -1298,6 +1319,7 @@ bool c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 				}
 			}
 			c_Variable::getInstance().g_Magic.ReadData.lidarOnline = !c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.isEmpty();
+			emit update_RobotStatus();	// 2026-11-07：激光解析完成触发 MapView 刷新（10Hz 点云联动）
 		}
 		return true;
 	}
@@ -2145,6 +2167,7 @@ void c_Magic_Remote::On_Response_Done(QString api, QJsonObject body)
 			// 2026-10-24 审查修复 D1：401 后停轮询 → 用缓存凭证自动重登一次（原链路断裂永不恢复）
 			if (m_PollTimer) m_PollTimer->stop();
 			if (m_CameraTimer) m_CameraTimer->stop();	// 2026-10-25 HH1：401 停相机轮询（重登成功后由 Set_Token_Done 重启）
+			if (m_LidarTimer) m_LidarTimer->stop();	// 2026-11-07：401 停激光轮询（重登成功后由 Set_Token_Done 重启）
 			if (!m_LastUser.isEmpty()) QTimer::singleShot(1000, this, [this]() { Login(m_LastUser, m_LastPass); });
 		}
 		else {

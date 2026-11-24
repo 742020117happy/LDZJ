@@ -246,12 +246,12 @@ void c_Magic_Map_View::Draw_Nav_Points(QPainter &painter)
 			painter.drawEllipse(QPointF(0, 0), 5.0, 5.0);
 		}
 
-		// 名称标签：反缩放保持可读，黑边白字
+		// 名称标签：反缩放保持可读，白边黑字（2026-11-07 黑色文本更醒目，白色描边保证暗底可读）
 		painter.scale(inv, inv);
 		QString name = pt["name"].toString();
-		painter.setPen(QPen(QColor(0, 0, 0, 200), 2.0));
+		painter.setPen(QPen(QColor(255, 255, 255, 230), 2.5));
 		painter.drawText(QPointF(9, 5), name);
-		painter.setPen(Qt::white);
+		painter.setPen(Qt::black);
 		painter.drawText(QPointF(9, 5), name);
 		painter.restore();
 	}
@@ -282,14 +282,14 @@ void c_Magic_Map_View::Draw_Lidar_Overlay(QPainter &painter)
 
 	painter.save();
 	painter.setPen(Qt::NoPen);
-	painter.setBrush(QColor(0, 255, 80, 110));   // 半透明绿点
+	painter.setBrush(QColor(255, 40, 40, 190));   // 2026-11-07 红色点云（更醒目，原绿色）
 	for (const QPointF &pt : pts) {
 		// 与 World_To_Pixel 相同变换（内联避免每点加锁）
 		double gx = (pt.x() - ox) / resolution;
 		double gy = (pt.y() - oy) / resolution;
 		double px = gx - (gw / 2.0);
 		double py = (gh - gy) - (gh / 2.0);
-		painter.drawEllipse(QPointF(px, py), 1.2, 1.2);
+		painter.drawEllipse(QPointF(px, py), 1.5, 1.5);
 	}
 	painter.restore();
 }
