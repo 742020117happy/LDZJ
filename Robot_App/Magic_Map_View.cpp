@@ -116,13 +116,71 @@ void c_Magic_Map_View::paintEvent(QPaintEvent *event)
 	painter.drawImage(imgRect, mapImage);
 
 	if (connected) {
-		// 2026-11-06 联合显示：点云先画（在机器人图标下层）、机器人后画
-	Draw_Lidar_Overlay(painter);
-	Draw_Robot(painter);
+		// 2026-11-06 联合显示：路径→点云→机器人（后画者在上层）
+		Draw_Plan_Paths(painter);
+		Draw_Lidar_Overlay(painter);
+		Draw_Robot(painter);
 	}
 
 	painter.restore();
 	Draw_HUD(painter);
+}
+
+/******************************************************************************
+* 规划路径叠加（2026-11-06 原 c_Magic_Lidar_View 迁移）：
+* localPlanPath=局部路径（蓝色实线）、localGridPlanPath=全局栅格路径（黄色虚线）。
+* 与点云/地图同世界坐标系，用同一变换绘制保证对齐。
+* 坐标语义假设：与 laser2d/scan 同为世界坐标（Magic 底盘实时数据族）；现场若不符再调。
+******************************************************************************/
+void c_Magic_Map_View::Draw_Plan_Paths(QPainter &painter)
+{
+	QVector<QPointF> localPts, gridPts;
+	double resolution = 0.05, ox = 0, oy = 0;
+	int gw = 1, gh = 1;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 值拷贝快照
+		localPts = read.localPlanPath;
+		gridPts = read.localGridPlanPath;
+		resolution = read.resolution;
+		if (qFuzzyIsNull(resolution) || resolution < 0.001) resolution = 0.05;
+		gw = read.gridWidth; gh = read.gridHeight;
+		if (gw <= 0) gw = 1;
+		ox = read.originX; oy = read.originY;
+	}
+	if (gh <= 0) gh = 1;
+	if (localPts.isEmpty() && gridPts.isEmpty()) return;
+
+	// 无锁世界→像素（与 Draw_Lidar_Overlay 相同变换）
+	auto toPixel = [&](const QPointF &pt) -> QPointF {
+		double gx = (pt.x() - ox) / resolution;
+		double gy = (pt.y() - oy) / resolution;
+		return QPointF(gx - (gw / 2.0), (gh - gy) - (gh / 2.0));
+	};
+
+	if (localPts.size() >= 2) {
+		painter.save();
+		painter.setPen(QPen(QColor(100, 200, 255, 150), 2.0));
+		QPainterPath path;
+		path.moveTo(toPixel(localPts.first()));
+		for (int i = 1; i < localPts.size(); ++i)
+			path.lineTo(toPixel(localPts.at(i)));
+		painter.drawPath(path);
+		painter.restore();
+	}
+
+	if (gridPts.size() >= 2) {
+		painter.save();
+		QPen pen(QColor(255, 220, 60, 170), 2.0);
+		pen.setStyle(Qt::DashLine);
+		painter.setPen(pen);
+		QPainterPath path;
+		path.moveTo(toPixel(gridPts.first()));
+		for (int i = 1; i < gridPts.size(); ++i)
+			path.lineTo(toPixel(gridPts.at(i)));
+		painter.drawPath(path);
+		painter.restore();
+	}
 }
 
 /******************************************************************************
@@ -224,16 +282,18 @@ void c_Magic_Map_View::Draw_HUD(QPainter &painter)
 {
 	// 2026-10-24 T52：锁内快照标量，锁外绘制
 	double snap_localized, snap_worldX, snap_worldY;
+	int snap_scanCount = 0;
 	{
 		QReadLocker locker(&c_Variable::g_lock);
 		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 2026-10-24 CC：值拷贝快照（禁止别名引用）
 		snap_localized = read.localized;
 		snap_worldX = read.worldX;
 		snap_worldY = read.worldY;
+		snap_scanCount = read.laserScanPoints.size();	// 2026-11-06 联合显示：点云数入 HUD（原 LidarView 迁移）
 	}
 
 
-	QRectF bg(10, 10, 200, 90);
+	QRectF bg(10, 10, 200, 110);
 	painter.setPen(Qt::NoPen);
 	painter.setBrush(QColor(0, 0, 0, 160));
 	painter.drawRoundedRect(bg, 6, 6);
@@ -256,6 +316,11 @@ void c_Magic_Map_View::Draw_HUD(QPainter &painter)
 	painter.drawText(20, y, QString("Pos: (%1, %2)")
 		.arg(snap_worldX, 0, 'f', 2)
 		.arg(snap_worldY, 0, 'f', 2));
+	y += 20;
+
+	// 2026-11-06 联合显示：雷达点云数（原 LidarView HUD 迁移）
+	painter.setPen(snap_scanCount > 0 ? QColor(0, 255, 80) : QColor(255, 120, 120));
+	painter.drawText(20, y, QString("Scan: %1").arg(snap_scanCount));
 }
 
 QPointF c_Magic_Map_View::World_To_Pixel(double wx, double wy) const

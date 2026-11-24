@@ -120,9 +120,6 @@
     <ClCompile Include="Magic_Map_View.cpp">
       <Filter>软件开发工具包\导航地图</Filter>
     </ClCompile>
-    <ClCompile Include="Magic_Lidar_View.cpp">
-      <Filter>软件开发工具包\导航地图</Filter>
-    </ClCompile>
     <ClCompile Include="Lczh_Remote.cpp">
       <Filter>业务层\立创致恒相机</Filter>
     </ClCompile>
@@ -180,9 +177,6 @@
       <Filter>业务层\煜禾森底盘控制</Filter>
     </QtMoc>
     <QtMoc Include="Magic_Map_View.h">
-      <Filter>软件开发工具包\导航地图</Filter>
-    </QtMoc>
-    <QtMoc Include="Magic_Lidar_View.h">
       <Filter>软件开发工具包\导航地图</Filter>
     </QtMoc>
     <QtMoc Include="Lczh_Remote.h">

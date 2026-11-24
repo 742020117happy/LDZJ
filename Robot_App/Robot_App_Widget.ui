@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Robot_App_Widget</class>
  <widget class="QMainWindow" name="Robot_App_Widget">
@@ -1768,43 +1768,6 @@
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QGroupBox" name="groupBox_4">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="title">
-              <string>雷达</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_19">
-              <item row="0" column="0">
-               <widget class="c_Magic_Lidar_View" name="widget_LidarView" native="true">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
                 </property>
                </widget>
               </item>
@@ -7184,12 +7147,6 @@
    <class>c_Magic_Map_View</class>
    <extends>QWidget</extends>
    <header>Magic_Map_View.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>c_Magic_Lidar_View</class>
-   <extends>QWidget</extends>
-   <header>Magic_Lidar_View.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

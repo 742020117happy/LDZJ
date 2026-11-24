@@ -116,7 +116,6 @@
     <ClCompile Include="HTTP_Client.cpp" />
     <ClCompile Include="Lczh_Remote.cpp" />
     <ClCompile Include="Magic_Map_View.cpp" />
-    <ClCompile Include="Magic_Lidar_View.cpp" />
     <ClCompile Include="Magic_Remote.cpp" />
     <ClCompile Include="ModeBusRTU_Master.cpp" />
     <ClCompile Include="MySql_Remote.cpp" />
@@ -201,7 +200,6 @@
     <QtMoc Include="HTTP_Client.h" />
     <QtMoc Include="Magic_Remote.h" />
     <QtMoc Include="Magic_Map_View.h" />
-    <QtMoc Include="Magic_Lidar_View.h" />
     <QtMoc Include="Lczh_Remote.h" />
     <QtMoc Include="MySql_Remote.h" />
     <QtMoc Include="Work_Remote.h" />

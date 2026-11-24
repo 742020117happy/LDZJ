@@ -33,6 +33,7 @@ private:
 	QPointF World_To_Pixel(double wx, double wy) const;
 	void Draw_HUD(QPainter &painter);
 	void Draw_Lidar_Overlay(QPainter &painter);   // 2026-11-06 雷达点云叠加（与地图同坐标系）
+	void Draw_Plan_Paths(QPainter &painter);      // 2026-11-06 局部/全局规划路径叠加（原 LidarView 迁移）
 	void Draw_Robot(QPainter &painter);
 
 	double m_Scale = 1.0;

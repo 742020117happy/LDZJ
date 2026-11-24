@@ -354,9 +354,11 @@ void c_Robot_App_Widget::Magic_Init()
 		}
 	});
 	QObject::connect(m_Magic_Remote, &c_Magic_Remote::update_RobotStatus, this, [this]() {
-		// 2026-10-24 重构 T17：激光雷达视图接线（原零接线永不刷新）
+		// 2026-11-06 联合显示定稿：位姿/雷达点云/规划路径统一刷新地图视图（原独立 LidarView 已移除）
 		// update_RobotStatus 由 Magic 200ms 轮询驱动（robot_pos/hardware_status 解析后发射）
-		ui->widget_LidarView->Refresh_Lidar();
+		if (ui->widget_MapView) {
+			ui->widget_MapView->Refresh_Map();
+		}
 	});
 
 	c_Robot_App_Widget::Magic_DB();
