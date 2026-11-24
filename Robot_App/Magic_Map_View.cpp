@@ -122,6 +122,9 @@ void c_Magic_Map_View::paintEvent(QPaintEvent *event)
 		Draw_Robot(painter);
 	}
 
+	// 2026-11-07 导航点标注：地图元数据（poslist），不依赖连接状态，画在点云上层保证可见
+	Draw_Nav_Points(painter);
+
 	painter.restore();
 	Draw_HUD(painter);
 }
@@ -179,6 +182,77 @@ void c_Magic_Map_View::Draw_Plan_Paths(QPainter &painter)
 		for (int i = 1; i < gridPts.size(); ++i)
 			path.lineTo(toPixel(gridPts.at(i)));
 		painter.drawPath(path);
+		painter.restore();
+	}
+}
+
+/******************************************************************************
+* 导航点标注（2026-11-07）：poslist 对象 {name,type,gridX,gridY,angle}。
+* type：0=初始点（灰色菱形）、1=充电点（黄色闪电圆标）、2=导航点（蓝色圆标）。
+* 坐标为栅格坐标，直接栅格→像素（px=gx-gw/2，py=(gh-gy)-gh/2），与地图绘制同一变换。
+* 标签字号用 1/m_Scale 补偿，缩放时保持可读。
+******************************************************************************/
+void c_Magic_Map_View::Draw_Nav_Points(QPainter &painter)
+{
+	QList<QJsonObject> pts;
+	int gw = 1, gh = 1;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 值拷贝快照
+		pts = read.navPoints;
+		gw = read.gridWidth; gh = read.gridHeight;
+		if (gw <= 0) gw = 1;
+	}
+	if (gh <= 0) gh = 1;
+	if (pts.isEmpty()) return;
+
+	const double inv = 1.0 / qBound(0.1, m_Scale, 10.0);	// 标签字号补偿系数
+	QFont font = painter.font();
+	font.setFamily("Consolas");
+	font.setPointSizeF(9.0);
+	painter.setFont(font);
+
+	for (const QJsonObject &pt : pts) {
+		double px = pt["gridX"].toDouble() - (gw / 2.0);
+		double py = (gh - pt["gridY"].toDouble()) - (gh / 2.0);
+		if (qIsNaN(px) || qIsNaN(py) || qAbs(px) > 1e6 || qAbs(py) > 1e6) continue;
+
+		int type = pt["type"].toInt(-1);
+		painter.save();
+		painter.translate(px, py);
+
+		if (type == 1) {
+			// 充电点：黄色圆标 + 黑色闪电
+			painter.setPen(QPen(Qt::black, 1.5));
+			painter.setBrush(QColor(255, 210, 0));
+			painter.drawEllipse(QPointF(0, 0), 7.0, 7.0);
+			QPolygonF bolt;
+			bolt << QPointF(1.5, -6.0) << QPointF(-2.5, 1.0) << QPointF(-0.5, 1.0) << QPointF(-1.5, 6.0)
+				<< QPointF(2.5, -1.0) << QPointF(0.5, -1.0);
+			painter.setBrush(Qt::black);
+			painter.setPen(Qt::NoPen);
+			painter.drawPolygon(bolt);
+		} else if (type == 0) {
+			// 初始点：灰绿色菱形
+			QPolygonF dia;
+			dia << QPointF(0, -6) << QPointF(6, 0) << QPointF(0, 6) << QPointF(-6, 0);
+			painter.setPen(QPen(Qt::black, 1.2));
+			painter.setBrush(QColor(120, 200, 120));
+			painter.drawPolygon(dia);
+		} else {
+			// 导航点（type==2 及未知类型）：蓝色圆标
+			painter.setPen(QPen(QColor(230, 240, 255), 1.2));
+			painter.setBrush(QColor(30, 120, 255));
+			painter.drawEllipse(QPointF(0, 0), 5.0, 5.0);
+		}
+
+		// 名称标签：反缩放保持可读，黑边白字
+		painter.scale(inv, inv);
+		QString name = pt["name"].toString();
+		painter.setPen(QPen(QColor(0, 0, 0, 200), 2.0));
+		painter.drawText(QPointF(9, 5), name);
+		painter.setPen(Qt::white);
+		painter.drawText(QPointF(9, 5), name);
 		painter.restore();
 	}
 }
