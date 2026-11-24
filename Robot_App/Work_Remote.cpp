@@ -372,13 +372,15 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 	if (err.error != QJsonParseError::NoError || !doc.isObject()) { fail_step("巡检配方解析失败", "PA003"); return; }
 	m_Work_Program = doc.object();
 
-	// 配方1：{carType:{wheelsetKind:{点:[轨迹]}}}，先取车型层（T89）
+	// 配方1：{carType:{wheelsetKind:{"1":{点:prog},"2":{点:prog}}}}，车型→轮对→工位分层（2026-11-06 用户定稿新结构）
 	QJsonObject prog_car1 = m_Work_Program.value(c_Variable::getInstance().g_Work_DB.carType).toObject();
 	if (prog_car1.value(c_Variable::getInstance().g_Work_DB.wheelsetKind) == QJsonValue::Undefined) {
 		fail_step("无当前车型巡检配方", "PA003");
 		return;
 	}
-	QJsonObject prog_kind1 = prog_car1.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
+	QJsonObject prog_kind_all1 = prog_car1.value(c_Variable::getInstance().g_Work_DB.wheelsetKind).toObject();
+	QJsonObject prog_kind1 = prog_kind_all1.value("1").toObject();   // 工位 1 点→prog
+	QJsonObject prog_kind1b = prog_kind_all1.value("2").toObject();  // 工位 2 点→prog（单工位 posId=2 用）
 
 	// 配方2（双工位第二任务车型/轮对；2026-10-25 QQ1 补层 + 用户定稿）
 	QString carType_2 = (wheelsetCount == 2) ? t2.value("carType").toString() : QString();
@@ -390,7 +392,8 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 			fail_step("无当前车型巡检配方（第二工位）", "PA003");
 			return;
 		}
-		prog_kind2 = prog_car2.value(wheelsetKind_2).toObject();
+		QJsonObject prog_kind_all2 = prog_car2.value(wheelsetKind_2).toObject();
+		prog_kind2 = prog_kind_all2.value("2").toObject();
 	}
 
 	// ================= 6. 巡检启动 =================
@@ -429,19 +432,16 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 		for (int i = 0; i < positions.size(); i++) {
 			QString Point_Name = positions.at(i).toString();
 			if (!allowedPoints.isEmpty() && !allowedPoints.contains(Point_Name)) { continue; }
-			if (prog_kind1.value(Point_Name) == QJsonValue::Undefined) { fail_step("巡检点不存在", "PA007"); return; }
+			// 2026-11-06 新结构：单工位按 posId 选工位对象（点→prog 整数）
+			QJsonObject prog_cur = (posId == 2) ? prog_kind1b : prog_kind1;
+			if (prog_cur.value(Point_Name) == QJsonValue::Undefined) { fail_step("巡检点不存在", "PA007"); return; }
 			if (i == 0) { emit precis_scan_start_time(c_Variable::getInstance().g_Work_DB.taskId); }	// 2026-11-06 定稿：单工位第一次执行轨迹时发精扫开始时间
 			if (!wait_StartTask(Point_Name)) {
 		if (!c_Variable::getInstance().g_Work.Connected) { return; }	// 2026-11-04 用户定稿：取消任务静默退出（门控已复位），不误报警
 		fail_step("机器人定位失败", "PA022"); return;
 	}
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
-			QJsonArray arr = prog_kind1.value(Point_Name).toArray();
-			if (arr.isEmpty()) { fail_step("巡检点工位轨迹越界", "PA003"); return; }
-			// 2026-11-06 用户定稿：单工位只跑对应 posId 的 currentProg——
-			// 双条点（P1.1/P4.1）取 posId-1；单条点（P2/P3/P4）取 0（原 posId-1 在单条时越界致任务失败）
-			int progIdx = qMin(posId - 1, arr.size() - 1);
-			if (!wait_CGXi_Prog_Start(arr.at(progIdx).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
+			if (!wait_CGXi_Prog_Start(prog_cur.value(Point_Name).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
 		}
 	}
 	else {
@@ -480,22 +480,19 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 				Switch_Work_Station(t1, posId);
 				// 2026-11-06 定稿：第一次执行 1 号工位轨迹时发精扫开始时间（按 1 号 task_id）
 				if (!pos1StartDone) { emit precis_scan_start_time(t1.value("taskId").toString()); pos1StartDone = true; }
-				// 2026-10-26 现场矫正：工位1 取数组第一条（at(0)）
-				QJsonArray arr1 = prog_kind1.value(Point_Name).toArray();
-				if (!arr1.isEmpty()) {
-					if (!wait_CGXi_Prog_Start(arr1.at(0).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
+				// 2026-11-06 新结构：工位 1 对象 点→prog 整数直接取
+				if (prog_kind1.value(Point_Name) != QJsonValue::Undefined) {
+					if (!wait_CGXi_Prog_Start(prog_kind1.value(Point_Name).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
 				}
 			}
-			// 2026-10-26 现场矫正：工位2 取数组最后一条——单条点（P2/P3/P4）仅工位2 轨迹即该条；
-			// 双条点（P1.1/P4.1）第二条=工位2 轨迹。原 at(posId_2-1) 在单条数组越界被静默跳过 → P2/P3/P4 未执行轨迹
 			if (isPos2) {
 				// 2026-10-28 用户定稿：采集信息随工位切换——2 号工位采集前切任务 2 字段
 				Switch_Work_Station(t2, posId_2);
 				// 2026-11-06 定稿：第一次执行 2 号工位轨迹时发精扫开始时间（按 2 号 task_id）
 				if (!pos2StartDone) { emit precis_scan_start_time(t2.value("taskId").toString()); pos2StartDone = true; }
-				QJsonArray arr2 = prog_kind2.value(Point_Name).toArray();
-				if (!arr2.isEmpty()) {
-					if (!wait_CGXi_Prog_Start(arr2.at(arr2.size() - 1).toInt())) { fail_step("机械臂运行失败（第二工位轨迹）", "PA003"); return; }
+				// 2026-11-06 新结构：工位 2 对象 点→prog 整数直接取
+				if (prog_kind2.value(Point_Name) != QJsonValue::Undefined) {
+					if (!wait_CGXi_Prog_Start(prog_kind2.value(Point_Name).toInt())) { fail_step("机械臂运行失败（第二工位轨迹）", "PA003"); return; }
 				}
 			}
 		}
