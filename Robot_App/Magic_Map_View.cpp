@@ -116,11 +116,50 @@ void c_Magic_Map_View::paintEvent(QPaintEvent *event)
 	painter.drawImage(imgRect, mapImage);
 
 	if (connected) {
-		Draw_Robot(painter);
+		// 2026-11-06 联合显示：点云先画（在机器人图标下层）、机器人后画
+	Draw_Lidar_Overlay(painter);
+	Draw_Robot(painter);
 	}
 
 	painter.restore();
 	Draw_HUD(painter);
+}
+
+/******************************************************************************
+* 雷达点云叠加：laserScanPoints 已为世界坐标（Magic_Remote 解析时 worldX/Y 变换），
+* 与地图同坐标系——用与地图相同的变换（resolution/origin/grid）绘制即可完全匹配。
+* 性能：点云数千点，锁内一次性快照，锁外批量计算像素。
+******************************************************************************/
+void c_Magic_Map_View::Draw_Lidar_Overlay(QPainter &painter)
+{
+	QVector<QPointF> pts;
+	double resolution = 0.05, ox = 0, oy = 0;
+	int gw = 1, gh = 1;
+	{
+		QReadLocker locker(&c_Variable::g_lock);
+		const Magic_ReadData read = c_Variable::getInstance().g_Magic.ReadData;	// 值拷贝快照
+		pts = read.laserScanPoints;
+		resolution = read.resolution;
+		if (qFuzzyIsNull(resolution) || resolution < 0.001) resolution = 0.05;
+		gw = read.gridWidth; gh = read.gridHeight;
+		if (gw <= 0) gw = 1;
+		ox = read.originX; oy = read.originY;
+	}
+	if (gh <= 0) gh = 1;
+	if (pts.isEmpty()) return;
+
+	painter.save();
+	painter.setPen(Qt::NoPen);
+	painter.setBrush(QColor(0, 255, 80, 110));   // 半透明绿点
+	for (const QPointF &pt : pts) {
+		// 与 World_To_Pixel 相同变换（内联避免每点加锁）
+		double gx = (pt.x() - ox) / resolution;
+		double gy = (pt.y() - oy) / resolution;
+		double px = gx - (gw / 2.0);
+		double py = (gh - gy) - (gh / 2.0);
+		painter.drawEllipse(QPointF(px, py), 1.2, 1.2);
+	}
+	painter.restore();
 }
 
 void c_Magic_Map_View::Draw_Robot(QPainter &painter)
