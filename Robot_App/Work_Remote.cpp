@@ -437,8 +437,11 @@ void c_Work_Remote::Execute_Inspection_Flow(QJsonObject &return_cmd, const QJson
 	}
 			if (i == 0) { emit Voice_Event("PA015"); }	// 2026-10-25 FF1：首次定位完成
 			QJsonArray arr = prog_kind1.value(Point_Name).toArray();
-			if (posId < 1 || posId > arr.size()) { fail_step("巡检点工位轨迹越界", "PA003"); return; }
-			if (!wait_CGXi_Prog_Start(arr.at(posId - 1).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
+			if (arr.isEmpty()) { fail_step("巡检点工位轨迹越界", "PA003"); return; }
+			// 2026-11-06 用户定稿：单工位只跑对应 posId 的 currentProg——
+			// 双条点（P1.1/P4.1）取 posId-1；单条点（P2/P3/P4）取 0（原 posId-1 在单条时越界致任务失败）
+			int progIdx = qMin(posId - 1, arr.size() - 1);
+			if (!wait_CGXi_Prog_Start(arr.at(progIdx).toInt())) { fail_step("机械臂运行失败", "PA003"); return; }
 		}
 	}
 	else {

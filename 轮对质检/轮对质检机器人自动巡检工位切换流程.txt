@@ -1,0 +1,144 @@
+双工位巡检指令：
+{
+	"Cmd_Name": "START_INSPECTION",
+	"Value": true,
+	"Checksum": "1792843238257",
+	"wheelsetCount": 2,
+	"tasks": [
+		{
+			"taskId": "202610261352ZQM3B22328109M3B22328CRH380B",
+			"carType": "CRH380B",
+			"wheelsetKind": "M3B",
+			"axleType": "22328",
+			"wheelsetNo": "109M3B22328",
+			"axleNo": "ZQM3B2232802",
+			"sendUnit": "SHDCD",
+			"startTime": "202610242000",
+			"repairLevel": "L3",
+			"wheelsetPosition": {
+				"posId": 1,
+				"mapPointName": "Lunduizhijian001",
+				"positions": [
+					"P1",
+					"P1.1",
+					"P4.1",
+					"P5",
+					"P6"
+				]
+			}
+		},
+		{
+			"taskId": "202610261352ZQM3B22079109M3B22079CRH380B",
+			"carType": "CRH380B",
+			"wheelsetKind": "M3B",
+			"axleType": "22079",
+			"wheelsetNo": "109M3B22079",
+			"axleNo": "ZQM3B2207901",
+			"sendUnit": "SHDCD",
+			"startTime": "202610242000",
+			"repairLevel": "L3",
+			"wheelsetPosition": {
+				"posId": 2,
+				"mapPointName": "Lunduizhijian001",
+				"positions": [
+					"P1.1",
+					"P2",
+					"P3",
+					"P4",
+					"P4.1"
+				]
+			}
+		}
+	]
+}
+
+
+原始图像名称组成：
+T1-年月日-车型轮对类型-车轴型号轮对号-轴号-工位号-机械臂轨迹索引号-一级部件名称-二级部件编号-巡检点编号
+原始图像名称字段：
+T1-{yyyyMMdd}-{carType}{wheelsetKind}-{axleType}{wheelsetNo}-{axleNo}-{posId}-{currentProg}-{currentPart1}-{currentPart2}-{currentPointStr}
+
+
+目前图像采集指令中需要弃用{startTime}字段信息。{taskId}组成{yyyyMMddHHmm}{wheelsetNo}{carType}。
+用{taskId}中的{yyyyMMddHHmm}代替{startTime}在采集指令中的作用
+
+定位点：P0（充电点）->P001(初始化点)->P1(导航点)->P1.1(导航点)->P2(导航点)->P3(导航点)->P4(导航点)->P4.1(导航点)->P5(导航点)->P6(导航点)-P0（充电点）
+
+1号工位{posId}的导航点包括：P1->P1.1->P4.1->P5->P6  {positions}
+2号工位{posId}的导航点包括：P1.1->P2->P3->P4->P4.1  {positions}
+
+当WEB发送双工位指令时，在P1.1导航点先运行1号工位 {currentProg} 再运行2号工位的{currentProg} 
+当WEB发送双工位指令时，在P4.1导航点先运行1号工位 {currentProg} 再运行2号工位的{currentProg} 
+当WEB发送单工位指令时，只跑对应{posId}的{currentProg} 
+
+{carType}="CR400BF"; {wheelsetKind}="T3C"; {posId}=1时
+ "P1"导航点运行 {currentProg}=22
+ "P1.1"导航点运行 {currentProg}=28
+ "P4.1"导航点运行 {currentProg}=31
+ "P5"导航点运行 {currentProg}=26
+ "P6"导航点运行 {currentProg}=27
+
+{carType}="CR400BF"; {wheelsetKind}="T3C"; {posId}=2时
+ "P1.1"导航点运行 {currentProg}=29
+ "P2"导航点运行 {currentProg}=23
+ "P3"导航点运行 {currentProg}=24
+ "P4"导航点运行 {currentProg}=25
+ "P4.1"导航点运行 {currentProg}=30
+
+{carType}="CR400BF"; {wheelsetKind}="GBD"; {posId}=1时
+ "P1"导航点运行 {currentProg}=13
+ "P1.1"导航点运行 {currentProg}=15
+ "P4.1"导航点运行 {currentProg}=21
+ "P5"导航点运行 {currentProg}=14
+ "P6"导航点运行 {currentProg}=12
+
+{carType}="CR400BF"; {wheelsetKind}="GBD"; {posId}=2时
+ "P1.1"导航点运行 {currentProg}=18
+ "P2"导航点运行 {currentProg}=16
+ "P3"导航点运行 {currentProg}=17
+ "P4"导航点运行 {currentProg}=19
+ "P4.1"导航点运行 {currentProg}=20
+
+{carType}="CR400BF"; {wheelsetKind}="GBT"; {posId}=1时
+ "P1"导航点运行 {currentProg}=13
+ "P1.1"导航点运行 {currentProg}=15
+ "P4.1"导航点运行 {currentProg}=21
+ "P5"导航点运行 {currentProg}=14
+ "P6"导航点运行 {currentProg}=12
+
+{carType}="CR400BF"; {wheelsetKind}="GBT"; {posId}=2时
+ "P1.1"导航点运行 {currentProg}=18
+ "P2"导航点运行 {currentProg}=16
+ "P3"导航点运行 {currentProg}=17
+ "P4"导航点运行 {currentProg}=19
+ "P4.1"导航点运行 {currentProg}=20
+
+{carType}="CRH380B"; {wheelsetKind}="M3B"; {posId}=1时
+ "P1"导航点运行 {currentProg}=32
+ "P1.1"导航点运行 {currentProg}=34
+ "P4.1"导航点运行 {currentProg}=40
+ "P5"导航点运行 {currentProg}=33
+ "P6"导航点运行 {currentProg}=41
+
+{carType}="CRH380B"; {wheelsetKind}="M3B"; {posId}=2时
+ "P1.1"导航点运行 {currentProg}=37
+ "P2"导航点运行 {currentProg}=35
+ "P3"导航点运行 {currentProg}=36
+ "P4"导航点运行 {currentProg}=38
+ "P4.1"导航点运行 {currentProg}=39
+
+{carType}="CRH380B"; {wheelsetKind}="T3B"; {posId}=1时
+ "P1"导航点运行 {currentProg}=1
+ "P1.1"导航点运行 {currentProg}=7
+ "P4.1"导航点运行 {currentProg}=10
+ "P5"导航点运行 {currentProg}=5
+ "P6"导航点运行 {currentProg}=6
+
+{carType}="CRH380B"; {wheelsetKind}="T3B"; {posId}=2时
+ "P1.1"导航点运行 {currentProg}=8
+ "P2"导航点运行 {currentProg}=2
+ "P3"导航点运行 {currentProg}=3
+ "P4"导航点运行 {currentProg}=4
+ "P4.1"导航点运行 {currentProg}=9
+
+InspectionPlan.json也需要按新的规则优化修改
