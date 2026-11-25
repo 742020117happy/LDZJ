@@ -273,7 +273,23 @@ bool c_Work_Remote::Validate_Start_Inspection(const QJsonObject &object, QJsonOb
 		}
 	}
 
-	// 任务1 字段写入 g_Work_DB（2026-10-24 T83：跨线程读，写侧持写锁）
+	posId = wp1.value("posId").toInt();
+	if (wheelsetCount == 2) {
+		posId_2 = wp2.value("posId").toInt();
+		// 2026-11-25 现场修复：任务与工位按 posId 配对归一化（原按 tasks 数组序硬配对）——
+		// 现场 WEB 下发顺序与物理工位相反（tasks[0].posId=2/tasks[1].posId=1）时，
+		// 1 号工位点（P1/P5/P6）执行了 tasks[0] 的轨迹并标其 posId=2 → 图像名与实采工位错位。
+		// 规则（流程.txt）：1 号工位导航点=P1/P1.1/P4.1/P5/P6、2 号=P1.1/P2/P3/P4/P4.1，
+		// 故 t1 恒为 posId==1 的任务、t2 恒为 posId==2 的任务，与数组顺序无关。
+		if (posId == 2 && posId_2 == 1) {
+			qSwap(t1, t2);
+			qSwap(wp1, wp2);
+			qSwap(posId, posId_2);
+			c_Log::Warn("WORK", "Station", "tasks swapped by posId: t1=posId1 task, t2=posId2 task (WEB order reversed)");
+		}
+	}
+
+	// 任务1 字段写入 g_Work_DB（2026-10-24 T83：跨线程读，写侧持写锁；归一化后 t1=1 号工位任务）
 	{
 		QWriteLocker locker(&c_Variable::g_lock);
 		c_Variable::getInstance().g_Work_DB.taskId = t1.value("taskId").toString();
@@ -284,17 +300,11 @@ bool c_Work_Remote::Validate_Start_Inspection(const QJsonObject &object, QJsonOb
 		c_Variable::getInstance().g_Work_DB.sendUnit = t1.value("sendUnit").toString();
 		c_Variable::getInstance().g_Work_DB.repairLevel = t1.value("repairLevel").toString();
 		c_Variable::getInstance().g_Work_DB.axleType = t1.value("axleType").toString();
-	}
-
-	posId = wp1.value("posId").toInt();
-	// 2026-10-26 协议：posId 写入 g_Work_DB（图像文件名 {posId} 段）
-	{
-		QWriteLocker locker(&c_Variable::g_lock);
+		// 2026-10-26 协议：posId 写入 g_Work_DB（图像文件名 {posId} 段）
 		c_Variable::getInstance().g_Work_DB.posId = QString::number(posId);
 	}
 	mapPointName = wp1.value("mapPointName").toString();
 	positions = wp1.value("positions").toArray();
-	if (wheelsetCount == 2) { posId_2 = wp2.value("posId").toInt(); }
 
 	// 工序失败统一处理（2026-10-25 整合：workState=5 + 语音 + Error 应答收敛为 lambda）
 	return true;
