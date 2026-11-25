@@ -1307,15 +1307,22 @@ bool c_Magic_Remote::On_Resp_Realtime(const QString &path, const QJsonValue &dat
 			double angleMin = d["angle_min"].toDouble(-3.14159);
 			double angleMax = d["angle_max"].toDouble(3.14159);
 			double angleInc = d["angle_increment"].toDouble(0.017);
+			// 2026-11-25 现场修复：laser2d/scan 为激光系角度（API 文档 frame_id=laser_link，随车旋转），
+			// 原代码直接按世界角投影（worldX+range*cos(a)）——充电原点 yaw≈0 时恰巧匹配，
+			// 离开后点云随车旋转与地图错位。世界角 = 激光角 - 机器人朝向角
+			//（robot_pos angle 单位度；地图绘制约定 painter.rotate(-angle) 即世界航向=-angle）
+			const double D2R_LOCAL = 3.14159265358979323846 / 180.0;	// 2026-11-25 度→弧度（CGXi_Sim_View 同款常量）
+			double yawRad = c_Variable::getInstance().g_Magic.ReadData.angle * D2R_LOCAL;
 			c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.clear();
 			c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.reserve(ranges.size());
 			for (int i = 0; i < ranges.size(); ++i) {
 				double range = ranges[i].toDouble();
 				if (range > 0.05 && range < 30.0) {
 					double a = angleMin + i * angleInc;
+					double wa = a - yawRad;	// 世界角 = 激光角 - 航向角
 					c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.append(QPointF(
-						c_Variable::getInstance().g_Magic.ReadData.worldX + range * qCos(a),
-						c_Variable::getInstance().g_Magic.ReadData.worldY + range * qSin(a)));
+						c_Variable::getInstance().g_Magic.ReadData.worldX + range * qCos(wa),
+						c_Variable::getInstance().g_Magic.ReadData.worldY + range * qSin(wa)));
 				}
 			}
 			c_Variable::getInstance().g_Magic.ReadData.lidarOnline = !c_Variable::getInstance().g_Magic.ReadData.laserScanPoints.isEmpty();
