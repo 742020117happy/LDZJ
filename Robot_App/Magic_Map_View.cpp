@@ -221,6 +221,15 @@ void c_Magic_Map_View::Draw_Nav_Points(QPainter &painter)
 		painter.save();
 		painter.translate(px, py);
 
+		// 2026-11-25 用户要求：导航点朝向指示线（点 angle 字段，单位度；
+		// 与机器人图标同约定 rotate(-angle)——P0/P001 359° ≈ 指向 +X 方向）
+		const double D2R_LOCAL = 3.14159265358979323846 / 180.0;
+		double angDeg = pt["angle"].toDouble(0.0);
+		double aRad = -angDeg * D2R_LOCAL;
+		double dirLen = (type == 1) ? 15.0 : ((type == 0) ? 13.0 : 10.5);
+		painter.setPen(QPen(QColor(0, 0, 0, 170), 1.5));
+		painter.drawLine(QPointF(0, 0), QPointF(qCos(aRad) * dirLen, qSin(aRad) * dirLen));
+
 		if (type == 1) {
 			// 充电点：黄色圆标 + 黑色闪电
 			painter.setPen(QPen(Qt::black, 1.5));
