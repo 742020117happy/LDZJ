@@ -12,6 +12,8 @@
 > **导航定位判定定稿（2026-10-28）**：任务完成+目标点在 navPoints+距离 ≤1.5m+角度偏差 ≤10°（环形差）才判定位正常，其他一律失败报警（防机械臂错误工位碰撞）。
 > **工位采集上下文切换铁律（2026-10-28 用户定稿）**：双工位走行每点采集前 `Switch_Work_Station(t1/t2, posId/posId_2)` 实时切换 g_Work_DB 12 项字段（taskId/carType/wheelsetKind/axleType/wheelsetNo/axleNo/sendUnit/startTime/repairLevel/mapPointName/positions/posId/currentTaskIndex）——保证 START/PHOTO/FINISH 帧、文件名、数据库、EMIS、UI/WEB 显示与当前工位一致；共用点（P1.1/P4.1）先 1 后 2 两次切换。消费方一律实时读 g_Work_DB，禁止缓存工位字段。
 > **工位配对归一化铁律（2026-11-25 现场修复）**：双工位 t1/t2 必须按 **posId 配对**（t1=posId1 任务、t2=posId2 任务），禁止按 tasks 数组顺序硬配对——WEB 下发顺序与物理工位相反时（tasks[0].posId=2/tasks[1].posId=1）自动 qSwap 归一化，保证图像名 {posId} 段与实采工位一致。
+> **地图联合显示定稿（2026-11-06~25）**：地图+雷达点云（红色）+规划路径+导航点标注全部并入 widget_MapView（独立 LidarView 已移除）；绘制顺序 地图→路径→点云→导航点→机器人；导航点含朝向指示线（rotate(-angle) 与机器人图标同约定）；激光 10Hz 专用轮询（m_LidarTimer）。
+> **激光点云航向铁律（2026-11-25 现场修复）**：laser2d/scan 为激光系角度（frame_id=laser_link，随车旋转），世界角=激光角-机器人朝向角（robot_pos angle 为度）——禁止直接按世界角投影（离开充电点后点云随车旋转错位）。
 > **图像采集协议（质检机器人图像采集协议.docx，2026-10-26 学习固化）**：
 > - START：`START&{sendUnit}&{yyyyMMdd}&{HHmm}&{carType}{wheelsetKind}&{taskId}`（第5段=车型轮对类型）
 > - CHANGE：`CHANGE&GAIN&{gain}`
